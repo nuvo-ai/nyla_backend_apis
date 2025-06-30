@@ -6,6 +6,7 @@ use App\Constants\User\UserConstants;
 use App\Constants\General\AppConstants;
 use App\Constants\General\StatusConstants;
 use App\Exceptions\General\ModelNotFoundException;
+use App\Helpers\Helper;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +47,7 @@ class ProfileService
             "address" => "nullable|string",
             "state" => "nullable|string",
             "city" => "nullable|string",
+            'avatar' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -61,6 +63,12 @@ class ProfileService
         try {
             $data = self::validate($data, $id);
             $user = !empty($id) ? $this->getById($id) : auth()->user()->id;
+            if (isset($data['avatar']) && !empty($data['avatar'])) {
+                $file_directory = 'files/users/avatars';
+                $data['avatar'] = Helper::saveSingleFileRequest($data['avatar'], $file_directory);
+            } else {
+                unset($data['avatar']);
+            }
             $user->update($data);
             DB::commit();
             return $user->refresh();

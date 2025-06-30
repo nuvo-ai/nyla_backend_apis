@@ -6,12 +6,18 @@ use App\Constants\User\UserConstants;
 use App\Constants\General\AppConstants;
 use App\Constants\General\StatusConstants;
 use App\Exceptions\General\ModelNotFoundException;
+use App\Mail\SendUserLoginDetailsMail;
+use App\Models\Portal;
 use App\Models\User;
+use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 
 class UserService
 {
@@ -38,12 +44,13 @@ class UserService
     {
         $validator = Validator::make($data, [
             'fcm_token' => 'nullable|string',
+            "name" => "nullable|string",
             "first_name" => "nullable|string",
             "last_name" => "nullable|string",
             "role" => "nullable|" . Rule::in(UserConstants::ROLES),
             "email" => "required|email|unique:users,email,$id|" . Rule::requiredIf(empty($id)),
             "status" => "nullable|string",
-            'password' => [Rule::requiredIf(empty($id))],
+            'password' => "nullable",
             "phone_number" => "nullable",
             "gender" => Rule::in(AppConstants::GENDERS) . "|nullable",
             "dob" => 'nullable|date_format:Y-m-d|before:today',
@@ -62,18 +69,36 @@ class UserService
     }
 
 
+
     public function create(array $data): User
     {
         DB::beginTransaction();
         try {
-            $data = self::validate($data);
-            $data = array_merge([
-                'status' => StatusConstants::ACTIVE,
-                'role' => $data["role"] ?? UserConstants::USER
-            ], $data);
+            if (isset($data['user_email'])) {
+                $data['email'] = $data['user_email'];
+            }
+            if (isset($data['user_phone_number'])) {
+                $data['phone_number'] = $data['user_phone_number'];
+            }
+            if (isset($data['user_name'])) {
+                $name_parts = preg_split('/\s+/', trim($data['user_name']));
+                $data['first_name'] = $name_parts[0] ?? null;
+                $data['last_name'] = $name_parts[1] ?? null;
+            }
 
-            $data['password'] = !empty($data['password'] ?? null) ? Hash::make($data['password']) : null;
-            $user = User::create($data);
+            if (empty($data['portal'])) {
+                throw new Exception('Portal name is required to create a user.');
+            }
+            $portal = Portal::firstOrCreate(['name' => $data['portal']]);
+            
+            $validated = self::validate($data);
+
+            $validated['status'] = $validated['status'] ?? StatusConstants::ACTIVE;
+            $validated['role'] = $validated['role'] ?? UserConstants::USER;
+            $validated['password'] = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make($validated['generated_password']);
+            $validated['portal_id'] = $portal->id;
+            $user = User::create($validated);
+            $this->sendLoginDetailsDuringhospitalRegistration($user->id, request());
             DB::commit();
             return $user;
         } catch (\Throwable $th) {
@@ -82,10 +107,14 @@ class UserService
         }
     }
 
+
     public function update(array $data, $id = null)
     {
         DB::beginTransaction();
         try {
+            if (isset($data['user_email'])) {
+                $data['email'] = $data['user_email'];
+            }
             $data = self::validate($data, $id);
 
             $user = !empty($id) ? $this->getById($id) : auth()->user();
@@ -132,6 +161,20 @@ class UserService
         } catch (\Throwable $th) {
             DB::rollBack();
             throw $th;
+        }
+    }
+
+    private function sendLoginDetailsDuringhospitalRegistration($user_id, Request $request)
+    {
+        try {
+            $user = User::findOrFail($user_id);
+            $random_password = $request->input('password', Str::random(10));
+            $user->password = Hash::make($random_password);
+            $user->save();
+            Mail::to($user->email)->send(new SendUserLoginDetailsMail($user, $random_password));
+            return $user->toArray();
+        } catch (\Exception $e) {
+            return ['error_message' => 'An error occurred while sending login details to user.'];
         }
     }
 }

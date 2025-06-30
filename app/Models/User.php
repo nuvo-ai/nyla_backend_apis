@@ -71,4 +71,13 @@ class User extends Authenticatable
         return $this->hasMany(LogisticOrder::class);
     }
 
+    public function hospital()
+    {
+        return $this->hasOne(Hospital::class);
+    }
+
+    public function portal()
+    {
+        return $this->belongsTo(Portal::class);
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Portal;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -13,7 +14,11 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        $portal = Portal::firstOrCreate([
+            'name' => 'Hospital',
+        ]);
         User::create([
+            'portal_id' => $portal->id,
             'first_name' => 'Tope',
             'last_name' => 'Olotu',
             'email' => 'topeolotu75@gmail.com',
@@ -28,6 +33,7 @@ class UserSeeder extends Seeder
         ]);
 
         User::create([
+            'portal_id' => $portal->id,
             'first_name' => 'Super',
             'last_name' => 'Admin',
             'email' => 'admin@bongoexpressonline.com',
