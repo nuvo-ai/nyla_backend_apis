@@ -2,16 +2,16 @@
 
 namespace App\Services\User;
 
-use App\Constants\User\UserConstants;
-use App\Constants\General\AppConstants;
-use App\Constants\General\StatusConstants;
-use App\Exceptions\General\ModelNotFoundException;
-use App\Models\User;
+use App\Models\User\User;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Constants\User\UserConstants;
+use App\Constants\General\AppConstants;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
+use App\Constants\General\StatusConstants;
 use Illuminate\Validation\ValidationException;
+use App\Exceptions\General\ModelNotFoundException;
 
 class UserService
 {

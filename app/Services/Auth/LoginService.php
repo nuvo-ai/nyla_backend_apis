@@ -2,13 +2,13 @@
 
 namespace App\Services\Auth;
 
-use App\Constants\User\UserConstants;
-use App\Exceptions\Auth\AuthException;
-use App\Models\User;
+use App\Models\User\User;
+use Illuminate\Support\Str;
 use App\Services\User\UserService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+use App\Constants\User\UserConstants;
+use App\Exceptions\Auth\AuthException;
 use Illuminate\Support\Facades\Validator;
 
 class LoginService
@@ -34,7 +34,7 @@ class LoginService
                 'fcm_token' => 'nullable|string',
             ])->validate();
 
-            $user = User::where("email", $data["email"])->first();
+            $user = User::where("email", $data["email"])->firstOrFail();
 
             if (!Hash::check($data["password"], $user->password)) {
                 throw new AuthException("Incorrect password provided.");
@@ -53,7 +53,6 @@ class LoginService
             return $user->refresh();
         });
     }
-
     public static function ouath(array $payload)
     {
         return DB::transaction(function () use ($payload) {

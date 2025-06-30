@@ -14,11 +14,11 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('hospital_contact_id')->constrained()->nullable();
             $table->string('first_name');
             $table->string('last_name');
             $table->string('email')->unique();
-            $table->string('phone_number', 45)->nullable();
-            $table->string('phone_number2', 45)->nullable();
+            $table->string('phone', 45)->nullable();
             $table->string('role')->nullable();
             $table->text('address')->nullable();
             $table->string('state')->nullable();

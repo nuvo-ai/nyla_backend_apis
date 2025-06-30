@@ -1,19 +1,20 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\User;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use ApiPlatform\Metadata\ApiResource;
+use App\Models\Hospital\HospitalContact;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-#[ApiResource]
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -56,19 +57,8 @@ class User extends Authenticatable
         return $this->names();
     }
 
-    public function locations()
+    public function hospitalContact()
     {
-        return $this->hasMany(PickupLocation::class);
+        return $this->belongsTo(HospitalContact::class);
     }
-
-    public function orders()
-    {
-        return $this->hasMany(Order::class);
-    }
-
-    public function logisticOrders()
-    {
-        return $this->hasMany(LogisticOrder::class);
-    }
-
 }

@@ -2,12 +2,12 @@
 
 namespace App\Services\Auth;
 
+use App\Models\User\User;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use App\Constants\Auth\OtpConstants;
 use App\Exceptions\Auth\OtpException;
-use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class VerifyService
 {

@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\User\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
@@ -30,14 +30,14 @@ class UserSeeder extends Seeder
         User::create([
             'first_name' => 'Super',
             'last_name' => 'Admin',
-            'email' => 'admin@bongoexpressonline.com',
+            'email' => 'admin@nyla.ai',
             'phone_number' => '08098765432',
             'role' => 'Admin',
             'address' => '456 Admin Avenue',
             'state' => 'Abuja',
             'city' => 'Maitama',
             'status' => 1,
-            'password' => bcrypt('Bongoexpressonline2025@'),
+            'password' => bcrypt('NylaAi@2025'),
             'email_verified_at' => now(),
         ]);
     }
