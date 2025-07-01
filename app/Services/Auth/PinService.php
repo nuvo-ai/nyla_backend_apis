@@ -2,16 +2,16 @@
 
 namespace App\Services\Auth;
 
+use Carbon\Carbon;
+use App\Helpers\Helper;
+use App\Models\User\Pin;
+use App\Models\User\User;
+use Illuminate\Validation\Rule;
 use App\Constants\Auth\OtpConstants;
 use App\Exceptions\Auth\OtpException;
-use App\Helpers\Helper;
-use App\Models\Pin;
-use App\Models\User;
-use App\Services\Notification\AppMailerService;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use App\Services\Notification\AppMailerService;
 
 class PinService
 {

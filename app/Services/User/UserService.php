@@ -2,22 +2,22 @@
 
 namespace App\Services\User;
 
+use App\Models\User\User;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use App\Constants\User\UserConstants;
 use App\Constants\General\AppConstants;
+use Illuminate\Support\Facades\Validator;
 use App\Constants\General\StatusConstants;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 use App\Exceptions\General\ModelNotFoundException;
 use App\Mail\SendUserLoginDetailsMail;
 use App\Models\Portal;
-use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Str;
 
 class UserService
 {
@@ -44,7 +44,7 @@ class UserService
     {
         $validator = Validator::make($data, [
             'fcm_token' => 'nullable|string',
-            "name" => "nullable|string",
+            "name" => "required|string",
             "first_name" => "nullable|string",
             "last_name" => "nullable|string",
             "role" => "nullable|" . Rule::in(UserConstants::ROLES),
@@ -74,25 +74,19 @@ class UserService
     {
         DB::beginTransaction();
         try {
-            if (isset($data['user_email'])) {
-                $data['email'] = $data['user_email'];
-            }
-            if (isset($data['user_phone_number'])) {
-                $data['phone_number'] = $data['user_phone_number'];
-            }
-            if (isset($data['user_name'])) {
-                $name_parts = preg_split('/\s+/', trim($data['user_name']));
+            if (isset($data['name'])) {
+                $name_parts = preg_split('/\s+/', trim($data['name']));
                 $data['first_name'] = $name_parts[0] ?? null;
                 $data['last_name'] = $name_parts[1] ?? null;
             }
 
             if (empty($data['portal'])) {
-                throw new Exception('Portal name is required to create a user.');
+                throw new Exception('Portal is required to create a user.');
             }
             $portal = Portal::firstOrCreate(['name' => $data['portal']]);
-            
-            $validated = self::validate($data);
 
+            $validated = self::validate($data);
+            unset($validated['name']);
             $validated['status'] = $validated['status'] ?? StatusConstants::ACTIVE;
             $validated['role'] = $validated['role'] ?? UserConstants::USER;
             $validated['password'] = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make($validated['generated_password']);

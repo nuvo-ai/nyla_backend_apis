@@ -4,7 +4,8 @@ use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\PasswordController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\VerificationController;
-use App\Http\Controllers\Api\Hospital\Registration\HospitalRegistrationController;
+use App\Http\Controllers\Api\Hospital\HospitalRegistrationController;
+use App\Http\Controllers\Api\Pharmacy\PharmacyRegistrationController;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Middleware\ApiEnsureFrontendRequestsAreStateful;
 use Illuminate\Http\Request;
@@ -49,8 +50,18 @@ Route::prefix("auth")->as("auth.")->group(function () {
 // Authenticated routes
 Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])->group(function () {
     Route::get("/me", [UserController::class, "me"])->name("me");
+
+    Route::prefix('hospital')->as('hospital.')->group(function () {
+        Route::put('/update/{id}', [HospitalRegistrationController::class, 'updateHospital'])->name('update');
+    });
+    Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
+        Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');
+    });
 });
 
 Route::prefix('hospital')->as('hospital.')->group(function () {
     Route::post('/register', [HospitalRegistrationController::class, 'registerHospital'])->name('register');
+});
+Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
+    Route::post('/register', [PharmacyRegistrationController::class, 'registerPharmacy'])->name('register');
 });

@@ -1,26 +1,26 @@
 <?php
 
-namespace App\Http\Controllers\Api\Hospital\Registration;
+namespace App\Http\Controllers\Api\Hospital;
 
 use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Hospital\HospitalRegistrationResource;
-use App\Models\User;
-use App\Services\Hospital\Registration\HotelRegistrationService;
+use App\Services\Hospital\HospitalService;
 use App\Services\User\UserService;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
 class HospitalRegistrationController extends Controller
 {
-    public $hospital_registration_service;
+    public $hospital_service;
     public $user;
     public function __construct()
     {
-        $this->hospital_registration_service = new HotelRegistrationService;
+        $this->hospital_service = new HospitalService;
         $this->user = new UserService;
     }
 
@@ -28,11 +28,25 @@ class HospitalRegistrationController extends Controller
     {
         try {
             $user = $this->user->create($this->requestedUserDataduringHospitalRegistration($request));
-            $hospital_data = $request->except(['user_name', 'user_email', 'user_phone_number', 'portal', 'password', 'generated_password']);
+            $hospital_data = $request->except(['user_name', 'user_email', 'user_phone', 'portal', 'password', 'generated_password']);
             $hospital_data['user_id'] = $user->id;
-            $hospital = $this->hospital_registration_service->registerHospital($hospital_data);
+            $hospital = $this->hospital_service->createHospital($hospital_data);
 
             return ApiHelper::validResponse("Hospital created successfully", HospitalRegistrationResource::make($hospital));
+        } catch (ValidationException $e) {
+            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+
+    public function updateHospital(Request $request, $id)
+    {
+        // dd($request->all(), $id);
+        try {
+            $hospital = $this->hospital_service->updateHospital($request->all(), $id);
+
+            return ApiHelper::validResponse("Hospital updated successfully", HospitalRegistrationResource::make($hospital));
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
@@ -45,17 +59,15 @@ class HospitalRegistrationController extends Controller
         $generated_password = $this->generateRandomPasswordDuringHospitalRegistration();
 
         $request->merge(['generated_password' => $generated_password]);
-
         return [
-            'user_name' => $request->input('user_name'),
-            'user_email' => $request->input('user_email'),
-            'user_phone_number' => $request->input('user_phone_number'),
-            'portal' => $request->input('portal'),
-            'role' => $request->input('role'),
-            'password' => $generated_password,
+            'email'       => $request->input('user_email'),
+            'phone' => $request->input('user_phone'),
+            'portal'      => $request->input('portal'),
+            'role'        => $request->input('role'),
+            'password'    => $generated_password,
+            'name'        => $request->input('user_name'),
         ];
     }
-
 
     private function generateRandomPasswordDuringHospitalRegistration(int $length = 10): string
     {

@@ -13,26 +13,25 @@ return new class extends Migration
     {
         Schema::create('hospitals', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->uuid('uuid')->unique();
             $table->string('name');
-            $table->string('email')->unique();
-            $table->string('phone');
-            $table->string('address');
-            $table->string('hospital_type');
+            $table->enum('type', ['private', 'public', 'teaching', 'specialist', 'general']);
             $table->string('registration_number');
-            $table->string('logo')->nullable();
-            $table->string('license')->nullable();
-            $table->boolean('request_on_site_setup')->nullable();
-            $table->boolean('accept_terms');
-            $table->string('street_address');
+            $table->string('phone');
+            $table->string('email')->unique();
+            $table->string('logo_path')->nullable();
+            $table->text('street_address');
             $table->string('city');
             $table->string('state');
-            $table->string('google_maps_location')->nullable();
+            $table->string('country');
+            $table->text('google_maps_location')->nullable();
             $table->integer('number_of_beds')->nullable();
-            $table->json('departments');
-            $table->json('services');
-            $table->json('operating_hours')->nullable();
+            $table->string('license_path')->nullable();
+            $table->boolean('request_onsite_setup')->default(false);
+            $table->boolean('terms_accepted')->default(false);
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

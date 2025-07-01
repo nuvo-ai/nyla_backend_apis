@@ -2,11 +2,11 @@
 
 namespace App\Services\Auth;
 
-use App\Models\User;
-use App\Notifications\User\WelcomeNotification;
+use App\Models\User\User;
 use App\Services\User\UserService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use App\Notifications\User\WelcomeNotification;
 
 class RegistrationService
 {

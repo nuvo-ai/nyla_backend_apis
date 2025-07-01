@@ -5,6 +5,7 @@ namespace App\Services\Hospital\Registration;
 use App\Constants\General\AppConstants;
 use App\Helpers\Helper;
 use App\Models\Hospital;
+use App\Models\Hospital\Hospital as HospitalHospital;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -71,7 +72,7 @@ class HotelRegistrationService
                 $file_directory = 'files/hotel/logo';
                 $data['logo_id'] = Helper::saveSingleFileRequest($data['logo'], $file_directory);
             }
-            $hospital = Hospital::create($data);
+            $hospital = HospitalHospital::create($data);
 
             // Create a hospital user record
             $hospital->users()->create([

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Hospital\Hospital;
+use App\Models\User\User;
 use Illuminate\Database\Eloquent\Model;
 
 class HospitalUser extends Model

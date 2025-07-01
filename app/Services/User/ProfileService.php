@@ -2,18 +2,19 @@
 
 namespace App\Services\User;
 
-use App\Constants\User\UserConstants;
-use App\Constants\General\AppConstants;
-use App\Constants\General\StatusConstants;
-use App\Exceptions\General\ModelNotFoundException;
-use App\Helpers\Helper;
-use App\Models\User;
+use App\Models\User\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Constants\User\UserConstants;
+use App\Constants\General\AppConstants;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
+use App\Constants\General\StatusConstants;
 use Illuminate\Validation\ValidationException;
+use App\Exceptions\General\ModelNotFoundException;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileService
 {
@@ -64,10 +65,11 @@ class ProfileService
             $data = self::validate($data, $id);
             $user = !empty($id) ? $this->getById($id) : auth()->user()->id;
             if (isset($data['avatar']) && !empty($data['avatar'])) {
-                $file_directory = 'files/users/avatars';
-                $data['avatar'] = Helper::saveSingleFileRequest($data['avatar'], $file_directory);
-            } else {
-                unset($data['avatar']);
+                if ($user->avatar) {
+                    Storage::delete($user->avatar);
+                }
+                $data['avatar'] = $this->handleFileUpload($data['avatar'] ?? null, 'user-avatars');
+                $user->save();
             }
             $user->update($data);
             DB::commit();
@@ -76,5 +78,14 @@ class ProfileService
             DB::rollBack();
             throw $th;
         }
+    }
+
+    private function handleFileUpload(?UploadedFile $file, string $directory): ?string
+    {
+        if (!$file) {
+            return null;
+        }
+
+        return $file->store($directory, 'public');
     }
 }

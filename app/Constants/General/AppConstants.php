@@ -11,6 +11,7 @@ class AppConstants
     const ROLE_ADMIN = 'Admin';
 
     const ROLE_HOSPITAL_OWNER = 'Hospital Owner';
+    const ROLE_PHARMACY_OWNER = 'Pharmacy Owner';
 
     const TEAM_ZENOVATE = 'Zenovate';
 
