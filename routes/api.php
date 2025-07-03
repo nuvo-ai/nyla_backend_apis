@@ -29,22 +29,19 @@ Route::get('/test-email', function () {
     ]);
 });
 
-
+Route::prefix("password")->as("password.")->group(function () {
+    Route::post('/forgot', [PasswordController::class, 'forgotPassword'])->name("forgot_password");
+    Route::post("/reset", [PasswordController::class, "resetPassword"])->name("reset_password");
+});
+Route::prefix("otp")->as("otp.")->group(function () {
+    Route::post('/request', [VerificationController::class, 'request'])->name("request");
+    Route::post("/verify", [VerificationController::class, "verify"])->name("verify");
+});
 Route::prefix("auth")->as("auth.")->group(function () {
     Route::post("/register", [RegisterController::class, "register"])->name("register");
     Route::post("/oauth-login", [LoginController::class, "oauthLogin"]);
     Route::post("/login", [LoginController::class, "login"])->name("login");
     Route::post("/apple/signin", [LoginController::class, "signInWithApple"])->name("signInWithApple");
-
-
-    Route::prefix("password")->as("password.")->group(function () {
-        Route::post('/forgot', [PasswordController::class, 'forgotPassword'])->name("forgot_password");
-        Route::post("/reset", [PasswordController::class, "resetPassword"])->name("reset_password");
-    });
-    Route::prefix("otp")->as("otp.")->group(function () {
-        Route::post('/request', [VerificationController::class, 'request'])->name("request");
-        Route::post("/verify", [VerificationController::class, "verify"])->name("verify");
-    });
 });
 
 // Authenticated routes

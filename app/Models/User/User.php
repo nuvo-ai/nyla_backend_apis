@@ -6,6 +6,7 @@ namespace App\Models\User;
 use Laravel\Sanctum\HasApiTokens;
 use ApiPlatform\Metadata\ApiResource;
 use App\Models\Hospital\HospitalContact;
+use App\Models\Hospital\HospitalUser;
 use App\Models\Portal;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -66,5 +67,10 @@ class User extends Authenticatable
     public function portal()
     {
         return $this->belongsTo(Portal::class, 'portal_id');
+    }
+
+    public function hospitalUser()
+    {
+        return $this->hasOne(HospitalUser::class, 'user_id');
     }
 }

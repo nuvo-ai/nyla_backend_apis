@@ -3,7 +3,7 @@
 namespace App\Services\Auth;
 
 use App\Constants\Auth\OtpConstants;
-use App\Models\User;
+use App\Models\User\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 

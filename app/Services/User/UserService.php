@@ -92,6 +92,14 @@ class UserService
             $validated['password'] = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make($validated['generated_password']);
             $validated['portal_id'] = $portal->id;
             $user = User::create($validated);
+
+            $hospitalUser = $user->hospitalUser()->create([
+                'user_id' => $user->id,
+                'hospital_id' => $data['hospital_id'] ?? auth()->user()->hospital->id ?? null,
+                'role' => $validated['role'],
+                'user_account_id' => auth()->user()->id ?? $user->id,
+            ]);
+
             $this->sendLoginDetailsDuringhospitalRegistration($user->id, request());
             DB::commit();
             return $user;

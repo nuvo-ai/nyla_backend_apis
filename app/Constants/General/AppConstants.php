@@ -79,4 +79,16 @@ class AppConstants
         self::SPECIALIST => self::SPECIALIST,
         self::GENERAL => self::GENERAL,
     ];
+
+    const HOSPITAL_ADMIN = 'Hospital Admin';
+    const HOSPITAL_FRONT_DESK = 'Hospital Front Desk';
+    const HOSPITAL_DOCTOR = 'Hospital Doctor';
+    const HOSPITAL_LAB = 'Hospital Lab';
+
+    const HOSPITAL_ROLES = [
+       self::HOSPITAL_ADMIN,
+        self::HOSPITAL_FRONT_DESK,
+        self::HOSPITAL_DOCTOR,
+        self::HOSPITAL_LAB,
+    ];
 }

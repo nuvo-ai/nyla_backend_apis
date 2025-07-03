@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
              $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('hospital_id')->nullable()->constrained('hospitals')->cascadeOnDelete();
-            $table->string('role')->default(AppConstants::ROLE_HOSPITAL_OWNER);
+            $table->string('role')->default(AppConstants::ROLE_ADMIN);
             $table->foreignId('user_account_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->timestamps();
         });

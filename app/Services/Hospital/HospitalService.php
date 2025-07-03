@@ -72,6 +72,7 @@ class HospitalService
             // Create hospital
             $hospital = Hospital::create([
                 'uuid' => Str::uuid(),
+                'user_id' => $data['user_id'] ?? null,
                 'name' => $data['hospital_name'],
                 'type' => $data['hospital_type'],
                 'registration_number' => $data['registration_number'],
@@ -103,8 +104,14 @@ class HospitalService
             if (!empty($data['user_id'])) {
                 $user = User::find($data['user_id']);
                 if ($user) {
-                    $user->pharmacy_contact_id = $hospital_contact->id;
+                    $user->hospital_contact_id = $hospital_contact->id;
+                    $user->role = $data['role'] ?? AppConstants::HOSPITAL_ADMIN;
                     $user->save();
+                }
+                if ($user && $user->hospitalUser) {
+                    $user->hospitalUser->hospital_id = $hospital->id;
+                    $user->hospitalUser->role = $data['role'] ?? AppConstants::HOSPITAL_ADMIN;
+                    $user->hospitalUser->save();
                 }
             }
 
