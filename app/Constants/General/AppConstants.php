@@ -80,15 +80,31 @@ class AppConstants
         self::GENERAL => self::GENERAL,
     ];
 
-    const HOSPITAL_ADMIN = 'Hospital Admin';
-    const HOSPITAL_FRONT_DESK = 'Hospital Front Desk';
-    const HOSPITAL_DOCTOR = 'Hospital Doctor';
-    const HOSPITAL_LAB = 'Hospital Lab';
+    const HOSPITAL_ADMIN = 'Admin';
+    const HOSPITAL_FRONT_DESK = 'Front Desk';
+    const HOSPITAL_DOCTOR = 'Doctor';
+    const HOSPITAL_LAB = 'Lab';
 
     const HOSPITAL_ROLES = [
        self::HOSPITAL_ADMIN,
         self::HOSPITAL_FRONT_DESK,
         self::HOSPITAL_DOCTOR,
         self::HOSPITAL_LAB,
+    ];
+
+    const STATUS_PENDING   = 'Pending';
+    const STATUS_CONFIRMED = 'Confirmed';
+    const STATUS_CANCELLED = 'Cancelled';
+    const STATUS_COMPLETED = 'Completed';
+    const STATUS_SCHEDULED  = 'Scheduled';
+    const STATUS_NO_SHOW = 'No Show';
+
+    const SCHEDULE_STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_CONFIRMED,
+        self::STATUS_CANCELLED,
+        self::STATUS_COMPLETED,
+        self::STATUS_SCHEDULED,
+        self::STATUS_NO_SHOW,
     ];
 }

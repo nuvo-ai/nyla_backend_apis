@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Auth\PasswordController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\VerificationController;
 use App\Http\Controllers\Api\Hospital\HospitalRegistrationController;
+use App\Http\Controllers\Api\Hospital\HospitalUsersController;
 use App\Http\Controllers\Api\Pharmacy\PharmacyRegistrationController;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Middleware\ApiEnsureFrontendRequestsAreStateful;
@@ -50,6 +51,13 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
 
     Route::prefix('hospital')->as('hospital.')->group(function () {
         Route::put('/update/{id}', [HospitalRegistrationController::class, 'updateHospital'])->name('update');
+        Route::get('list', [HospitalRegistrationController::class, 'list'])->name('list');
+        Route::get('/{uuid}/details', [HospitalRegistrationController::class, 'getHospital'])->name('details');
+
+        Route::prefix('users')->as('users.')->group(function () {
+            Route::post('/create', [HospitalUsersController::class, 'createHospitalUser'])->name('create');
+            Route::get('/list', [HospitalUsersController::class, 'list'])->name('list');
+        });
     });
     Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
         Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');

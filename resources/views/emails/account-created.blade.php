@@ -51,7 +51,7 @@
 <body>
     <div class="container">
         <h1>Welcome to Your Application</h1>
-        <p>Hello {{ $user->name }},</p>
+        <p>Hello {{ $user->full_name }},</p>
         <p>Your account has been created. Here are your login details:</p>
         <ul>
             <li><strong>Email:</strong> {{ $user->email }}</li>
@@ -59,7 +59,7 @@
         </ul>
         <p>You can log in to your account using the provided credentials:</p>
         <p>
-            <a href="{{ url('/login') }}" class="btn">Log In Now</a>
+            <a href="{{ url('/auth/login') }}" class="btn">Log In Now</a>
         </p>
         <p>Thank you for joining us!</p>
         <p>If you have any questions or need assistance, please feel free to <a href="{{ url('/contact') }}">contact us</a>.</p>

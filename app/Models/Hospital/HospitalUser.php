@@ -24,4 +24,13 @@ class HospitalUser extends Model
     {
         return $this->belongsTo(Hospital::class, 'hospital_id');
     }
+
+    public function scopeSearch($query, $search)
+    {
+        return $query->whereHas('user', function ($q) use ($search) {
+            $q->whereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"])
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('phone', 'like', "%{$search}%");
+        })->orWhere('role', 'like', "%{$search}%");
+    }
 }

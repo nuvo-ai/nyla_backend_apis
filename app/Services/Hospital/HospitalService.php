@@ -9,6 +9,7 @@ use App\Models\Hospital\Hospital;
 use Illuminate\Http\UploadedFile;
 use App\Models\General\Department;
 use App\Models\User\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -274,6 +275,33 @@ class HospitalService
             return $hospital->load(['user', 'contacts', 'departments', 'services', 'operatingHours']);
         });
     }
+
+    public function listHospitals(array $filters = []): Collection
+    {
+        $query = Hospital::query();
+
+        if (!empty($filters['status'])) {
+            $status = strtolower($filters['status']);
+            $query->whereRaw('LOWER(status) = ?', [$status]);
+        }
+
+        if (!empty($filters['type'])) {
+            $type = strtolower($filters['type']);
+            $query->whereRaw('LOWER(type) = ?', [$type]);
+        }
+
+
+        if (isset($filters['search'])) {
+            $query->where('name', 'like', '%' . $filters['search'] . '%');
+        }
+        return $query->get();
+    }
+
+    public function getHospital(string $uuid): ?Hospital
+    {
+        return Hospital::where('uuid', $uuid)->firstOrFail();
+    }
+
 
     public function approveHospital(Hospital $hospital): Hospital
     {

@@ -54,11 +54,18 @@ class UserService
             "phone_number" => "nullable",
             "gender" => Rule::in(AppConstants::GENDERS) . "|nullable",
             "dob" => 'nullable|date_format:Y-m-d|before:today',
+            'portal' => [
+                Rule::requiredIf(function () use ($data) {
+                    return !empty($data['hospital_id']) || !empty($data['pharmacy_id']);
+                }),
+                'string'
+            ],
         ], [
             'email.unique' => "The email address has already been used by another user",
             'username.unique' => "The email address has already been used by another user",
             'dob.date_format' => 'The date of birth must be in the format dd/mm/yyyy',
             'dob.before' => 'The date of birth must be a date before today',
+            'portal.required' => 'Portal is required',
         ]);
 
         if ($validator->fails()) {
@@ -67,8 +74,6 @@ class UserService
 
         return $validator->validated();
     }
-
-
 
     public function create(array $data): User
     {
@@ -79,26 +84,24 @@ class UserService
                 $data['first_name'] = $name_parts[0] ?? null;
                 $data['last_name'] = $name_parts[1] ?? null;
             }
-
-            if (empty($data['portal'])) {
-                throw new Exception('Portal is required to create a user.');
-            }
-            $portal = Portal::firstOrCreate(['name' => $data['portal']]);
-
             $validated = self::validate($data);
+            $portal = Portal::firstOrCreate(['name' => $validated['portal']]);
             unset($validated['name']);
+            unset($validated['portal']);
             $validated['status'] = $validated['status'] ?? StatusConstants::ACTIVE;
             $validated['role'] = $validated['role'] ?? UserConstants::USER;
-            $validated['password'] = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make($validated['generated_password']);
+            $validated['password'] = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make(Str::random(10));
             $validated['portal_id'] = $portal->id;
             $user = User::create($validated);
 
-            $hospitalUser = $user->hospitalUser()->create([
-                'user_id' => $user->id,
-                'hospital_id' => $data['hospital_id'] ?? auth()->user()->hospital->id ?? null,
-                'role' => $validated['role'],
-                'user_account_id' => auth()->user()->id ?? $user->id,
-            ]);
+            if ($user->portal && $user->portal->name === 'Hospital') {
+                $hospitalUser = $user->hospitalUser()->create([
+                    'user_id' => $user->id,
+                    'hospital_id' => $data['hospital_id'] ?? auth()->user()->hospital->id ?? null,
+                    'role' => $validated['role'],
+                    'user_account_id' => auth()->user()->id ?? $user->id,
+                ]);
+            }
 
             $this->sendLoginDetailsDuringhospitalRegistration($user->id, request());
             DB::commit();

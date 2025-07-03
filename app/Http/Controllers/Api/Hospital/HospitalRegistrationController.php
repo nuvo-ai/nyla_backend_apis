@@ -24,6 +24,29 @@ class HospitalRegistrationController extends Controller
         $this->user = new UserService;
     }
 
+    public function list(Request $request)
+    {
+        try {
+            // $filters = $request->only(['status', 'type', 'search']);
+            $hospitals = $this->hospital_service->listHospitals($request->all());
+            return ApiHelper::validResponse("Hospital retrieved successfully", HospitalRegistrationResource::collection($hospitals));
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+
+    public function getHospital(string $uuid)
+    {
+        try {
+            $hospitals = $this->hospital_service->getHospital($uuid);
+            return ApiHelper::validResponse("Hospital retrieved successfully", HospitalRegistrationResource::make($hospitals));
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse("Hospital with the specified identifier was not found in the system", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+
     public function registerHospital(Request $request)
     {
         try {
