@@ -66,6 +66,9 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
     });
     Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
         Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');
+         Route::get('list', [PharmacyRegistrationController::class, 'list'])->name('list');
+        Route::get('/{uuid}/details', [PharmacyRegistrationController::class, 'getPharmacy'])->name('details');
+
     });
 });
 

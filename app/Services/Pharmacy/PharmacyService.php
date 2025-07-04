@@ -8,6 +8,7 @@ use App\Models\General\Service;
 use App\Models\Pharmacy\Pharmacy;
 use App\Models\User\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -258,6 +259,26 @@ class PharmacyService
 
             return $pharmacy->load(['user', 'contacts', 'services', 'operatingHours']);
         });
+    }
+
+    public function listPharmacy(array $filters = []): Collection
+    {
+        $query = Pharmacy::query();
+
+        if (!empty($filters['status'])) {
+            $status = strtolower($filters['status']);
+            $query->whereRaw('LOWER(status) = ?', [$status]);
+        }
+
+        if (isset($filters['search'])) {
+            $query->where('name', 'like', '%' . $filters['search'] . '%');
+        }
+        return $query->get();
+    }
+
+    public function getPharmacy(string $uuid): ?Pharmacy
+    {
+        return Pharmacy::where('uuid', $uuid)->firstOrFail();
     }
 
     public function approvePharmacy(Pharmacy $pharmacy): Pharmacy
