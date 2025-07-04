@@ -1,6 +1,7 @@
 <?php
 
 use App\Constants\General\AppConstants;
+use App\Constants\General\StatusConstants;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,12 +16,13 @@ return new class extends Migration
         Schema::create('hospital_appointments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('hospital_id')->constrained('hospitals')->cascadeOnDelete();
-            $table->foreignId('patient_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('doctor_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('scheduler_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('doctor_id')->nullable()->constrained('hospital_users')->cascadeOnDelete();
+            $table->string('patient_name');
             $table->string('appointment_type'); // e.g., consultation, follow-up, emergency
             $table->date('appointment_date');
             $table->time('appointment_time');
-            $table->string('status')->default(AppConstants::STATUS_PENDING); // pending, confirmed, cancelled, completed
+            $table->string('status')->default(StatusConstants::PENDING); // pending, confirmed, cancelled, completed
             $table->timestamps();
         });
     }

@@ -92,19 +92,4 @@ class AppConstants
         self::HOSPITAL_LAB,
     ];
 
-    const STATUS_PENDING   = 'Pending';
-    const STATUS_CONFIRMED = 'Confirmed';
-    const STATUS_CANCELLED = 'Cancelled';
-    const STATUS_COMPLETED = 'Completed';
-    const STATUS_SCHEDULED  = 'Scheduled';
-    const STATUS_NO_SHOW = 'No Show';
-
-    const SCHEDULE_STATUSES = [
-        self::STATUS_PENDING,
-        self::STATUS_CONFIRMED,
-        self::STATUS_CANCELLED,
-        self::STATUS_COMPLETED,
-        self::STATUS_SCHEDULED,
-        self::STATUS_NO_SHOW,
-    ];
 }

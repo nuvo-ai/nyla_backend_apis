@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Hospital\Appointment\AppointmentController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\PasswordController;
 use App\Http\Controllers\Api\Auth\RegisterController;
@@ -57,6 +58,10 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::prefix('users')->as('users.')->group(function () {
             Route::post('/create', [HospitalUsersController::class, 'createHospitalUser'])->name('create');
             Route::get('/list', [HospitalUsersController::class, 'list'])->name('list');
+        });
+        Route::prefix('appointments')->as('appointments.')->group(function () {
+            Route::post('/book', [AppointmentController::class, 'bookAppointment'])->name('book');
+            Route::patch('/update-status/{id}', [AppointmentController::class, 'updateStatus'])->name('update-status');
         });
     });
     Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
