@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\VerificationController;
 use App\Http\Controllers\Api\Hospital\HospitalRegistrationController;
 use App\Http\Controllers\Api\Hospital\HospitalUsersController;
+use App\Http\Controllers\Api\Hospital\Patient\PatientController;
 use App\Http\Controllers\Api\Pharmacy\PharmacyRegistrationController;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Middleware\ApiEnsureFrontendRequestsAreStateful;
@@ -63,6 +64,8 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
             Route::post('/book', [AppointmentController::class, 'bookAppointment'])->name('book');
             Route::patch('/update-status/{id}', [AppointmentController::class, 'updateStatus'])->name('update-status');
         });
+
+        Route::resource('patients', PatientController::class);
     });
     Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
         Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');

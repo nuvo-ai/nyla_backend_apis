@@ -2,9 +2,38 @@
 
 namespace App\Models\Hospital;
 
+use App\Models\User\User;
 use Illuminate\Database\Eloquent\Model;
 
 class HospitalPatient extends Model
 {
-    //
+    protected $casts = [
+        'complaints' => 'array',
+    ];
+
+    protected $guarded = [];
+
+    public function hospital()
+    {
+        return $this->belongsTo(Hospital::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+   public function doctor()
+    {
+        return $this->belongsTo(HospitalUser::class, 'doctor_id')->with('user');
+    }
+
+    public function scopeSearch($query, $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->whereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"])
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('phone', 'like', "%{$search}%");
+        });
+    }
 }
