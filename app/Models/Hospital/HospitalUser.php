@@ -33,4 +33,20 @@ class HospitalUser extends Model
                 ->orWhere('phone', 'like', "%{$search}%");
         })->orWhere('role', 'like', "%{$search}%");
     }
+
+ public function labTechnician()
+    {
+        return $this->hasOne(LabTechnician::class);
+    }
+
+    public function doctor()
+    {
+        return $this->hasOne(Doctor::class);
+    }
+
+    public function frontDesk()
+    {
+        return $this->hasOne(FrontDesk::class);
+    }
+
 }

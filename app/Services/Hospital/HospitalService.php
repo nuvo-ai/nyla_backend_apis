@@ -3,6 +3,7 @@
 namespace App\Services\Hospital;
 
 use App\Constants\General\AppConstants;
+use App\Constants\User\UserConstants;
 use App\Exceptions\General\ModelNotFoundException;
 use App\Models\General\Service;
 use App\Models\Hospital\Hospital;
@@ -106,12 +107,12 @@ class HospitalService
                 $user = User::find($data['user_id']);
                 if ($user) {
                     $user->hospital_contact_id = $hospital_contact->id;
-                    $user->role = $data['role'] ?? AppConstants::HOSPITAL_ADMIN;
+                    $user->role = $data['role'] ?? UserConstants::USER;
                     $user->save();
                 }
                 if ($user && $user->hospitalUser) {
                     $user->hospitalUser->hospital_id = $hospital->id;
-                    $user->hospitalUser->role = $data['role'] ?? AppConstants::HOSPITAL_ADMIN;
+                    $user->hospitalUser->role = $data['role'] ?? UserConstants::ADMIN;
                     $user->hospitalUser->save();
                 }
             }

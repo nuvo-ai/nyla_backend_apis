@@ -37,13 +37,13 @@ class Hospital extends Model
     public function departments(): BelongsToMany
     {
         return $this->belongsToMany(Department::class, 'hospital_departments')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 
     public function services(): BelongsToMany
     {
         return $this->belongsToMany(Service::class, 'hospital_services')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 
     public function operatingHours(): HasMany
@@ -60,7 +60,7 @@ class Hospital extends Model
     {
         return $this->license_path ? asset('storage/' . $this->license_path) : null;
     }
-     
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -68,6 +68,21 @@ class Hospital extends Model
 
     public function appointments()
     {
-        return $this->hasMany(Appointment::class);
+        return $this->hasMany(HospitalPatient::class);
+    }
+
+    public function labTechnician()
+    {
+        return $this->hasOne(LabTechnician::class);
+    }
+
+    public function doctor()
+    {
+        return $this->hasOne(Doctor::class);
+    }
+
+    public function frontDesk()
+    {
+        return $this->hasOne(FrontDesk::class);
     }
 }

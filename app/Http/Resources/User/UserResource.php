@@ -19,10 +19,11 @@ class UserResource extends JsonResource
         return [
             "id" => (int) $this->id,
             "portal" => [
-                "id" => (int) $this->portal->id,
-                "name" => $this->portal->name,
+                "id" => (int) $this?->portal?->id,
+                "name" => $this?->portal?->name,
             ],
-            "portal_id" => (int) $this->portal_id,
+            "portal_id" => (int) $this?->portal_id,
+            'title' => $this?->title ?? null,
             "first_name" => $this->first_name,
             "last_name" => $this->last_name,
             "email" => (string) $this->email,

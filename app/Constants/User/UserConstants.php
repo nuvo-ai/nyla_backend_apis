@@ -13,6 +13,7 @@ class UserConstants
     const USER = "User";
     const ADMIN = "Admin";
     const SUPER_ADMIN = "Super Admin";
+    const NURSE = 'Nurse';
 
     const ROLES = [
         self::ADMIN,
@@ -22,6 +23,7 @@ class UserConstants
         self::LAB,
         self::FRONT_DESK,
         self::SUPER_ADMIN,
+        self::NURSE,
     ];
 
     const STATUSES = [

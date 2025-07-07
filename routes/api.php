@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\PasswordController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\VerificationController;
+use App\Http\Controllers\Api\Hospital\Doctor\DoctorController;
 use App\Http\Controllers\Api\Hospital\HospitalRegistrationController;
 use App\Http\Controllers\Api\Hospital\HospitalUsersController;
 use App\Http\Controllers\Api\Hospital\Patient\PatientController;
@@ -66,6 +67,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         });
 
         Route::resource('patients', PatientController::class);
+        Route::resource('doctors', DoctorController::class);
     });
     Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
         Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');
