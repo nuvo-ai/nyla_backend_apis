@@ -54,6 +54,12 @@ class User extends Authenticatable
         return implode(' ', array_filter([$this->first_name, $this->middle_name, $this->last_name]));
     }
 
+   public function getAvatarAttribute($avatar)
+{
+    return $avatar ? asset('storage/' . $avatar) : null;
+}
+
+
     public function getFullNameAttribute()
     {
         return $this->names();

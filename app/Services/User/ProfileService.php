@@ -43,8 +43,7 @@ class ProfileService
         $validator = Validator::make($data, [
             "first_name" => "nullable|string",
             "last_name" => "nullable|string",
-            "phone_number" => "nullable",
-            "phone_number2" => "nullable",
+            "phone" => "nullable",
             "address" => "nullable|string",
             "state" => "nullable|string",
             "city" => "nullable|string",

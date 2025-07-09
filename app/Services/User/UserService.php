@@ -51,7 +51,7 @@ class UserService
             "email" => "required|email|unique:users,email,$id|" . Rule::requiredIf(empty($id)),
             "status" => "nullable|string",
             'password' => "nullable",
-            "phone_number" => "nullable",
+            "phone" => "nullable",
             "gender" => Rule::in(AppConstants::GENDERS) . "|nullable",
             "dob" => 'nullable|date_format:Y-m-d|before:today',
             'portal' => [
@@ -85,25 +85,33 @@ class UserService
                 $data['last_name'] = $name_parts[1] ?? null;
             }
             $validated = self::validate($data);
-            $portal = Portal::firstOrCreate(['name' => $validated['portal']]);
+            if (isset($validated['portal'])) {
+                $portal = Portal::firstOrCreate(['name' => $validated['portal']]);
+                unset($validated['portal']);
+            }
             unset($validated['name']);
-            unset($validated['portal']);
             $validated['status'] = $validated['status'] ?? StatusConstants::ACTIVE;
             $validated['role'] = $validated['role'] ?? UserConstants::USER;
             $validated['password'] = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make(Str::random(10));
-            $validated['portal_id'] = $portal->id;
+            if (isset($portal)) {
+                $validated['portal_id'] = $portal->id ?? null;
+            }
             $user = User::create($validated);
 
             if ($user->portal && $user->portal->name === 'Hospital') {
-                $hospitalUser = $user->hospitalUser()->create([
+                $authUser = auth()->user();
+                $hospitalId = $data['hospital_id'] ?? ($authUser && $authUser->hospital ? $authUser->hospital->id : null);
+                $userAccountId = $authUser ? $authUser->id : $user->id;
+                $user->hospitalUser()->create([
                     'user_id' => $user->id,
-                    'hospital_id' => $data['hospital_id'] ?? auth()->user()->hospital->id ?? null,
+                    'hospital_id' => $hospitalId,
                     'role' => $validated['role'],
-                    'user_account_id' => auth()->user()->id ?? $user->id,
+                    'user_account_id' => $userAccountId,
                 ]);
             }
-
-            $this->sendLoginDetailsDuringhospitalRegistration($user->id, request());
+            if (isset($validated['portal'])) {
+                $this->sendLoginDetailsDuringhospitalRegistration($user->id, request());
+            }
             DB::commit();
             return $user;
         } catch (\Throwable $th) {

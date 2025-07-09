@@ -3,6 +3,7 @@
 namespace App\Services\Hospital;
 
 use App\Constants\General\AppConstants;
+use App\Constants\User\UserConstants;
 use App\Exceptions\General\ModelNotFoundException;
 use App\Models\General\Service;
 use App\Models\Hospital\Hospital;
@@ -218,6 +219,20 @@ class HospitalService
                         'type' => 'primary',
                     ]);
                 }
+
+                // Attach user as hospital owner if not already attached
+                if (isset($data['user_id'])) {
+                    $hospital->users()->firstOrCreate(
+                        ['user_id' => $data['user_id']],
+                        [
+                            'hospital_id' => $hospital->id,
+                            'role' => UserConstants::ADMIN,
+                            'user_account_id' => $data['user_id'],
+                        ]
+                    );
+                }
+
+                // If user_id is provided, link the contact to the user
                 if (isset($data['user_id']) && isset($hospital_contact)) {
                     $user = $hospital->user()->where('user_id', $data['user_id'])->first();
                     if ($user) {
@@ -258,18 +273,6 @@ class HospitalService
                         'is_closed' => empty($hours['start']) && empty($hours['end']),
                     ]);
                 }
-            }
-
-            // Attach user as hospital owner if not already attached
-            if (isset($data['user_id'])) {
-                $hospital->users()->firstOrCreate(
-                    ['user_id' => $data['user_id']],
-                    [
-                        'hospital_id' => $hospital->id,
-                        'role' => AppConstants::ROLE_HOSPITAL_OWNER,
-                        'user_account_id' => $data['user_id'],
-                    ]
-                );
             }
 
             return $hospital->load(['user', 'contacts', 'departments', 'services', 'operatingHours']);

@@ -49,7 +49,11 @@ Route::prefix("auth")->as("auth.")->group(function () {
 
 // Authenticated routes
 Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])->group(function () {
-    Route::get("/me", [UserController::class, "me"])->name("me");
+    Route::prefix('profile')->as('profile.')->group(function () {
+        Route::get('/me', [UserController::class, 'me'])->name('me');
+        Route::put('/update', [UserController::class, 'update'])->name('update');
+        Route::delete('/delete', [UserController::class, 'delete'])->name('delete');
+    });
 
     Route::prefix('hospital')->as('hospital.')->group(function () {
         Route::put('/update/{id}', [HospitalRegistrationController::class, 'updateHospital'])->name('update');
@@ -69,9 +73,8 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
     });
     Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
         Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');
-         Route::get('list', [PharmacyRegistrationController::class, 'list'])->name('list');
+        Route::get('list', [PharmacyRegistrationController::class, 'list'])->name('list');
         Route::get('/{uuid}/details', [PharmacyRegistrationController::class, 'getPharmacy'])->name('details');
-
     });
 });
 
