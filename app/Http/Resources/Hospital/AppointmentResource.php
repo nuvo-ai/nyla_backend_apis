@@ -21,6 +21,8 @@ class AppointmentResource extends JsonResource
             'appointment_type' => $this->appointment_type,
             'appointment_date' => $this->appointment_date->format('Y-m-d'),
             'appointment_time' => $this->appointment_time->format('H:i'),
+            'note' => $this->note ?? null,
+            'source' => $this->source ?? null,
             'status' => $this->status,
             'hospital' => new HospitalRegistrationResource($this->whenLoaded('hospital')),
             'doctor' => new HospitalUsersResource($this->whenLoaded('doctor')),
