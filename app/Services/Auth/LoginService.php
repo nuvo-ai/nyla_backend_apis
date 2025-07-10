@@ -33,7 +33,7 @@ class LoginService
                 "email" => "required|string|email|exists:users,email",
                 "password" => "required|string",
                 "fcm_token" => "nullable|string",
-                "portal" => "required|string|in:Hospital,Pharmacy",
+                "portal" => "nullable|string|in:Hospital,Pharmacy",
             ];
 
             if (isset($data["portal"]) && $data["portal"] === "Hospital") {
@@ -41,11 +41,12 @@ class LoginService
                 $rules["role"] = "required|string|in:$roles";
             }
 
+
             $messages = [
                 'role.in' => 'The role could not be matched or found in the app.',
                 'portal.in' => 'Portal must be either Hospital or Pharmacy.',
             ];
-
+            $portal = $data["portal"] ?? null;
             $data = Validator::make($data, $rules, $messages)->validate();
 
             $user = User::where("email", $data["email"])->firstOrFail();
@@ -54,7 +55,7 @@ class LoginService
                 throw new AuthException("Incorrect password provided.");
             }
 
-            if ($data["portal"] === "Hospital") {
+            if ($portal === "Hospital") {
                 $hospitalUser = $user->hospitalUser;
 
                 if (!$hospitalUser) {

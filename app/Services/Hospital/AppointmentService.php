@@ -4,7 +4,10 @@ namespace App\Services\Hospital;
 
 use App\Constants\General\AppConstants;
 use App\Constants\General\StatusConstants;
+use App\Constants\User\UserConstants;
+use App\Http\Resources\User\UserResource;
 use App\Models\Hospital\Appointment;
+use App\Models\Hospital\Doctor;
 use App\Models\Hospital\HospitalAppointment;
 use App\Models\Hospital\HospitalUser;
 use App\Notifications\SendAppointmentNotification;
@@ -23,12 +26,12 @@ class AppointmentService
             'scheduler_id'       => ['required', 'exists:users,id'],
             'doctor_id'         => [
                 'nullable',
-                'exists:hospital_users,id',
+                'exists:doctors,id',
                 function ($attribute, $value, $fail) {
                     if ($value) {
                         // Check hospital_user role is doctor
-                        $doctor = HospitalUser::find($value);
-                        if (!$doctor || $doctor->role !== AppConstants::HOSPITAL_DOCTOR) {
+                        $doctor = Doctor::find($value);
+                        if (!$doctor || $doctor->hospitalUser->role !== UserConstants::DOCTOR) {
                             $fail('The selected doctor does not have the correct role.');
                         }
                     }
@@ -38,6 +41,8 @@ class AppointmentService
             'appointment_type'  => ['required', 'string', 'max:100'],
             'appointment_date'  => ['required', 'date', 'after_or_equal:today'],
             'appointment_time'  => ['required', 'date_format:H:i'], // 24-hour format, e.g., 14:30
+            'note'              => ['nullable', 'string'],
+            'source'            => ['required', 'string'],
             'status'            => ['nullable', 'in:' . implode(',', StatusConstants::SCHEDULE_STATUSES)],
         ]);
 
@@ -53,21 +58,18 @@ class AppointmentService
         return DB::transaction(function () use ($data) {
             $validatedData = $this->validate($data);
 
-            // Check if a pending appointment already exists with the same details
-            $exists = HospitalAppointment::where('hospital_id', $validatedData['hospital_id'])
-                ->where('doctor_id', $validatedData['doctor_id'])
-                ->where('patient_name', $validatedData['patient_name'])
-                ->where('appointment_date', $validatedData['appointment_date'])
-                ->where('appointment_time', $validatedData['appointment_time'])
-                ->whereIn('status', [StatusConstants::PENDING, StatusConstants::SCHEDULED])
-                ->exists();
-
-
-            if ($exists) {
+            if (HospitalAppointment::hasConflict($validatedData, true)) {
                 throw ValidationException::withMessages([
                     'duplicate' => ['You already have a pending appointment for this date and time.'],
                 ]);
             }
+
+            if (HospitalAppointment::hasConflict($validatedData)) {
+                throw ValidationException::withMessages([
+                    'conflict' => ['This time slot is already taken. Please choose a different time.'],
+                ]);
+            }
+
 
             $appointment = HospitalAppointment::create([
                 'hospital_id'       => $validatedData['hospital_id'],
@@ -77,6 +79,8 @@ class AppointmentService
                 'appointment_type'  => $validatedData['appointment_type'],
                 'appointment_date'  => $validatedData['appointment_date'],
                 'appointment_time'  => $validatedData['appointment_time'],
+                'note'              => $validatedData['note'] ?? null,
+                'source'            => $validatedData['source'],
                 'status'            => $validatedData['status'] ?? StatusConstants::PENDING,
             ]);
 
@@ -114,6 +118,8 @@ class AppointmentService
             'status' => $appointment->status,
             'patient_name' => $appointment->patient_name,
             'appointment_date' => $appointment->appointment_date->format('Y-m-d'),
+            'appointment_time' => $appointment->appointment_time->format('H:i'),
+            'scheduler' => new UserResource($appointment->scheduler),
             'updated_at' => $appointment->updated_at->toDateTimeString(),
         ];
     }

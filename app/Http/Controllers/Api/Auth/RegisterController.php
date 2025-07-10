@@ -32,7 +32,7 @@ class RegisterController extends Controller
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required|string|min:6',
                 'confirm_password' => 'required|same:password',
-                'portal' => 'required|string',
+                'portal' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
