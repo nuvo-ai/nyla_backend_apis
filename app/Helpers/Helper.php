@@ -309,4 +309,20 @@ class Helper
 
         return $result;
     }
+
+    public static function saveSingleFileRequest($file, $directory)
+    {
+        if (!$file->isValid()) {
+            throw new \Exception('File upload failed');
+        }
+
+        $file_name = uniqid() . '_' . $file->getClientOriginalName();
+        $destinationPath = public_path($directory);
+
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+        $file->move($destinationPath, $file_name);
+        return $directory . '/' . $file_name;
+    }
 }

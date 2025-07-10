@@ -2,6 +2,7 @@
 
 namespace App\Services\Auth;
 
+use App\Constants\General\AppConstants;
 use App\Models\User\User;
 use Illuminate\Support\Str;
 use App\Services\User\UserService;
@@ -27,17 +28,42 @@ class LoginService
 
     public static function authenticate(array $data)
     {
-       return DB::transaction(function () use ($data) {
-            $data = Validator::make($data, [
+        return DB::transaction(function () use ($data) {
+            $rules = [
                 "email" => "required|string|email|exists:users,email",
-                'password' => ['required', 'string'],
-                'fcm_token' => 'nullable|string',
-            ])->validate();
+                "password" => "required|string",
+                "fcm_token" => "nullable|string",
+                "portal" => "required|string|in:Hospital,Pharmacy",
+            ];
+
+            if (isset($data["portal"]) && $data["portal"] === "Hospital") {
+                $roles = implode(',', AppConstants::HOSPITAL_ROLES);
+                $rules["role"] = "required|string|in:$roles";
+            }
+
+            $messages = [
+                'role.in' => 'The role could not be matched or found in the app.',
+                'portal.in' => 'Portal must be either Hospital or Pharmacy.',
+            ];
+
+            $data = Validator::make($data, $rules, $messages)->validate();
 
             $user = User::where("email", $data["email"])->firstOrFail();
 
             if (!Hash::check($data["password"], $user->password)) {
                 throw new AuthException("Incorrect password provided.");
+            }
+
+            if ($data["portal"] === "Hospital") {
+                $hospitalUser = $user->hospitalUser;
+
+                if (!$hospitalUser) {
+                    throw new AuthException("User is not associated with any hospital.");
+                }
+
+                if (strtolower($hospitalUser->role) !== strtolower($data["role"])) {
+                    throw new AuthException("Invalid role for Hospital user.");
+                }
             }
 
             if (!empty($token = $data["fcm_token"] ?? null)) {

@@ -7,15 +7,21 @@ use App\Constants\General\StatusConstants;
 class UserConstants
 {
     const SUDO = "Sudo";
-    const DRIVER = "Driver";
+    const DOCTOR = "Doctor";
+    const LAB = "Lab";
+    const FRONT_DESK = "Front Desk";
     const USER = "User";
     const ADMIN = "Admin";
     const SUPER_ADMIN = "Super Admin";
 
     const ROLES = [
-        self::DRIVER,
         self::ADMIN,
         self::USER,
+        self::SUDO,
+        self::DOCTOR,
+        self::LAB,
+        self::FRONT_DESK,
+        self::SUPER_ADMIN,
     ];
 
     const STATUSES = [

@@ -12,6 +12,7 @@ class HospitalContact extends Model
     use HasFactory;
 
     protected $fillable = [
+        'uuid',
         'hospital_id',
         'name',
         'email',

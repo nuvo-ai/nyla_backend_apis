@@ -11,7 +11,13 @@ use App\Constants\General\AppConstants;
 use Illuminate\Support\Facades\Validator;
 use App\Constants\General\StatusConstants;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 use App\Exceptions\General\ModelNotFoundException;
+use App\Mail\SendUserLoginDetailsMail;
+use App\Models\Portal;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class UserService
 {
@@ -38,20 +44,28 @@ class UserService
     {
         $validator = Validator::make($data, [
             'fcm_token' => 'nullable|string',
+            "name" => "required|string",
             "first_name" => "nullable|string",
             "last_name" => "nullable|string",
             "role" => "nullable|" . Rule::in(UserConstants::ROLES),
             "email" => "required|email|unique:users,email,$id|" . Rule::requiredIf(empty($id)),
             "status" => "nullable|string",
-            'password' => [Rule::requiredIf(empty($id))],
+            'password' => "nullable",
             "phone_number" => "nullable",
             "gender" => Rule::in(AppConstants::GENDERS) . "|nullable",
             "dob" => 'nullable|date_format:Y-m-d|before:today',
+            'portal' => [
+                Rule::requiredIf(function () use ($data) {
+                    return !empty($data['hospital_id']) || !empty($data['pharmacy_id']);
+                }),
+                'string'
+            ],
         ], [
             'email.unique' => "The email address has already been used by another user",
             'username.unique' => "The email address has already been used by another user",
             'dob.date_format' => 'The date of birth must be in the format dd/mm/yyyy',
             'dob.before' => 'The date of birth must be a date before today',
+            'portal.required' => 'Portal is required',
         ]);
 
         if ($validator->fails()) {
@@ -61,19 +75,35 @@ class UserService
         return $validator->validated();
     }
 
-
     public function create(array $data): User
     {
         DB::beginTransaction();
         try {
-            $data = self::validate($data);
-            $data = array_merge([
-                'status' => StatusConstants::ACTIVE,
-                'role' => $data["role"] ?? UserConstants::USER
-            ], $data);
+            if (isset($data['name'])) {
+                $name_parts = preg_split('/\s+/', trim($data['name']));
+                $data['first_name'] = $name_parts[0] ?? null;
+                $data['last_name'] = $name_parts[1] ?? null;
+            }
+            $validated = self::validate($data);
+            $portal = Portal::firstOrCreate(['name' => $validated['portal']]);
+            unset($validated['name']);
+            unset($validated['portal']);
+            $validated['status'] = $validated['status'] ?? StatusConstants::ACTIVE;
+            $validated['role'] = $validated['role'] ?? UserConstants::USER;
+            $validated['password'] = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make(Str::random(10));
+            $validated['portal_id'] = $portal->id;
+            $user = User::create($validated);
 
-            $data['password'] = !empty($data['password'] ?? null) ? Hash::make($data['password']) : null;
-            $user = User::create($data);
+            if ($user->portal && $user->portal->name === 'Hospital') {
+                $hospitalUser = $user->hospitalUser()->create([
+                    'user_id' => $user->id,
+                    'hospital_id' => $data['hospital_id'] ?? auth()->user()->hospital->id ?? null,
+                    'role' => $validated['role'],
+                    'user_account_id' => auth()->user()->id ?? $user->id,
+                ]);
+            }
+
+            $this->sendLoginDetailsDuringhospitalRegistration($user->id, request());
             DB::commit();
             return $user;
         } catch (\Throwable $th) {
@@ -82,10 +112,14 @@ class UserService
         }
     }
 
+
     public function update(array $data, $id = null)
     {
         DB::beginTransaction();
         try {
+            if (isset($data['user_email'])) {
+                $data['email'] = $data['user_email'];
+            }
             $data = self::validate($data, $id);
 
             $user = !empty($id) ? $this->getById($id) : auth()->user();
@@ -132,6 +166,20 @@ class UserService
         } catch (\Throwable $th) {
             DB::rollBack();
             throw $th;
+        }
+    }
+
+    private function sendLoginDetailsDuringhospitalRegistration($user_id, Request $request)
+    {
+        try {
+            $user = User::findOrFail($user_id);
+            $random_password = $request->input('password', Str::random(10));
+            $user->password = Hash::make($random_password);
+            $user->save();
+            Mail::to($user->email)->send(new SendUserLoginDetailsMail($user, $random_password));
+            return $user->toArray();
+        } catch (\Exception $e) {
+            return ['error_message' => 'An error occurred while sending login details to user.'];
         }
     }
 }

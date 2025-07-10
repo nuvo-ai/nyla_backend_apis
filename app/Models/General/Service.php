@@ -26,4 +26,10 @@ class Service extends Model
         return $this->belongsToMany(Hospital::class, 'hospital_services')
                     ->withTimestamps();
     }
+
+     public function pharmacies(): BelongsToMany
+    {
+        return $this->belongsToMany(Hospital::class, 'pharcies_services')
+                    ->withTimestamps();
+    }
 }

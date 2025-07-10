@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('hospitals', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->uuid('uuid')->unique();
             $table->string('name');
             $table->enum('type', ['private', 'public', 'teaching', 'specialist', 'general']);

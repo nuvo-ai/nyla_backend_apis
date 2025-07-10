@@ -5,6 +5,7 @@ namespace App\Models\Hospital;
 use App\Models\General\Service;
 use App\Models\General\Department;
 use App\Models\General\OperatingHour;
+use App\Models\User\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -47,7 +48,7 @@ class Hospital extends Model
 
     public function operatingHours(): HasMany
     {
-        return $this->hasMany(OperatingHour::class);
+        return $this->hasMany(OperatingHour::class, 'hospital_id');
     }
 
     public function getLogoUrlAttribute()
@@ -58,5 +59,15 @@ class Hospital extends Model
     public function getLicenseUrlAttribute()
     {
         return $this->license_path ? asset('storage/' . $this->license_path) : null;
+    }
+     
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
     }
 }
