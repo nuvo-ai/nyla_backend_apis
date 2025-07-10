@@ -10,6 +10,7 @@ use App\Constants\User\UserConstants;
 use App\Constants\General\AppConstants;
 use Illuminate\Support\Facades\Validator;
 use App\Constants\General\StatusConstants;
+use App\Constants\General\TitleConstants;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use App\Exceptions\General\ModelNotFoundException;
@@ -47,6 +48,7 @@ class UserService
             "name" => "required|string",
             "first_name" => "nullable|string",
             "last_name" => "nullable|string",
+            "title" => ['nullable', Rule::in(TitleConstants::TITLES)],
             "role" => "nullable|" . Rule::in(UserConstants::ROLES),
             "email" => "required|email|unique:users,email,$id|" . Rule::requiredIf(empty($id)),
             "status" => "nullable|string",
@@ -75,14 +77,21 @@ class UserService
         return $validator->validated();
     }
 
-    public function create(array $data): User
+    public function create(array $data): array
     {
         DB::beginTransaction();
         try {
             if (isset($data['name'])) {
                 $name_parts = preg_split('/\s+/', trim($data['name']));
-                $data['first_name'] = $name_parts[0] ?? null;
-                $data['last_name'] = $name_parts[1] ?? null;
+                $possible_title = $name_parts[0] ?? null;
+                if (in_array($possible_title, TitleConstants::TITLES)) {
+                    $data['title'] = $possible_title;
+                    $data['first_name'] = $name_parts[1] ?? null;
+                    $data['last_name'] = implode(' ', array_slice($name_parts, 2));
+                } else {
+                    $data['first_name'] = $name_parts[0] ?? null;
+                    $data['last_name'] = implode(' ', array_slice($name_parts, 1));
+                }
             }
             $validated = self::validate($data);
             if (isset($validated['portal'])) {
@@ -98,6 +107,7 @@ class UserService
             }
             $user = User::create($validated);
 
+            $hospitalUser = null;
             if ($user->portal && $user->portal->name === 'Hospital') {
                 $authUser = auth()->user();
                 $hospitalId = $data['hospital_id'] ?? ($authUser && $authUser->hospital ? $authUser->hospital->id : null);
@@ -113,7 +123,10 @@ class UserService
                 $this->sendLoginDetailsDuringhospitalRegistration($user->id, request());
             }
             DB::commit();
-            return $user;
+            return [
+                'user' => $user,
+                'hospital_user' => $hospitalUser
+            ];
         } catch (\Throwable $th) {
             DB::rollBack();
             throw $th;

@@ -4,6 +4,7 @@ namespace App\Services\Hospital\Patient;
 
 use App\Constants\General\AppConstants;
 use App\Constants\General\StatusConstants;
+use App\Constants\User\UserConstants;
 use App\Models\Hospital\HospitalPatient;
 use App\Models\Hospital\HospitalHospitalPatient;
 use App\Models\Hospital\HospitalUser;
@@ -27,7 +28,7 @@ class PatientService
                 function ($attribute, $value, $fail) {
                     if ($value) {
                         $doctor = HospitalUser::find($value);
-                        if (!$doctor || $doctor->role !== AppConstants::HOSPITAL_DOCTOR) {
+                        if (!$doctor || $doctor->role !== UserConstants::DOCTOR) {
                             $fail('The selected doctor does not have the correct role.');
                         }
                     }

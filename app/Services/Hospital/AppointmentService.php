@@ -4,7 +4,10 @@ namespace App\Services\Hospital;
 
 use App\Constants\General\AppConstants;
 use App\Constants\General\StatusConstants;
+use App\Constants\User\UserConstants;
+use App\Http\Resources\User\UserResource;
 use App\Models\Hospital\Appointment;
+use App\Models\Hospital\Doctor;
 use App\Models\Hospital\HospitalAppointment;
 use App\Models\Hospital\HospitalUser;
 use App\Notifications\SendAppointmentNotification;
@@ -23,12 +26,12 @@ class AppointmentService
             'scheduler_id'       => ['required', 'exists:users,id'],
             'doctor_id'         => [
                 'nullable',
-                'exists:hospital_users,id',
+                'exists:doctors,id',
                 function ($attribute, $value, $fail) {
                     if ($value) {
                         // Check hospital_user role is doctor
                         $doctor = Doctor::find($value);
-                        if (!$doctor || $doctor->role !== AppConstants::HOSPITAL_DOCTOR) {
+                        if (!$doctor || $doctor->hospitalUser->role !== UserConstants::DOCTOR) {
                             $fail('The selected doctor does not have the correct role.');
                         }
                     }
@@ -115,6 +118,8 @@ class AppointmentService
             'status' => $appointment->status,
             'patient_name' => $appointment->patient_name,
             'appointment_date' => $appointment->appointment_date->format('Y-m-d'),
+            'appointment_time' => $appointment->appointment_time->format('H:i'),
+            'scheduler' => new UserResource($appointment->scheduler),
             'updated_at' => $appointment->updated_at->toDateTimeString(),
         ];
     }

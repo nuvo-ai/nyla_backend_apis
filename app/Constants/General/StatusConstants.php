@@ -6,6 +6,8 @@ class StatusConstants
 {
     const ACTIVE = 'Active';
 
+    const AVAILABLE = 'Available';
+
     const INACTIVE = 'Inactive';
 
     const PENDING = 'Pending';
