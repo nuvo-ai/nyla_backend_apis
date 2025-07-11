@@ -45,9 +45,9 @@ class UserService
     {
         $validator = Validator::make($data, [
             'fcm_token' => 'nullable|string',
-            "name" => "required|string",
-            "first_name" => "nullable|string",
-            "last_name" => "nullable|string",
+            'name'        => 'required_without:first_name|required_without:last_name|string',
+            'first_name'  => 'required_without:name|string|nullable',
+            'last_name'   => 'required_without:name|string|nullable',
             "title" => ['nullable', Rule::in(TitleConstants::TITLES)],
             "role" => "nullable|" . Rule::in(UserConstants::ROLES),
             "email" => "required|email|unique:users,email,$id|" . Rule::requiredIf(empty($id)),
@@ -81,16 +81,18 @@ class UserService
     {
         DB::beginTransaction();
         try {
-            if (isset($data['name'])) {
-                $name_parts = preg_split('/\s+/', trim($data['name']));
-                $possible_title = $name_parts[0] ?? null;
-                if (in_array($possible_title, TitleConstants::TITLES)) {
-                    $data['title'] = $possible_title;
-                    $data['first_name'] = $name_parts[1] ?? null;
-                    $data['last_name'] = implode(' ', array_slice($name_parts, 2));
-                } else {
-                    $data['first_name'] = $name_parts[0] ?? null;
-                    $data['last_name'] = implode(' ', array_slice($name_parts, 1));
+            if (!isset($data['first_name']) || !isset($data['last_name'])) {
+                if (isset($data['name'])) {
+                    $name_parts = preg_split('/\s+/', trim($data['name']));
+                    $possible_title = $name_parts[0] ?? null;
+                    if (in_array($possible_title, TitleConstants::TITLES)) {
+                        $data['title'] = $possible_title;
+                        $data['first_name'] = $name_parts[1] ?? null;
+                        $data['last_name'] = implode(' ', array_slice($name_parts, 2));
+                    } else {
+                        $data['first_name'] = $name_parts[0] ?? null;
+                        $data['last_name'] = implode(' ', array_slice($name_parts, 1));
+                    }
                 }
             }
             $validated = self::validate($data);

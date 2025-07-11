@@ -6,12 +6,16 @@ use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Hospital\PatientResource;
+use App\Mail\SendUserLoginDetailsMail;
+use App\Models\User\User;
 use App\Services\Hospital\Patient\PatientService;
 use App\Services\User\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exception;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class PatientController extends Controller
@@ -37,10 +41,10 @@ class PatientController extends Controller
 
     public function store(Request $request)
     {
-        dd($request->all());
         try {
             $userData = $this->requestedUserDataDuringPatientRegistration($request);
             $userResult = $this->user->create($userData);
+            $this->sendLoginDetails($userResult['user']->id, $userData);
             $user = $userResult['user'];
             $patientData = $request->except(array_keys($userData));
             $patientData['user_id'] = $user->id;
@@ -68,14 +72,7 @@ class PatientController extends Controller
     public function update(Request $request, $patient)
     {
         try {
-            $existingPatient = $this->patient_service::getById($patient);
-            if ($existingPatient->user_id) {
-                $userData = $this->requestedUserDataDuringPatientRegistration($request);
-                $this->user->update($userData, $existingPatient->user_id);
-            }
-            $patientData = $request->except(array_keys($this->requestedUserDataDuringPatientRegistration($request)));
-            $patientData['user_id'] = $existingPatient->user_id;
-            $updatedPatient = $this->patient_service->save($patientData, $patient);
+            $updatedPatient = $this->patient_service->save($request->all(), $patient);
             return ApiHelper::validResponse("Patient updated successfully", PatientResource::make($updatedPatient));
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
@@ -107,12 +104,11 @@ class PatientController extends Controller
         $request->merge(['generated_password' => $generated_password]);
 
         return [
-            'email'       => $request->input('user_email'),
-            'phone'       => $request->input('user_phone'),
-            'portal'      => $request->input('portal'),
-            'role'        => $request->input('role'),
+            'email'       => $request->input('email'),
+            'phone'       => $request->input('phone'),
             'password'    => $generated_password,
-            'name'        => $request->input('user_name'),
+            'first_name'        => $request->input('first_name'),
+            'last_name'        => $request->input('last_name'),
             'gender'      => $request->input('gender'),
             'date_of_birth' => $request->input('date_of_birth'),
         ];
@@ -122,5 +118,19 @@ class PatientController extends Controller
     private function generateRandomPasswordDuringHospitalRegistration(int $length = 10): string
     {
         return Str::random($length);
+    }
+
+    private function sendLoginDetails($user_id, array $data)
+    {
+        try {
+            $user = User::findOrFail($user_id);
+            $random_password = $data['password'] ?? Str::random(10);
+            $user->password = Hash::make($random_password);
+            $user->save();
+            Mail::to($user->email)->send(new SendUserLoginDetailsMail($user, $random_password));
+            return $user->toArray();
+        } catch (\Exception $e) {
+            return ['error_message' => 'An error occurred while sending login details to user.'];
+        }
     }
 }

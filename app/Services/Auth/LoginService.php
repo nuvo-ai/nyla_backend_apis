@@ -37,7 +37,7 @@ class LoginService
             ];
 
             if (isset($data["portal"]) && $data["portal"] === "Hospital") {
-                $roles = implode(',', AppConstants::HOSPITAL_ROLES);
+                $roles = implode(',', UserConstants::ROLES);
                 $rules["role"] = "required|string|in:$roles";
             }
 

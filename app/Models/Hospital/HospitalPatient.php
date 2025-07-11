@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class HospitalPatient extends Model
 {
     protected $casts = [
-        'complaints' => 'array',
         'current_symptoms' => 'array',
         'know_allergies' => 'array',
         'current_medications' => 'array',
