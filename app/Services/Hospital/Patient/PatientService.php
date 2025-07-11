@@ -4,8 +4,8 @@ namespace App\Services\Hospital\Patient;
 
 use App\Constants\General\AppConstants;
 use App\Constants\General\StatusConstants;
+use App\Constants\User\UserConstants;
 use App\Models\Hospital\HospitalPatient;
-use App\Models\Hospital\HospitalHospitalPatient;
 use App\Models\Hospital\HospitalUser;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
@@ -15,36 +15,44 @@ use Illuminate\Validation\ValidationException;
 
 class PatientService
 {
-
     public function validate(array $data)
     {
         $validator = Validator::make($data, [
-            'hospital_id'         => ['required', 'exists:hospitals,id'],
-            'user_id'             => ['nullable', 'exists:users,id'],
-            'doctor_id'           => [
+            'hospital_id'           => ['required', 'exists:hospitals,id'],
+            'user_id'               => ['required', 'exists:users,id'],
+            'doctor_id'             => [
                 'nullable',
                 'exists:hospital_users,id',
                 function ($attribute, $value, $fail) {
                     if ($value) {
                         $doctor = HospitalUser::find($value);
-                        if (!$doctor || $doctor->role !== AppConstants::HOSPITAL_DOCTOR) {
+                        if (!$doctor || $doctor->role !== UserConstants::DOCTOR) {
                             $fail('The selected doctor does not have the correct role.');
                         }
                     }
                 }
             ],
-            'age'                 => ['nullable', 'integer', 'min:0'],
-            'gender'              => ['required', 'in:male,female,other'],
-            'temperature'         => ['nullable', 'string', 'max:50'],
-            'weight'              => ['nullable', 'string', 'max:50'],
-            'height'              => ['nullable', 'string', 'max:50'],
-            'blood_pressure'      => ['nullable', 'string', 'max:50'],
-            'heart_rate'          => ['nullable', 'string', 'max:50'],
-            'respiratory_rate'    => ['nullable', 'string', 'max:50'],
-            'oxygen_saturation'   => ['nullable', 'string', 'max:50'],
-            'complaints'          => ['nullable', 'array'],
-            'last_visit'          => ['nullable', 'date'],
-            'status'              => ['nullable'],
+            'chief_complaints'      => ['nullable', 'string'],
+            'temperature'           => ['nullable', 'string', 'max:50'],
+            'weight'                => ['nullable', 'string', 'max:50'],
+            'height'                => ['nullable', 'string', 'max:50'],
+            'blood_pressure'        => ['nullable', 'string', 'max:50'],
+            'heart_rate'            => ['nullable', 'string', 'max:50'],
+            'respiratory_rate'      => ['nullable', 'string', 'max:50'],
+            'oxygen_saturation'     => ['nullable', 'string', 'max:50'],
+            'last_visit'            => ['nullable', 'date'],
+            'emergency_contact_name'   => ['nullable', 'string'],
+            'emergency_contact_phone'  => ['nullable', 'string'],
+            'current_symptoms'         => ['nullable', 'array'],
+            'pain_level'               => ['nullable', 'integer', 'between:0,10'],
+            'know_allergies'           => ['nullable', 'array'],
+            'visit_priority'           => ['nullable'],
+            'medical_history'          => ['nullable', 'string'],
+            'current_medications'      => ['nullable', 'array'],
+            'insurance_info'           => ['nullable', 'string'],
+            'visit_type'               => ['nullable', 'string'],
+            'referral_source'          => ['nullable', 'string'],
+            'status'                   => ['nullable'],
         ]);
 
         if ($validator->fails()) {
@@ -67,30 +75,44 @@ class PatientService
     {
         return DB::transaction(function () use ($data, $id) {
             $validated = $this->validate($data);
-            $hospital_patient = HospitalPatient::where('user_id', $validated['user_id']);
-            if ($id) {
-                $hospital_patient->where('id', '!=', $id);
+            if (!empty($validated['user_id'])) {
+                $hospital_patient = HospitalPatient::where('hospital_id', $validated['hospital_id'])
+                    ->where('user_id', $validated['user_id']);
+                if ($id) {
+                    $hospital_patient->where('id', '!=', $id);
+                }
+                if ($hospital_patient->exists()) {
+                    throw ValidationException::withMessages([
+                        'duplicate' => ['This patient already exists in our database.'],
+                    ]);
+                }
             }
-            if ($hospital_patient->exists()) {
-                throw ValidationException::withMessages([
-                    'duplicate' => ['This patient already exists in our database.'],
-                ]);
-            }
+
             $payload = [
-                'hospital_id'        => $validated['hospital_id'],
-                'user_id'            => $validated['user_id'] ?? null,
-                'doctor_id'          => $validated['doctor_id'] ?? null,
-                'age'                => $validated['age'] ?? null,
-                'gender'             => $validated['gender'],
-                'temperature'        => $validated['temperature'] ?? null,
-                'weight'             => $validated['weight'] ?? null,
-                'height'             => $validated['height'] ?? null,
-                'blood_pressure'     => $validated['blood_pressure'] ?? null,
-                'heart_rate'         => $validated['heart_rate'] ?? null,
-                'respiratory_rate'   => $validated['respiratory_rate'] ?? null,
-                'oxygen_saturation'  => $validated['oxygen_saturation'] ?? null,
-                'complaints'         => $validated['complaints'] ?? [],
-                'status'             => $validated['status'] ?? StatusConstants::ACTIVE,
+                'hospital_id'             => $validated['hospital_id'],
+                'user_id'                 => $validated['user_id'] ?? null,
+                'doctor_id'               => $validated['doctor_id'] ?? null,
+                'chief_complaints'        => $validated['chief_complaints'] ?? null,
+                'temperature'             => $validated['temperature'] ?? null,
+                'weight'                  => $validated['weight'] ?? null,
+                'height'                  => $validated['height'] ?? null,
+                'blood_pressure'          => $validated['blood_pressure'] ?? null,
+                'heart_rate'              => $validated['heart_rate'] ?? null,
+                'respiratory_rate'        => $validated['respiratory_rate'] ?? null,
+                'oxygen_saturation'       => $validated['oxygen_saturation'] ?? null,
+                'last_visit'              => $validated['last_visit'] ?? null,
+                'emergency_contact_name'  => $validated['emergency_contact_name'] ?? null,
+                'emergency_contact_phone' => $validated['emergency_contact_phone'] ?? null,
+                'current_symptoms'        => $validated['current_symptoms'] ?? [],
+                'pain_level'              => $validated['pain_level'] ?? null,
+                'know_allergies'          => $validated['know_allergies'] ?? [],
+                'visit_priority'          => $validated['visit_priority'] ?? 'normal',
+                'medical_history'         => $validated['medical_history'] ?? null,
+                'current_medications'     => $validated['current_medications'] ?? [],
+                'insurance_info'          => $validated['insurance_info'] ?? null,
+                'visit_type'              => $validated['visit_type'] ?? null,
+                'referral_source'         => $validated['referral_source'] ?? null,
+                'status'                  => $validated['status'] ?? StatusConstants::ACTIVE,
             ];
 
             if ($id) {

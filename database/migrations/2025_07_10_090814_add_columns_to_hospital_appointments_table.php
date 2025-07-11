@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('hospital_patients', function (Blueprint $table) {
-            $table->longText('chief_complaints')->after('gender');
+        Schema::table('hospital_appointments', function (Blueprint $table) {
+            $table->string('note')->nullable()->after('status');
+            $table->string('source')->nullable()->after('note');
         });
     }
 
@@ -21,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('hospital_patients', function (Blueprint $table) {
-            $table->dropColumn('chief_complaints');
+        Schema::table('hospital_appointments', function (Blueprint $table) {
+            $table->dropColumn(['note', 'source']);
         });
     }
 };

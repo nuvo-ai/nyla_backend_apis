@@ -1,6 +1,7 @@
 <?php
 
 use App\Constants\General\AppConstants;
+use App\Constants\User\UserConstants;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,7 +17,7 @@ return new class extends Migration
             $table->id();
              $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('hospital_id')->nullable()->constrained('hospitals')->cascadeOnDelete();
-            $table->string('role')->default(AppConstants::ROLE_ADMIN);
+            $table->string('role')->default(UserConstants::USER);
             $table->foreignId('user_account_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->timestamps();
         });
