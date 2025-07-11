@@ -50,7 +50,8 @@ class HospitalRegistrationController extends Controller
     public function registerHospital(Request $request)
     {
         try {
-            $user = $this->user->create($this->requestedUserDataduringHospitalRegistration($request));
+            $userData = $this->user->create($this->requestedUserDataduringHospitalRegistration($request));
+            $user = $userData['user'];
             $hospital_data = $request->except(['user_name', 'user_email', 'user_phone', 'portal', 'password', 'generated_password']);
             $hospital_data['user_id'] = $user->id;
             $hospital = $this->hospital_service->createHospital($hospital_data);

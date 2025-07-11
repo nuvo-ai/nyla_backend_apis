@@ -55,7 +55,7 @@ class UserService
             'password' => "nullable",
             "phone" => "nullable",
             "gender" => Rule::in(AppConstants::GENDERS) . "|nullable",
-            "dob" => 'nullable|date_format:Y-m-d|before:today',
+            "date_of_birth" => 'nullable|date_format:Y-m-d|before:today',
             'portal' => [
                 Rule::requiredIf(function () use ($data) {
                     return !empty($data['hospital_id']) || !empty($data['pharmacy_id']);
@@ -65,8 +65,8 @@ class UserService
         ], [
             'email.unique' => "The email address has already been used by another user",
             'username.unique' => "The email address has already been used by another user",
-            'dob.date_format' => 'The date of birth must be in the format dd/mm/yyyy',
-            'dob.before' => 'The date of birth must be a date before today',
+            'date_of_birth.date_format' => 'The date of birth must be in the format dd/mm/yyyy',
+            'date_of_birth.before' => 'The date of birth must be a date before today',
             'portal.required' => 'Portal is required',
         ]);
 

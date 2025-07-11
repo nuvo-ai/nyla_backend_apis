@@ -17,8 +17,6 @@ return new class extends Migration
             $table->foreignId('hospital_id')->constrained('hospitals')->onDelete('cascade');
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('doctor_id')->nullable()->constrained('hospital_users')->nullOnDelete();
-            $table->unsignedTinyInteger('age')->nullable();
-            $table->string('gender');
             $table->string('temperature')->nullable();
             $table->string('weight')->nullable();
             $table->string('height')->nullable();
@@ -26,7 +24,6 @@ return new class extends Migration
             $table->string('heart_rate')->nullable();
             $table->string('respiratory_rate')->nullable();
             $table->string('oxygen_saturation')->nullable();
-            $table->json('complaints')->nullable();
             $table->date('last_visit')->nullable();
             $table->string('status')->default(StatusConstants::ACTIVE);
             $table->timestamps();
