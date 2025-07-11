@@ -53,7 +53,7 @@ class DoctorController extends Controller
 
         $user = $this->user_service->create($userData);
         $hospitalUser = $user->hospitalUser;
-
+         dd($hospitalUser);
         $requestDoctorData = $request->only($this->requestedDoctorDataDuringCreation());
 
         $doctorPayload = array_merge($requestDoctorData, [
