@@ -77,63 +77,69 @@ class UserService
         return $validator->validated();
     }
 
-    public function create(array $data): array
-    {
-        DB::beginTransaction();
-        try {
-            if (!isset($data['first_name']) || !isset($data['last_name'])) {
-                if (isset($data['name'])) {
-                    $name_parts = preg_split('/\s+/', trim($data['name']));
-                    $possible_title = $name_parts[0] ?? null;
-                    if (in_array($possible_title, TitleConstants::TITLES)) {
-                        $data['title'] = $possible_title;
-                        $data['first_name'] = $name_parts[1] ?? null;
-                        $data['last_name'] = implode(' ', array_slice($name_parts, 2));
-                    } else {
-                        $data['first_name'] = $name_parts[0] ?? null;
-                        $data['last_name'] = implode(' ', array_slice($name_parts, 1));
-                    }
+    public function create(array $data): User
+{
+    DB::beginTransaction();
+    try {
+        if (!isset($data['first_name']) || !isset($data['last_name'])) {
+            if (isset($data['name'])) {
+                $name_parts = preg_split('/\s+/', trim($data['name']));
+                $possible_title = $name_parts[0] ?? null;
+                if (in_array($possible_title, TitleConstants::TITLES)) {
+                    $data['title'] = $possible_title;
+                    $data['first_name'] = $name_parts[1] ?? null;
+                    $data['last_name'] = implode(' ', array_slice($name_parts, 2));
+                } else {
+                    $data['first_name'] = $name_parts[0] ?? null;
+                    $data['last_name'] = implode(' ', array_slice($name_parts, 1));
                 }
             }
-            $validated = self::validate($data);
-            if (isset($validated['portal'])) {
-                $portal = Portal::firstOrCreate(['name' => $validated['portal']]);
-                unset($validated['portal']);
-            }
-            unset($validated['name']);
-            $validated['status'] = $validated['status'] ?? StatusConstants::ACTIVE;
-            $validated['role'] = $validated['role'] ?? UserConstants::USER;
-            $validated['password'] = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make(Str::random(10));
-            if (isset($portal)) {
-                $validated['portal_id'] = $portal->id ?? null;
-            }
-            $user = User::create($validated);
-
-            $hospitalUser = null;
-            if ($user->portal && $user->portal->name === 'Hospital') {
-                $authUser = auth()->user();
-                $hospitalId = $data['hospital_id'] ?? ($authUser && $authUser->hospital ? $authUser->hospital->id : null);
-                $userAccountId = $authUser ? $authUser->id : $user->id;
-                $user->hospitalUser()->create([
-                    'user_id' => $user->id,
-                    'hospital_id' => $hospitalId,
-                    'role' => $validated['role'],
-                    'user_account_id' => $userAccountId,
-                ]);
-            }
-            if (isset($validated['portal'])) {
-                $this->sendLoginDetailsDuringhospitalRegistration($user->id, request());
-            }
-            DB::commit();
-            return [
-                'user' => $user,
-                'hospital_user' => $hospitalUser
-            ];
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            throw $th;
         }
+
+        $validated = self::validate($data);
+
+        if (isset($validated['portal'])) {
+            $portal = Portal::firstOrCreate(['name' => $validated['portal']]);
+            unset($validated['portal']);
+        }
+
+        unset($validated['name']);
+        $validated['status'] = $validated['status'] ?? StatusConstants::ACTIVE;
+        $validated['role'] = $validated['role'] ?? UserConstants::USER;
+        $validated['password'] = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make(Str::random(10));
+
+        if (isset($portal)) {
+            $validated['portal_id'] = $portal->id ?? null;
+        }
+
+        $user = User::create($validated);
+
+        if ($user->portal && $user->portal->name === 'Hospital') {
+            $authUser = auth()->user();
+            $hospitalId = $data['hospital_id'] ?? ($authUser && $authUser->hospital ? $authUser->hospital->id : null);
+            $userAccountId = $authUser ? $authUser->id : $user->id;
+
+            $user->hospitalUser()->create([
+                'user_id' => $user->id,
+                'hospital_id' => $hospitalId,
+                'role' => $validated['role'],
+                'user_account_id' => $userAccountId,
+            ]);
+        }
+
+        if (isset($portal)) {
+            $this->sendLoginDetailsDuringhospitalRegistration($user->id, request());
+        }
+
+        DB::commit();
+        return $user;
+
+    } catch (\Throwable $th) {
+        DB::rollBack();
+        throw $th;
     }
+}
+
 
 
     public function update(array $data, $id = null)

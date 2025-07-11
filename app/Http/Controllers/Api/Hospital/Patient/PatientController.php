@@ -43,12 +43,15 @@ class PatientController extends Controller
     {
         try {
             $userData = $this->requestedUserDataDuringPatientRegistration($request);
-            $userResult = $this->user->create($userData);
-            $this->sendLoginDetails($userResult['user']->id, $userData);
-            $user = $userResult['user'];
+            $user = $this->user->create($userData); // Now returns User directly
+
+            $this->sendLoginDetails($user->id, $userData);
+
             $patientData = $request->except(array_keys($userData));
             $patientData['user_id'] = $user->id;
+
             $patient = $this->patient_service->save($patientData);
+
             return ApiHelper::validResponse("Patient created successfully", PatientResource::make($patient));
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
@@ -56,6 +59,7 @@ class PatientController extends Controller
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
     }
+
 
     public function show($patient)
     {

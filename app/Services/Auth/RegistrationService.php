@@ -24,7 +24,6 @@ class RegistrationService
     {
         return DB::transaction(function () use ($data) {
             $user = $this->user_service->create($data);
-            $user = $data['user'];
             $this->verify_service->sendPin($user);
             return $user;
         });
