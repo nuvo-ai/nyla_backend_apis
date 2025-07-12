@@ -33,6 +33,18 @@ class AppointmentController extends Controller
         }
     }
 
+    public function updateAppointment(Request $request, $appointment)
+    {
+        try {
+            $appointment = $this->hospital_appointment_service->update($request->all(), $appointment);
+            return ApiHelper::validResponse("Appointment updated successfully", AppointmentResource::make($appointment));
+        } catch (ValidationException $e) {
+            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+
     public function updateStatus(Request $request, $id)
     {
         try {

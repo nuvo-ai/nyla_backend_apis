@@ -62,16 +62,23 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::get('/{uuid}/details', [HospitalRegistrationController::class, 'getHospital'])->name('details');
 
         Route::prefix('users')->as('users.')->group(function () {
-            Route::post('/create', [HospitalUsersController::class, 'createHospitalUser'])->name('create');
+            Route::post('/create', [HospitalUsersController::class, 'create'])->name('create');
             Route::get('/list', [HospitalUsersController::class, 'list'])->name('list');
+            Route::delete('/delete/{id}', [HospitalUsersController::class, 'delete'])->name('delete');
+            Route::patch('/assign-role/{id}', [HospitalUsersController::class, 'assignRole'])->name('assign-role');
         });
         Route::prefix('appointments')->as('appointments.')->group(function () {
             Route::post('/book', [AppointmentController::class, 'bookAppointment'])->name('book');
+            Route::put('/update/{appointment}', [AppointmentController::class, 'updateAppointment'])->name('update');
             Route::patch('/update-status/{id}', [AppointmentController::class, 'updateStatus'])->name('update-status');
         });
 
         Route::resource('patients', PatientController::class);
         Route::resource('doctors', DoctorController::class);
+
+        Route::patch('patient/discharge/{patient}', [PatientController::class, 'discharge'])->name('patient.discharge');
+        Route::patch('patient/assign-doctor/{patient}', [PatientController::class, 'assign'])->name('patient.assign-doctor');
+        Route::get('patients-stat', [PatientController::class, 'stat'])->name('patients-stat');
     });
     Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
         Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');

@@ -6,6 +6,7 @@ use App\Constants\General\StatusConstants;
 use App\Constants\User\UserConstants;
 use App\Models\Hospital\Doctor;
 use App\Models\Hospital\HospitalContact;
+use App\Models\Hospital\HospitalPatient;
 use App\Models\Portal;
 use App\Models\User\User;
 use Illuminate\Support\Facades\Validator;
@@ -107,5 +108,12 @@ class DoctorService
         }
 
         return $query->get();
+    }
+
+    public function assign($doctor)
+    {
+        return DB::transaction(function () use ($doctor) {
+          $doctor = $this->getById($doctor);
+        });
     }
 }

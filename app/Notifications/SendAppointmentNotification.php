@@ -18,11 +18,13 @@ class SendAppointmentNotification extends Notification
 
     protected HospitalAppointment $appointment;
     protected User $recipient;
+    protected bool $isUpdate;
 
-    public function __construct(HospitalAppointment $appointment, User $recipient)
+    public function __construct(HospitalAppointment $appointment, User $recipient, bool $isUpdate = false)
     {
         $this->appointment = $appointment;
         $this->recipient = $recipient;
+        $this->isUpdate = $isUpdate;
     }
 
     public function via(object $notifiable): array
@@ -71,15 +73,28 @@ class SendAppointmentNotification extends Notification
         $doctorName = optional(optional($this->appointment->doctor)->user)->full_name ?? 'Doctor';
         $patientName = $this->appointment->patient_name;
 
-        if ($isDoctor) {
-            $title = "New Appointment with Patient: $patientName";
-            $message = "You have a new appointment scheduled with $patientName.";
-        } elseif ($isScheduler) {
-            $title = "Appointment Scheduled Successfully";
-            $message = "Your appointment with Dr. $doctorName has been successfully scheduled.";
+        if ($this->isUpdate) {
+            if ($isDoctor) {
+                $title = "Appointment Updated with Patient: $patientName";
+                $message = "The appointment with $patientName has been rescheduled to {$this->appointment->appointment_date} at {$this->appointment->appointment_time}.";
+            } elseif ($isScheduler) {
+                $title = "Your Appointment Has Been Updated";
+                $message = "Your appointment with Dr. $doctorName has been rescheduled to {$this->appointment->appointment_date} at {$this->appointment->appointment_time}.";
+            } else {
+                $title = "Appointment Updated";
+                $message = "An appointment has been updated.";
+            }
         } else {
-            $title = "New Appointment Notification";
-            $message = "A new appointment has been scheduled.";
+            if ($isDoctor) {
+                $title = "New Appointment with Patient: $patientName";
+                $message = "You have a new appointment scheduled with $patientName.";
+            } elseif ($isScheduler) {
+                $title = "Appointment Scheduled Successfully";
+                $message = "Your appointment with Dr. $doctorName has been successfully scheduled.";
+            } else {
+                $title = "New Appointment Notification";
+                $message = "A new appointment has been scheduled.";
+            }
         }
 
         return [
