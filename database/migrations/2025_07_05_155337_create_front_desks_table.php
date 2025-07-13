@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('hospital_id')->constrained('hospitals')->cascadeOnDelete();
             $table->foreignId('hospital_user_id')->constrained('hospital_users')->cascadeOnDelete();
             $table->string('shift')->nullable();
-            $table->string('deparment');
+            $table->string('department');
             $table->string('years_of_expirience')->nullable();
             $table->timestamps();
         });

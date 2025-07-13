@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Auth\PasswordController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\VerificationController;
 use App\Http\Controllers\Api\Hospital\Doctor\DoctorController;
+use App\Http\Controllers\Api\Hospital\Frontdesk\FrontdeskController;
 use App\Http\Controllers\Api\Hospital\HospitalRegistrationController;
 use App\Http\Controllers\Api\Hospital\HospitalUsersController;
 use App\Http\Controllers\Api\Hospital\Patient\PatientController;
@@ -75,6 +76,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
 
         Route::resource('patients', PatientController::class);
         Route::resource('doctors', DoctorController::class);
+        Route::resource('frontdesks', FrontdeskController::class);
 
         Route::patch('patient/discharge/{patient}', [PatientController::class, 'discharge'])->name('patient.discharge');
         Route::patch('patient/assign-doctor/{patient}', [PatientController::class, 'assign'])->name('patient.assign-doctor');
