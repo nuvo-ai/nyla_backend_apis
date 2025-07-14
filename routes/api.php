@@ -7,9 +7,11 @@ use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\VerificationController;
 use App\Http\Controllers\Api\Hospital\Doctor\DoctorController;
 use App\Http\Controllers\Api\Hospital\Frontdesk\FrontdeskController;
+use App\Http\Controllers\Api\Hospital\Home\HomeController;
 use App\Http\Controllers\Api\Hospital\HospitalRegistrationController;
 use App\Http\Controllers\Api\Hospital\HospitalUsersController;
 use App\Http\Controllers\Api\Hospital\Patient\PatientController;
+use App\Http\Controllers\Api\Settings\SettingsController;
 use App\Http\Controllers\Api\Pharmacy\PharmacyRegistrationController;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Middleware\ApiEnsureFrontendRequestsAreStateful;
@@ -58,6 +60,10 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
     });
 
     Route::prefix('hospital')->as('hospital.')->group(function () {
+
+        Route::get('overview/data', [HomeController::class, 'home'])->name('overview.data');
+
+
         Route::put('/update/{id}', [HospitalRegistrationController::class, 'updateHospital'])->name('update');
         Route::get('list', [HospitalRegistrationController::class, 'list'])->name('list');
         Route::get('/{uuid}/details', [HospitalRegistrationController::class, 'getHospital'])->name('details');
@@ -72,6 +78,10 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
             Route::post('/book', [AppointmentController::class, 'bookAppointment'])->name('book');
             Route::put('/update/{appointment}', [AppointmentController::class, 'updateAppointment'])->name('update');
             Route::patch('/update-status/{id}', [AppointmentController::class, 'updateStatus'])->name('update-status');
+            Route::get('/list', [AppointmentController::class, 'listAppointments'])->name('list');
+            Route::get('/{id}/details', [AppointmentController::class, 'getAppointment'])->name('details');
+            Route::get('/doctor/{doctorId}/appointments', [AppointmentController::class, 'getDoctorAppointments'])->name('doctor.appointments');
+            Route::get('/patient/{patientId}/appointments', [AppointmentController::class, 'getPatientAppointments'])->name('patient.appointments');
         });
 
         Route::resource('patients', PatientController::class);
@@ -86,6 +96,14 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');
         Route::get('list', [PharmacyRegistrationController::class, 'list'])->name('list');
         Route::get('/{uuid}/details', [PharmacyRegistrationController::class, 'getPharmacy'])->name('details');
+    });
+
+    Route::prefix('settings')->as('settings.')->group(function () {
+        Route::get('/all', [SettingsController::class, 'getSettings'])->name('all');
+        Route::patch('/notifications/set-preferences', [SettingsController::class, 'setPreferences'])->name('notifications.set-preferences');
+        Route::patch('/system', [SettingsController::class, 'updateSystemSettings'])->name('system.update');
+        Route::patch('/preferences', [SettingsController::class, 'updatePreferences'])->name('preferences.update');
+        Route::patch('/password/update', [SettingsController::class, 'changePassword'])->name('password.update');
     });
 });
 

@@ -58,4 +58,38 @@ class AppointmentController extends Controller
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
     }
+
+    public function listAppointments(Request $request)
+    {
+        try {
+            $appointments = $this->hospital_appointment_service->listAppointments($request->all());
+            return ApiHelper::validResponse("Appointments retrieved successfully", AppointmentResource::collection($appointments));
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+
+    public function getAppointment($id)
+    {
+        try {
+            $appointment = $this->hospital_appointment_service->getAppointment($id);
+            return ApiHelper::validResponse("Appointment retrieved successfully", AppointmentResource::make($appointment));
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse($this->validationErrorMessage, ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+
+    public function getDoctorAppointments($doctorId)
+    {
+        try {
+            $appointments = $this->hospital_appointment_service->getDoctorAppointments($doctorId);
+            return ApiHelper::validResponse("Doctor's appointments retrieved successfully", AppointmentResource::collection($appointments));
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse($this->validationErrorMessage, ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
 }

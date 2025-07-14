@@ -11,7 +11,9 @@ use App\Models\Hospital\Doctor;
 use App\Models\Hospital\HospitalAppointment;
 use App\Models\Hospital\HospitalUser;
 use App\Notifications\SendAppointmentNotification;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Validator;
@@ -180,5 +182,48 @@ class AppointmentService
             'scheduler' => new UserResource($appointment->scheduler),
             'updated_at' => $appointment->updated_at->toDateTimeString(),
         ];
+    }
+    public function listAppointments(array $filters = []): Collection
+    {
+        $query = HospitalAppointment::with(['hospital', 'doctor', 'scheduler']);
+
+        if (!empty($filters['period'])) {
+            switch ($filters['period']) {
+                case 'today':
+                    $query->whereDate('appointment_date', now()->toDateString());
+                    break;
+                case 'week':
+                    $query->whereBetween('appointment_date', [
+                        now()->startOfWeek()->toDateString(),
+                        now()->endOfWeek()->toDateString()
+                    ]);
+                    break;
+                case 'month':
+                    $query->whereMonth('appointment_date', now()->month)
+                        ->whereYear('appointment_date', now()->year);
+                    break;
+                case 'all':
+                default:
+                    break;
+            }
+        }
+
+        return $query->get();
+    }
+
+    public function getAppointment($id): HospitalAppointment
+    {
+        $appointment = HospitalAppointment::with(['hospital', 'doctor', 'scheduler'])->find($id);
+        if (!$appointment) {
+            throw new ModelNotFoundException("Appointment not found");
+        }
+        return $appointment;
+    }
+
+    public function getDoctorAppointments($doctorId): Collection
+    {
+        return HospitalAppointment::with(['hospital', 'doctor', 'scheduler'])
+            ->where('doctor_id', $doctorId)
+            ->get();    
     }
 }
