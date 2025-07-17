@@ -85,4 +85,9 @@ class Hospital extends Model
     {
         return $this->hasOne(FrontDesk::class);
     }
+
+    public function patients()
+    {
+        return $this->hasMany(HospitalPatient::class);
+    }
 }

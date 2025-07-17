@@ -60,7 +60,11 @@ return [
 
     'paystack' => [
         'public_key' => env('PAYSTACK_PUBLIC_KEY'),
-        'secret_key' => env('PAYSTACK_SECRET_KEY')
+        'secret_key' => env('PAYSTACK_SECRET_KEY'),
+        'base_url' => env('PAYSTACK_BASE_URL'),
+        'webhook_url' => env('PAYSTACK_WEBHOOK_URL'),
+        'default_currency' => env('PAYSTACK_DEFAULT_CURRENCY', 'NGN'),
     ],
+
 
 ];

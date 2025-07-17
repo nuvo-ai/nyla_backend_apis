@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\PasswordController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\VerificationController;
+use App\Http\Controllers\Api\Finance\Plan\PlanController;
+use App\Http\Controllers\Api\Hospital\Analytic\AnalyticController;
 use App\Http\Controllers\Api\Hospital\Doctor\DoctorController;
 use App\Http\Controllers\Api\Hospital\Frontdesk\FrontdeskController;
 use App\Http\Controllers\Api\Hospital\Home\HomeController;
@@ -91,6 +93,8 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::patch('patient/discharge/{patient}', [PatientController::class, 'discharge'])->name('patient.discharge');
         Route::patch('patient/assign-doctor/{patient}', [PatientController::class, 'assign'])->name('patient.assign-doctor');
         Route::get('patients-stat', [PatientController::class, 'stat'])->name('patients-stat');
+
+        Route::get('analytics', [AnalyticController::class, 'getAnalytics'])->name('analytics');
     });
     Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
         Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');
@@ -104,6 +108,14 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::patch('/system', [SettingsController::class, 'updateSystemSettings'])->name('system.update');
         Route::patch('/preferences', [SettingsController::class, 'updatePreferences'])->name('preferences.update');
         Route::patch('/password/update', [SettingsController::class, 'changePassword'])->name('password.update');
+    });
+
+    Route::prefix('billings')->as('billings.')->group(function () {
+        Route::post('plans/create', [PlanController::class, 'create'])->name('plans.create');
+        Route::get('plans/{plan_code}/details', [PlanController::class, 'getPlan'])->name('plans.details');
+        Route::put('plans/{plan_code}/update', [PlanController::class, 'update'])->name('plans.update');
+        Route::get('plans/list', [PlanController::class, 'list'])->name('plans.list');
+        Route::delete('plans/{plan_code}/delete', [PlanController::class, 'delete'])->name('plans.delete');
     });
 });
 
