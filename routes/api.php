@@ -40,6 +40,11 @@ Route::get('/test-email', function () {
     ]);
 });
 
+Route::post('/webhook/deploy', function () {
+    include base_path('deploy.php');
+});
+
+
 Route::prefix("password")->as("password.")->group(function () {
     Route::post('/forgot', [PasswordController::class, 'forgotPassword'])->name("forgot_password");
     Route::post("/reset", [PasswordController::class, "resetPassword"])->name("reset_password");
