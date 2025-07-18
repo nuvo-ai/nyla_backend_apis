@@ -35,7 +35,7 @@ class SubscriptionController extends Controller
 
     public function initialize(Request $request)
     {
-        dd("Webhook will handle subscription creation in production environment......... yes");
+        dd("Webhook will handle subscription creation in production environment.... yes");
         try {
             $user = $request->user();
             $this->subscription_service->validate($request->all());
