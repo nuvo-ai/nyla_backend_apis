@@ -42,3 +42,6 @@ file_put_contents($projectPath . '/deploy.log', implode("\n", $output) . "\n", F
 // ✅ Return response
 echo "Laravel API deployed successfully:\n";
 echo implode("\n", $output);
+
+http_response_code(200);
+exit;
