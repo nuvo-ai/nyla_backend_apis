@@ -2,7 +2,10 @@
 
 namespace App\Models\General;
 
+<<<<<<< HEAD
 use Carbon\Carbon;
+=======
+>>>>>>> bc7f4eef305818723e0ac99546f1c100084b8135
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
