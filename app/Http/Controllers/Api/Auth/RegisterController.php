@@ -28,11 +28,11 @@ class RegisterController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'first_name' => 'required|min:3',
-                'last_name' => 'required|min:3',
+                'name' => 'required|min:3',
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required|string|min:6',
                 'confirm_password' => 'required|same:password',
+                'portal' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -41,10 +41,13 @@ class RegisterController extends Controller
 
             $data = $validator->validated();
             $user = $this->register_service->create($data);
-            $data["token"] = $user->createToken(SanctumService::SESSION_KEY)->plainTextToken;
-            $data["user"] =  UserResource::make($user);
+            $token = $user->createToken(SanctumService::SESSION_KEY)->plainTextToken;
             $this->register_service->postRegisterActions($user);
-            return ApiHelper::validResponse("User registered successfully", $data);
+
+            return ApiHelper::validResponse("User registered successfully", [
+                "token" => $token,
+                "user" => UserResource::make($user),
+            ]);
         } catch (ValidationException $e) {
             report_error($e);
             $message = $e->validator->errors()->first();
@@ -54,5 +57,4 @@ class RegisterController extends Controller
             return ApiHelper::throwableResponse($e, $request);
         }
     }
-
 }

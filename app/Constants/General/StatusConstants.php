@@ -6,6 +6,8 @@ class StatusConstants
 {
     const ACTIVE = 'Active';
 
+    const AVAILABLE = 'Available';
+
     const INACTIVE = 'Inactive';
 
     const PENDING = 'Pending';
@@ -48,8 +50,19 @@ class StatusConstants
 
     const NO = 'No';
 
+    const SCHEDULED = 'Scheduled';
+
+    const CONFIRMED = 'Confirmed';
+
+    const DISCHARGE = 'Discharge';
+
+    const ADMITTED  = 'Admitted';
+
+
+    const NO_SHOW = 'No Show';
+
     const ACTIVE_STATUSES = [
-        self::PENDING, self::PROCESSING,
+        self::PENDING, self::PROCESSING, self::APPROVED, self::SCHEDULED
     ];
 
     const STATUSES = [
@@ -76,5 +89,14 @@ class StatusConstants
         self::AWAITING_CONFIRMATION => 'Awaiting Confirmation',
         self::DECLINED => self::DECLINED,
         self::COMPLETED => self::COMPLETED,
+    ];
+
+     const SCHEDULE_STATUSES = [
+        self::PENDING,
+        self::CONFIRMED,
+        self::CANCELLED,
+        self::COMPLETED,
+        self::SCHEDULED,
+        self::NO_SHOW,
     ];
 }

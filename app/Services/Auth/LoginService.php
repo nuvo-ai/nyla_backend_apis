@@ -2,13 +2,14 @@
 
 namespace App\Services\Auth;
 
-use App\Constants\User\UserConstants;
-use App\Exceptions\Auth\AuthException;
-use App\Models\User;
+use App\Constants\General\AppConstants;
+use App\Models\User\User;
+use Illuminate\Support\Str;
 use App\Services\User\UserService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+use App\Constants\User\UserConstants;
+use App\Exceptions\Auth\AuthException;
 use Illuminate\Support\Facades\Validator;
 
 class LoginService
@@ -27,17 +28,43 @@ class LoginService
 
     public static function authenticate(array $data)
     {
-       return DB::transaction(function () use ($data) {
-            $data = Validator::make($data, [
+        return DB::transaction(function () use ($data) {
+            $rules = [
                 "email" => "required|string|email|exists:users,email",
-                'password' => ['required', 'string'],
-                'fcm_token' => 'nullable|string',
-            ])->validate();
+                "password" => "required|string",
+                "fcm_token" => "nullable|string",
+                "portal" => "nullable|string|in:Hospital,Pharmacy",
+            ];
 
-            $user = User::where("email", $data["email"])->first();
+            if (isset($data["portal"]) && $data["portal"] === "Hospital") {
+                $roles = implode(',', UserConstants::ROLES);
+                $rules["role"] = "required|string|in:$roles";
+            }
+
+
+            $messages = [
+                'role.in' => 'The role could not be matched or found in the app.',
+                'portal.in' => 'Portal must be either Hospital or Pharmacy.',
+            ];
+            $portal = $data["portal"] ?? null;
+            $data = Validator::make($data, $rules, $messages)->validate();
+
+            $user = User::where("email", $data["email"])->firstOrFail();
 
             if (!Hash::check($data["password"], $user->password)) {
                 throw new AuthException("Incorrect password provided.");
+            }
+
+            if ($portal === "Hospital") {
+                $hospitalUser = $user->hospitalUser;
+
+                if (!$hospitalUser) {
+                    throw new AuthException("User is not associated with any hospital.");
+                }
+
+                if (strtolower($hospitalUser->role) !== strtolower($data["role"])) {
+                    throw new AuthException("Invalid role for Hospital user.");
+                }
             }
 
             if (!empty($token = $data["fcm_token"] ?? null)) {
@@ -53,7 +80,6 @@ class LoginService
             return $user->refresh();
         });
     }
-
     public static function ouath(array $payload)
     {
         return DB::transaction(function () use ($payload) {

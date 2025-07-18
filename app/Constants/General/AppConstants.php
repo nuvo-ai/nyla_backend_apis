@@ -10,6 +10,9 @@ class AppConstants
 
     const ROLE_ADMIN = 'Admin';
 
+    const ROLE_HOSPITAL_OWNER = 'Hospital Owner';
+    const ROLE_PHARMACY_OWNER = 'Pharmacy Owner';
+
     const TEAM_ZENOVATE = 'Zenovate';
 
     const TEAM_SKYCARE = 'Skycare';
@@ -62,4 +65,20 @@ class AppConstants
         self::RATHER_NOT_SAY => self::RATHER_NOT_SAY,
         self::OTHERS => self::OTHERS,
     ];
+
+    const PRIVATE = 'Private';
+    const PUBLIC = 'Public';
+    const TEACHING = 'Teaching';
+    const SPECIALIST = 'Specialist';
+    const GENERAL = 'General';
+
+    const HOSPITAL_TYPES = [
+        self::PRIVATE => self::PRIVATE,
+        self::PUBLIC => self::PUBLIC,
+        self::TEACHING => self::TEACHING,
+        self::SPECIALIST => self::SPECIALIST,
+        self::GENERAL => self::GENERAL,
+    ];
+
+
 }
