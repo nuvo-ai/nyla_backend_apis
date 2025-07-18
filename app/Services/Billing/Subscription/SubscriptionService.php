@@ -55,26 +55,31 @@ class SubscriptionService
     public function createSubscription($user, $plan_id, $paymentData)
     {
         $plan = Plan::findOrFail($plan_id);
+        $subscriptionCode = $paymentData['subscription'] ?? $paymentData['reference'];
 
+        if (Subscription::where('subscription_code', $subscriptionCode)->exists()) {
+            return null;
+        }
+
+        return $this->storeSubscription($user, $plan, $paymentData);
+    }
+
+    public function storeSubscription($user, $plan, $paymentData)
+    {
         return Subscription::create([
             'uuid' => Str::uuid(),
             'user_id' => $user->id,
-            'plan_id' => $plan_id,
-
+            'plan_id' => $plan->id,
             'subscription_code' => $paymentData['subscription'] ?? $paymentData['reference'],
             'email_token' => $paymentData['email_token'] ?? null,
             'customer_code' => $paymentData['customer']['customer_code'] ?? null,
-
             'payment_gateway_id' => 1,
             'payment_method' => $paymentData['authorization']['channel'] ?? null,
-
             'status' => 'active',
             'starts_at' => Carbon::now(),
             'ends_at' => $plan->getPlanEndsAt(),
-
             'authorization_reusable' => $paymentData['authorization']['reusable'] ?? false,
             'next_payment_date' => $paymentData['next_payment_date'] ?? $plan->getPlanEndsAt(),
-
             'meta' => json_encode($paymentData),
         ]);
     }

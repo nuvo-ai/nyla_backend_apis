@@ -35,8 +35,4 @@ class Subscription extends Model
     {
         return $this->belongsTo(Plan::class);
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> bc7f4eef305818723e0ac99546f1c100084b8135
