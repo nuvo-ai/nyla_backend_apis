@@ -54,6 +54,10 @@ class StatusConstants
 
     const CONFIRMED = 'Confirmed';
 
+    const DISCHARGE = 'Discharge';
+
+    const ADMITTED  = 'Admitted';
+
 
     const NO_SHOW = 'No Show';
 

@@ -10,11 +10,13 @@ use App\Models\Hospital\FrontDesk;
 use App\Models\Hospital\HospitalContact;
 use App\Models\Hospital\HospitalUser;
 use App\Models\Hospital\LabTechnician;
+use App\Models\NotificationPreference;
 use App\Models\Portal;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Auth;
 
 class User extends Authenticatable
 {
@@ -57,10 +59,10 @@ class User extends Authenticatable
         return implode(' ', array_filter([$this->first_name, $this->middle_name, $this->last_name]));
     }
 
-   public function getAvatarAttribute($avatar)
-{
-    return $avatar ? asset('storage/' . $avatar) : null;
-}
+    public function getAvatarAttribute($avatar)
+    {
+        return $avatar ? asset('storage/' . $avatar) : null;
+    }
 
 
     public function getFullNameAttribute()
@@ -96,5 +98,27 @@ class User extends Authenticatable
     public function frontDesk()
     {
         return $this->hasOne(FrontDesk::class);
+    }
+
+    public function notificationPreference()
+    {
+        return $this->hasOne(NotificationPreference::class);
+    }
+
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            $user->notificationPreference()->create([
+                'email' => true,
+                'sms' => false,
+                'push' => false,
+                'appointment_reminders' => false,
+            ]);
+        });
+    }
+
+    public static function getAuthenticatedUser()
+    {
+        return Auth::user();
     }
 }

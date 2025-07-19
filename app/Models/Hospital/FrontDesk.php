@@ -13,7 +13,7 @@ class FrontDesk extends Model
         'hospital_id',
         'hospital_user_id',
         'shift',
-        'deparment',
+        'department',
         'years_of_expirience',
     ];
 

@@ -43,12 +43,15 @@ class PatientController extends Controller
     {
         try {
             $userData = $this->requestedUserDataDuringPatientRegistration($request);
-            $userResult = $this->user->create($userData);
-            $this->sendLoginDetails($userResult['user']->id, $userData);
-            $user = $userResult['user'];
+            $user = $this->user->create($userData); // Now returns User directly
+
+            $this->sendLoginDetails($user->id, $userData);
+
             $patientData = $request->except(array_keys($userData));
             $patientData['user_id'] = $user->id;
+
             $patient = $this->patient_service->save($patientData);
+
             return ApiHelper::validResponse("Patient created successfully", PatientResource::make($patient));
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
@@ -56,6 +59,7 @@ class PatientController extends Controller
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
     }
+
 
     public function show($patient)
     {
@@ -97,6 +101,40 @@ class PatientController extends Controller
         }
     }
 
+    public function discharge(Request $request, $patient)
+    {
+        try {
+           $data = $this->patient_service->discharge($request, $patient);
+            return ApiHelper::validResponse("Patient discharged successfully", $data);
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse("Patient not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            report_error($e);
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+    public function assign(Request $request, $patient)
+    {
+        try {
+          $data = $this->patient_service->assign($request, $patient);
+            $get_patient = $this->patient_service->getById($patient);
+            $patient_name = $get_patient->user->full_name;
+            return ApiHelper::validResponse("Doctor assigned to " . $patient_name .   " successfully", $data);
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse("Doctor not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+     public function stat()
+    {
+        try {
+           $patients = $this->patient_service->stat();
+            return ApiHelper::validResponse("Patients stat retrieved successfully", $patients);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
     private function requestedUserDataDuringPatientRegistration(Request $request): array
     {
         $generated_password = $this->generateRandomPasswordDuringHospitalRegistration();

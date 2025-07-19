@@ -5,9 +5,11 @@ namespace App\Services\Hospital\Patient;
 use App\Constants\General\AppConstants;
 use App\Constants\General\StatusConstants;
 use App\Constants\User\UserConstants;
+use App\Http\Resources\Hospital\DoctorResource;
 use App\Models\Hospital\HospitalPatient;
 use App\Models\Hospital\HospitalUser;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -144,5 +146,51 @@ class PatientService
         }
 
         return $query->get();
+    }
+
+    public function discharge(Request $request, $patient_id)
+    {
+        $status = $request->status;
+        if ($status !== StatusConstants::DISCHARGE) {
+            throw ValidationException::withMessages([
+                'status' => ['bad method provided.']
+            ]);
+        }
+        $patient = HospitalPatient::findOrFail($patient_id);
+        if ($patient->status === StatusConstants::DISCHARGE) {
+            throw ValidationException::withMessages([
+                'status' => ['Patient has already been discharged.']
+            ]);
+        }
+        $patient->status = $status;
+        $patient->save();
+        return [
+            'id' => $patient->id,
+            'status' => $patient->status,
+        ];
+    }
+
+    public function assign(Request $request, $patient)
+    {
+        return DB::transaction(function () use ($request, $patient) {
+            $patient = $this->getById($patient);
+            $patient->doctor_id = $request->input('doctor_id');
+            $patient->save();
+            $doctor = $patient->doctor()->with(['user', 'hospital'])->first();
+            return [
+                'id' => $patient->id,
+                'doctor' => DoctorResource::make($doctor),
+            ];
+        });
+    }
+
+    public function stat()
+    {
+        return [
+            'total_patients' => HospitalPatient::count(),
+            'active_patients' => HospitalPatient::where('status', StatusConstants::ACTIVE)->count(),
+            'admitted_patients' => HospitalPatient::where('status', StatusConstants::ADMITTED)->count(),
+            'discharged_patients' => HospitalPatient::where('status', StatusConstants::DISCHARGE)->count()
+        ];
     }
 }

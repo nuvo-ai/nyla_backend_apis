@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('hospital_patients', function (Blueprint $table) {
-            $table->longText('chief_complaints')->after('gender');
+            $table->longText('chief_complaints')->after('oxygen_saturation');
         });
     }
 

@@ -4,8 +4,11 @@ namespace App\Services\Auth;
 
 use App\Constants\Auth\OtpConstants;
 use App\Models\User\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class PasswordService
 {
@@ -53,6 +56,30 @@ class PasswordService
 
         $user->update([
             "password" => Hash::make($data["password"])
+        ]);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+            'new_password_confirmation' => 'required|min:8',
+        ]);
+
+        $user = Auth::user();
+        if (!Hash::check($request->current_password, $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Current password is incorrect.']
+            ]);
+        }
+        if ($request->new_password !== $request->new_password_confirmation) {
+            throw ValidationException::withMessages([
+                'new_password_confirmation' => ['New password confirmation does not match.']
+            ]);
+        }
+        $user->update([
+            'password' => Hash::make($request->new_password),
         ]);
     }
 }

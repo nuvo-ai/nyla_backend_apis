@@ -73,7 +73,7 @@ class ProfileService
             $user->update($data);
             DB::commit();
             return $user->refresh();
-        } catch (\Throwable $th) {
+        } catch (\Throwable $th) {  
             DB::rollBack();
             throw $th;
         }

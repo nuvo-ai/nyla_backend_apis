@@ -11,7 +11,9 @@ use App\Models\Hospital\Doctor;
 use App\Models\Hospital\HospitalAppointment;
 use App\Models\Hospital\HospitalUser;
 use App\Notifications\SendAppointmentNotification;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Validator;
@@ -29,10 +31,8 @@ class AppointmentService
                 'exists:doctors,id',
                 function ($attribute, $value, $fail) {
                     if ($value) {
-                        // Check hospital_user role is doctor
-                        $doctor = Doctor::find($value);
-                        if (!$doctor || $doctor->hospitalUser->role !== UserConstants::DOCTOR) {
-                            $fail('The selected doctor does not have the correct role.');
+                        if (!Doctor::find($value)) {
+                            $fail('The selected doctor does not exist.');
                         }
                     }
                 }
@@ -101,6 +101,66 @@ class AppointmentService
         });
     }
 
+    public function update(array $data, $id): HospitalAppointment
+    {
+        return DB::transaction(function () use ($data, $id) {
+            $appointment = HospitalAppointment::findOrFail($id);
+
+            $validatedData = $this->validate(array_merge($appointment->toArray(), $data));
+
+            $oldDate = $appointment->appointment_date;
+            $oldTime = $appointment->appointment_time;
+
+            // Check for conflicts if date/time is being changed
+            if (
+                (isset($validatedData['appointment_date']) && $validatedData['appointment_date'] != $oldDate) ||
+                (isset($validatedData['appointment_time']) && $validatedData['appointment_time'] != $oldTime)
+            ) {
+                if (HospitalAppointment::hasConflict($validatedData, true, $id)) {
+                    throw ValidationException::withMessages([
+                        'duplicate' => ['You already have a pending appointment for this date and time.'],
+                    ]);
+                }
+                if (HospitalAppointment::hasConflict($validatedData, false, $id)) {
+                    throw ValidationException::withMessages([
+                        'conflict' => ['This time slot is already taken. Please choose a different time.'],
+                    ]);
+                }
+            }
+
+            $appointment->update([
+                'appointment_date'  => $validatedData['appointment_date'],
+                'appointment_time'  => $validatedData['appointment_time'],
+                'patient_name'      => $validatedData['patient_name'],
+                'hospital_id'       => $validatedData['hospital_id'],
+                'doctor_id'         => $validatedData['doctor_id'] ?? null,
+                'appointment_type'  => $validatedData['appointment_type'],
+                'note'              => $validatedData['note'] ?? null,
+                'source'            => $validatedData['source'],
+                'status'            => $validatedData['status'] ?? StatusConstants::PENDING,
+            ]);
+
+            $appointment->load(['doctor', 'scheduler']);
+
+            if (
+                ($oldDate != $appointment->appointment_date) ||
+                ($oldTime != $appointment->appointment_time)
+            ) {
+                $doctorUser = optional($appointment->doctor)->user;
+                $schedulerUser = $appointment->scheduler;
+
+                if ($doctorUser) {
+                    Notification::send($doctorUser, new SendAppointmentNotification($appointment, $doctorUser, true));
+                }
+                if ($schedulerUser) {
+                    Notification::send($schedulerUser, new SendAppointmentNotification($appointment, $schedulerUser, true));
+                }
+            }
+
+            return $appointment;
+        });
+    }
+
     public function updateStatus(Request $request, int $appointment_id)
     {
         $status = $request->status;
@@ -122,5 +182,48 @@ class AppointmentService
             'scheduler' => new UserResource($appointment->scheduler),
             'updated_at' => $appointment->updated_at->toDateTimeString(),
         ];
+    }
+    public function listAppointments(array $filters = []): Collection
+    {
+        $query = HospitalAppointment::with(['hospital', 'doctor', 'scheduler']);
+
+        if (!empty($filters['period'])) {
+            switch ($filters['period']) {
+                case 'today':
+                    $query->whereDate('appointment_date', now()->toDateString());
+                    break;
+                case 'week':
+                    $query->whereBetween('appointment_date', [
+                        now()->startOfWeek()->toDateString(),
+                        now()->endOfWeek()->toDateString()
+                    ]);
+                    break;
+                case 'month':
+                    $query->whereMonth('appointment_date', now()->month)
+                        ->whereYear('appointment_date', now()->year);
+                    break;
+                case 'all':
+                default:
+                    break;
+            }
+        }
+
+        return $query->get();
+    }
+
+    public function getAppointment($id): HospitalAppointment
+    {
+        $appointment = HospitalAppointment::with(['hospital', 'doctor', 'scheduler'])->find($id);
+        if (!$appointment) {
+            throw new ModelNotFoundException("Appointment not found");
+        }
+        return $appointment;
+    }
+
+    public function getDoctorAppointments($doctorId): Collection
+    {
+        return HospitalAppointment::with(['hospital', 'doctor', 'scheduler'])
+            ->where('doctor_id', $doctorId)
+            ->get();    
     }
 }

@@ -8,3 +8,5 @@ Route::get('/', function () {
         'message' => 'Welcome to Nuvo-AI API'
     ]);
 });
+
+
