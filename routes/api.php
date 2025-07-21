@@ -107,7 +107,25 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');
         Route::get('list', [PharmacyRegistrationController::class, 'list'])->name('list');
         Route::get('/{uuid}/details', [PharmacyRegistrationController::class, 'getPharmacy'])->name('details');
+        Route::patch('/{id}/toggle-active', [\App\Http\Controllers\Api\Pharmacy\PharmacyController::class, 'toggleActive']);
+        // Orders
+        Route::get('/orders', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'index']);
+        Route::post('/orders', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'store']);
+        Route::get('/orders/{id}', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'show']);
+        Route::put('/orders/{id}', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'update']);
+        Route::delete('/orders/{id}', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'destroy']);
+        Route::get('/orders/{id}/export', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'export']);
+        Route::get('/emr', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'emr']);
+
+        // Medications (Inventory)
+        Route::get('/medications', [\App\Http\Controllers\Api\Pharmacy\MedicationController::class, 'index']);
+        Route::post('/medications', [\App\Http\Controllers\Api\Pharmacy\MedicationController::class, 'store']);
+        Route::get('/medications/{id}', [\App\Http\Controllers\Api\Pharmacy\MedicationController::class, 'show']);
+        Route::put('/medications/{id}', [\App\Http\Controllers\Api\Pharmacy\MedicationController::class, 'update']);
+        Route::delete('/medications/{id}', [\App\Http\Controllers\Api\Pharmacy\MedicationController::class, 'destroy']);
     });
+    Route::get('/statistics', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'statistics']);
+    Route::get('/activities', [\App\Http\Controllers\Api\Pharmacy\PharmacyActivityController::class, 'index']);
 
     Route::prefix('settings')->as('settings.')->group(function () {
         Route::get('/all', [SettingsController::class, 'getSettings'])->name('all');

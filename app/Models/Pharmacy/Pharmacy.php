@@ -14,12 +14,17 @@ class Pharmacy extends Model
 {
     protected $guarded = [];
 
+    protected $fillable = [
+        'is_active',
+    ];
+
     protected $table = 'pharmacies';
 
     protected $casts = [
         'terms_accepted' => 'boolean',
         'request_onsite_setup' => 'boolean',
-        'number_of_beds' => 'integer'
+        'number_of_beds' => 'integer',
+        'is_active' => 'boolean',
     ];
 
     public function contacts(): HasMany

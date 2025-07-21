@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-
+use App\Services\Pharmacy\PharmacyActivityService;
 
 
 class PharmacyService
@@ -46,7 +46,7 @@ class PharmacyService
             'state' => 'required|string|max:255',
             'country' => 'required|string|max:255',
             'google_maps_location' => 'nullable|string',
-            'pharmacy_license_number' => 'required|string|max:255',
+            // 'pharmacy_license_number' => 'required|string|max:255',
             'request_onsite_setup' => 'boolean',
             'delivery_available' => 'boolean',
             'nafdac_certificate' => 'required|file|mimes:pdf,jpg,png|max:2048',
@@ -165,7 +165,7 @@ class PharmacyService
                 'terms_accepted' => $data['accept_terms'] ?? $pharmacy->terms_accepted,
                 'delivery_available' => $data['delivery_available'] ?? $pharmacy->delivery_available,
                 'logo_path' => $this->handleFileUpload($data['logo_path'] ?? null, 'Pharmacy-logos') ?? $pharmacy->logo_path,
-                'nafdac_certificate' => $this->handleFileUpload($data['nafdac_certificate'] ?? null, 'Pharmacy-nafdac-certificates') ?? $pharmacy->nafdac_certificate,
+                'nafdac_certificate' => $this->handleFileUpload($data['nafdac_certificate'] ?? null, 'pharmacy-nafdac-certificates') ?? $pharmacy->nafdac_certificate,
                 'status' => $data['status'] ?? $pharmacy->status,
             ]);
 
@@ -257,6 +257,15 @@ class PharmacyService
                 );
             }
 
+            // Log activity: Pharmacy profile updated
+            $userId = $data['updated_by'] ?? auth()->id() ?? $pharmacy->user_id;
+            PharmacyActivityService::log(
+                $pharmacy->id,
+                $userId,
+                'Pharmacy profile updated',
+                ['pharmacy_id' => $pharmacy->id]
+            );
+
             return $pharmacy->load(['user', 'contacts', 'services', 'operatingHours']);
         });
     }
@@ -290,6 +299,23 @@ class PharmacyService
     public function rejectPharmacy(Pharmacy $pharmacy): Pharmacy
     {
         $pharmacy->update(['status' => 'rejected']);
+        return $pharmacy;
+    }
+
+    public function toggleActive($pharmacy_id)
+    {
+        $pharmacy = Pharmacy::findOrFail($pharmacy_id);
+        $pharmacy->is_active = !$pharmacy->is_active;
+        $pharmacy->save();
+        // Log activity: Pharmacy active status toggled
+        $userId = auth()->id() ?? $pharmacy->user_id;
+        $action = $pharmacy->is_active ? 'Pharmacy activated' : 'Pharmacy deactivated';
+        PharmacyActivityService::log(
+            $pharmacy->id,
+            $userId,
+            $action,
+            ['pharmacy_id' => $pharmacy->id, 'is_active' => $pharmacy->is_active]
+        );
         return $pharmacy;
     }
 
