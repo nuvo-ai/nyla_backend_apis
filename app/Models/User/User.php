@@ -5,6 +5,7 @@ namespace App\Models\User;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Sanctum\HasApiTokens;
 use ApiPlatform\Metadata\ApiResource;
+use App\Models\General\ModulePreference;
 use App\Models\Hospital\Doctor;
 use App\Models\Hospital\FrontDesk;
 use App\Models\Hospital\HospitalContact;
@@ -121,4 +122,9 @@ class User extends Authenticatable
     {
         return Auth::user();
     }
+
+    public function modulePreferences()
+{
+    return $this->belongsToMany(ModulePreference::class, 'user_module_preferences');
+}
 }

@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Hospital\HospitalUsersController;
 use App\Http\Controllers\Api\Hospital\Patient\PatientController;
 use App\Http\Controllers\Api\Settings\SettingsController;
 use App\Http\Controllers\Api\Pharmacy\PharmacyRegistrationController;
+use App\Http\Controllers\Api\User\ModulePreferenceController;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Middleware\ApiEnsureFrontendRequestsAreStateful;
 use Illuminate\Http\Request;
@@ -68,6 +69,13 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::delete('/delete', [UserController::class, 'delete'])->name('delete');
     });
 
+    Route::prefix('users/{user}/preferences')->group(function () {
+        Route::get('/show', [ModulePreferenceController::class, 'show'])->name('show');
+        Route::post('/save', [ModulePreferenceController::class, 'save'])->name('save');
+        Route::delete('/{preference}/destroy', [ModulePreferenceController::class, 'destroy'])->name('destroy');
+    });
+    Route::get('/preferences', [ModulePreferenceController::class, 'index']);
+
     Route::prefix('hospital')->as('hospital.')->group(function () {
 
         Route::get('overview/data', [HomeController::class, 'home'])->name('overview.data');
@@ -107,7 +115,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');
         Route::get('list', [PharmacyRegistrationController::class, 'list'])->name('list');
         Route::get('/{uuid}/details', [PharmacyRegistrationController::class, 'getPharmacy'])->name('details');
-        Route::patch('/{id}/toggle-active', [\App\Http\Controllers\Api\Pharmacy\PharmacyController::class, 'toggleActive']);
+        Route::patch('/{id}/toggle-active', [PharmacyRegistrationController::class, 'toggleActive']);
         // Orders
         Route::get('/orders', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'index']);
         Route::post('/orders', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'store']);
