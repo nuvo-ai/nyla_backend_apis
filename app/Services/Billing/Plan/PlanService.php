@@ -15,9 +15,10 @@ class PlanService
 {
     public function validate(array $data)
     {
+
         $validator = Validator::make($data, [
             'name' => 'required|string',
-            'amount' => 'required|integer',
+            'amount' => 'required|integer:min:0',
             'interval' => 'required|string|in:daily,weekly,monthly,annually',
             'currency_id' => 'required|exists:currencies,id',
             'description' => 'nullable|string',
@@ -46,30 +47,45 @@ class PlanService
             if ($existingPlan) {
                 throw new Exception("A plan with the same name, amount, and currency already exists.");
             }
-            $response = Http::withToken(config('services.paystack.secret_key'))
-                ->post('https://api.paystack.co/plan', [
-                    'name' => $data['name'],
-                    'amount' => $data['amount'] * 100, // Paystack expects amount in kobo
-                    'interval' => $data['interval'],
-                    'currency' => strtoupper($currency->short_name) ?? 'NGN',
-                ]);
 
-            $res = $response->json();
-            if (!$res['status']) {
-                throw new Exception($res['message'] ?? 'Paystack error');
+            $planCode = null;
+
+            if ($data['amount'] > 0) {
+                $response = Http::withToken(config('services.paystack.secret_key'))
+                    ->post('https://api.paystack.co/plan', [
+                        'name' => $data['name'],
+                        'amount' => $data['amount'] * 100, // Paystack expects amount in kobo
+                        'interval' => $data['interval'],
+                        'currency' => strtoupper($currency->short_name) ?? 'NGN',
+                    ]);
+
+                $res = $response->json();
+                if (!$res['status']) {
+                    throw new Exception($res['message'] ?? 'Paystack error');
+                }
+
+                $planCode = $res['data']['plan_code'];
+                // dd($planCode);
             }
+
             $plan = Plan::create([
                 'name' => $data['name'],
-                'plan_code' => $res['data']['plan_code'],
+                'plan_code' => $planCode,
                 'interval' => $data['interval'],
                 'amount' => $data['amount'],
                 'currency_id' => $currency->id,
                 'description' => $data['description'] ?? null,
                 'is_active' => $data['is_active'] ?? true,
             ]);
+
+            if (!empty($data['features'])) {
+                app(PlanFeatureService::class)->createMany($data['features'], $plan);
+            }
+
             return $plan;
         });
     }
+
 
     public function update(array $data, $planCode)
     {
@@ -86,19 +102,22 @@ class PlanService
                 throw new Exception("Currency not found.");
             }
 
-            $response = Http::withToken(config('services.paystack.secret_key'))
-                ->put("https://api.paystack.co/plan/{$planCode}", [
-                    'name' => $data['name'],
-                    'description' => $data['description'] ?? null,
-                ]);
-            if (!$response->ok()) {
-                throw new Exception("Paystack API error: " . $response->body());
-            }
+            if ($data['amount'] > 0) {
+                $response = Http::withToken(config('services.paystack.secret_key'))
+                    ->put("https://api.paystack.co/plan/{$planCode}", [
+                        'name' => $data['name'],
+                        'description' => $data['description'] ?? null,
+                    ]);
 
-            $res = $response->json();
+                if (!$response->ok()) {
+                    throw new Exception("Paystack API error: " . $response->body());
+                }
 
-            if (!isset($res['status']) || !$res['status']) {
-                throw new Exception($res['message'] ?? 'Paystack error');
+                $res = $response->json();
+
+                if (!isset($res['status']) || !$res['status']) {
+                    throw new Exception($res['message'] ?? 'Paystack error');
+                }
             }
 
             $plan->update([
@@ -107,9 +126,14 @@ class PlanService
                 'is_active' => $data['is_active'] ?? true,
             ]);
 
+            if (!empty($data['features'])) {
+                app(PlanFeatureService::class)->updateMany($data['features'], $plan);
+            }
+
             return $plan;
         });
     }
+
     public function getPlan($planCode)
     {
         $plan = Plan::where('plan_code', $planCode)->first();
@@ -142,5 +166,10 @@ class PlanService
         }
         $plan->delete();
         return $plan;
+    }
+
+    public function isSinglePlan(array $data): bool
+    {
+        return isset($data['name']) && isset($data['amount']);
     }
 }

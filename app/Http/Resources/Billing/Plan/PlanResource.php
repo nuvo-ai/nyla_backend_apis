@@ -26,6 +26,7 @@ class PlanResource extends JsonResource
             'is_active' => $this->is_active ? true : false,
             'created_at' => formatDate($this->created_at),
             'updated_at' => formatDate($this->updated_at),
+            'features' => PlanFeatureResource::collection($this->whenLoaded('features')),
         ];
     }
 

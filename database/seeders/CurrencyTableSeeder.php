@@ -16,13 +16,6 @@ class CurrencyTableSeeder extends Seeder
      */
     public function run()
     {
-        $currencies = Currency::all();
-        if ($currencies->count() > 0) {
-            $currencies->each(function ($currency) {
-                $currency->delete();
-            });
-        }
-        $currencies = [];
 
         foreach (CurrencyConstants::CURRENCY_CODES as $code) {
             $currencies[] = [

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Finance\Subscription;
+namespace App\Http\Controllers\Api\Billing\Subscription;
 
 use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;

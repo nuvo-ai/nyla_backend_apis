@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Finance\Plan;
+namespace App\Http\Controllers\Api\Billing\Plan;
 
 use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
@@ -42,8 +42,17 @@ class PlanController extends Controller
     public function create(Request $request)
     {
         try {
-            $plan = $this->plan_service->create($request->all());
-            return ApiHelper::validResponse("Plan created successfully", $plan);
+            $data = $request->all();
+            if ($this->plan_service->isSinglePlan($data)) {
+                $plan = $this->plan_service->create($data);
+                return ApiHelper::validResponse("Plan created successfully", $plan);
+            }
+            $plans = [];
+
+            foreach ($request->all() as $planData) {
+                $plans[] = $this->plan_service->create($planData);
+            }
+            return ApiHelper::validResponse("Plan created successfully", $plans);
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
@@ -51,10 +60,29 @@ class PlanController extends Controller
         }
     }
 
-    public function update(Request $request, $plan_code)
+    public function update(Request $request, $plan_code = null)
     {
         try {
-            $plan = $this->plan_service->update($request->all(), $plan_code);
+            $data = $request->all();
+            if (is_array($data) && array_is_list($data)) {
+                $updatedPlans = [];
+                foreach ($data as $planData) {
+                    if (!isset($planData['plan_code'])) {
+                        throw new ValidationException("Missing plan_code in bulk update item.");
+                    }
+                    $updatedPlans[] = $this->plan_service->update($planData, $planData['plan_code']);
+                }
+                return ApiHelper::validResponse("Plans updated successfully", PlanResource::collection(collect($updatedPlans)));
+            }
+            if (!$plan_code && isset($data['plan_code'])) {
+                $plan_code = $data['plan_code'];
+            }
+
+            if (!$plan_code) {
+                throw new ValidationException("plan_code is required for update.");
+            }
+
+            $plan = $this->plan_service->update($data, $plan_code);
             return ApiHelper::validResponse("Plan updated successfully", PlanResource::make($plan));
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
@@ -63,10 +91,12 @@ class PlanController extends Controller
         }
     }
 
+
+
     public function delete($plan_code)
     {
         try {
-          $plan = $this->plan_service->delete($plan_code);
+            $plan = $this->plan_service->delete($plan_code);
             return ApiHelper::validResponse("Plan deleted successfully", PlanResource::make($plan));
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);

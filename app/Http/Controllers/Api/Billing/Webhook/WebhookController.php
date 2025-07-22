@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Finance\Webhook;
+namespace App\Http\Controllers\Api\Billing\Webhook;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
