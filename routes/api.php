@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\AI\DoctorAIAssistanceController;
+use App\Http\Controllers\Api\AI\PatientAIAssistanceController;
 use App\Http\Controllers\Api\Hospital\Appointment\AppointmentController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\PasswordController;
@@ -111,6 +113,17 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::get('patients-stat', [PatientController::class, 'stat'])->name('patients-stat');
 
         Route::get('analytics', [AnalyticController::class, 'getAnalytics'])->name('analytics');
+    });
+
+    Route::prefix('users')->as('users.')->group(function () {
+        Route::prefix('patient')->as('patient.')->group(function () {
+            Route::post('conversations/ask', [PatientAIAssistanceController::class, 'ask'])->name('conversations.ask');
+            Route::get('conversations/get', [PatientAIAssistanceController::class, 'getPatientConversation'])->name('conversations.get');
+        });
+        Route::prefix('doctor')->as('doctor.')->group(function () {
+            Route::post('conversations/ask', [DoctorAIAssistanceController::class, 'ask'])->name('conversations.ask');
+            Route::get('conversations/get', [DoctorAIAssistanceController::class, 'getDoctorConversation'])->name('conversations.get');
+        });
     });
     Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
         Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');

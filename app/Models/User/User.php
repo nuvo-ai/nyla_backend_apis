@@ -9,9 +9,11 @@ use App\Models\General\ModulePreference;
 use App\Models\Hospital\Doctor;
 use App\Models\Hospital\FrontDesk;
 use App\Models\Hospital\HospitalContact;
+use App\Models\Hospital\HospitalPatient;
 use App\Models\Hospital\HospitalUser;
 use App\Models\Hospital\LabTechnician;
 use App\Models\NotificationPreference;
+use App\Models\Pharmacy\Pharmacy;
 use App\Models\Portal;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -118,13 +120,22 @@ class User extends Authenticatable
         });
     }
 
+    public function patient()
+    {
+        return $this->hasOne(HospitalPatient::class, 'user_id');
+    }
+
+    public function pharmacy()
+    {
+        return $this->hasOne(Pharmacy::class, 'user_id');
+    }
     public static function getAuthenticatedUser()
     {
         return Auth::user();
     }
 
     public function modulePreferences()
-{
-    return $this->belongsToMany(ModulePreference::class, 'user_module_preferences');
-}
+    {
+        return $this->belongsToMany(ModulePreference::class, 'user_module_preferences');
+    }
 }
