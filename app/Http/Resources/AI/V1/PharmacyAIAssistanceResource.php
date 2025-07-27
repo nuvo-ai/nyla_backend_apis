@@ -6,7 +6,7 @@ use App\Http\Resources\User\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class DoctorAIAssistanceResource extends JsonResource
+class PharmacyIAssistanceResource extends JsonResource
 {
     /**
      * Transform the resource into an array.

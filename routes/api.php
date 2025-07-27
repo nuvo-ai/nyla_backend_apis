@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AI\DoctorAIAssistanceController;
 use App\Http\Controllers\Api\AI\PatientAIAssistanceController;
+use App\Http\Controllers\Api\AI\PharmacyAIAssistanceController;
 use App\Http\Controllers\Api\Hospital\Appointment\AppointmentController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\PasswordController;
@@ -123,6 +124,10 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::prefix('doctor')->as('doctor.')->group(function () {
             Route::post('conversations/ask', [DoctorAIAssistanceController::class, 'ask'])->name('conversations.ask');
             Route::get('conversations/get', [DoctorAIAssistanceController::class, 'getDoctorConversation'])->name('conversations.get');
+        });
+        Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
+            Route::post('conversations/ask', [PharmacyAIAssistanceController::class, 'ask'])->name('conversations.ask');
+            Route::get('conversations/get', [PharmacyAIAssistanceController::class, 'getPharmacyConversation'])->name('conversations.get');
         });
     });
     Route::prefix('pharmacy')->as('pharmacy.')->group(function () {

@@ -5,32 +5,30 @@ namespace App\Http\Controllers\Api\AI;
 use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\AI\V1\DoctorAIAssistanceResource;
 use App\Http\Resources\AI\V1\PatientAIAssistanceResource;
 use App\Http\Resources\User\UserResource;
 use App\Models\General\Conversation;
-use App\Models\Hospital\Doctor;
 use App\Models\User\User;
-use App\Services\AI\DoctorAIAssistanceService;
+use App\Services\AI\PharmacyAIAssistanceService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
-class DoctorAIAssistanceController extends Controller
+class PharmacyAIAssistanceController extends Controller
 {
-    public $doctor_ai_assistance_service;
+    public $pharmacy_ai_assistance_service;
     public function __construct()
     {
-        $this->doctor_ai_assistance_service = new DoctorAIAssistanceService();
+        $this->pharmacy_ai_assistance_service = new PharmacyAIAssistanceService();
     }
     public function ask(Request $request)
     {
         try {
-            $result = $this->doctor_ai_assistance_service->createConversation($request);
+            $result = $this->pharmacy_ai_assistance_service->createConversation($request);
 
             $conversation = $result['conversation'];
             $user = $conversation->user;
-            $chats = DoctorAIAssistanceResource::collection($conversation->chats()->get());
+            $chats = PatientAIAssistanceResource::collection($conversation->chats()->get());
 
             return ApiHelper::validResponse('Conversation created successfully', [
                 'user' => new UserResource($user),
@@ -46,7 +44,7 @@ class DoctorAIAssistanceController extends Controller
         }
     }
 
-    public function getDoctorConversation()
+    public function getPharmacyConversation()
     {
         try {
             $user = User::getAuthenticatedUser();
