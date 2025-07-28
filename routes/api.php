@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\Hospital\Home\HomeController;
 use App\Http\Controllers\Api\Hospital\HospitalRegistrationController;
 use App\Http\Controllers\Api\Hospital\HospitalUsersController;
 use App\Http\Controllers\Api\Hospital\Patient\PatientController;
+use App\Http\Controllers\Api\Hospital\Tracker\PeriodCycleController;
 use App\Http\Controllers\Api\Settings\SettingsController;
 use App\Http\Controllers\Api\Pharmacy\PharmacyRegistrationController;
 use App\Http\Controllers\Api\User\ModulePreferenceController;
@@ -128,6 +129,11 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
             Route::post('conversations/ask', [PharmacyAIAssistanceController::class, 'ask'])->name('conversations.ask');
             Route::get('conversations/get', [PharmacyAIAssistanceController::class, 'getPharmacyConversation'])->name('conversations.get');
+        });
+
+        Route::prefix('tracker')->as('tracker.')->group(function () {
+            Route::post('/period-cycle/store', [PeriodCycleController::class, 'store'])->name('period-cycle.store');
+            Route::get('/period-cycle/show', [PeriodCycleController::class, 'show'])->name('period-cycle.show');
         });
     });
     Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
