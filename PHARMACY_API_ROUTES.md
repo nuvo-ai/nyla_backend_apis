@@ -30,6 +30,33 @@
 }
 ```
 
+**Sample Success Response:**
+```json
+{
+  "message": "Order created successfully",
+  "data": {
+    "id": 123,
+    "pharmacy_id": 1,
+    "status": "pending",
+    // ...other order fields
+  },
+  "success": true,
+  "code": 200
+}
+```
+
+**Sample Error Response:**
+```json
+{
+  "message": "Validation error",
+  "code": 422,
+  "success": false,
+  "errors": {
+    "pharmacy_id": ["The pharmacy_id field is required."]
+  }
+}
+```
+
 ---
 
 ### Get Order Details

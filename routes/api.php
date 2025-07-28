@@ -1,27 +1,28 @@
 <?php
 
-use App\Http\Controllers\Api\Hospital\Appointment\AppointmentController;
+use PharmacyController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\PasswordController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\VerificationController;
 use App\Http\Controllers\Api\Finance\Plan\PlanController;
-use App\Http\Controllers\Api\Finance\Subscription\SubscriptionController;
-use App\Http\Controllers\Api\Finance\Webhook\WebhookController;
-use App\Http\Controllers\Api\Hospital\Analytic\AnalyticController;
-use App\Http\Controllers\Api\Hospital\Doctor\DoctorController;
-use App\Http\Controllers\Api\Hospital\Frontdesk\FrontdeskController;
-use App\Http\Controllers\Api\Hospital\Home\HomeController;
-use App\Http\Controllers\Api\Hospital\HospitalRegistrationController;
-use App\Http\Controllers\Api\Hospital\HospitalUsersController;
-use App\Http\Controllers\Api\Hospital\Patient\PatientController;
 use App\Http\Controllers\Api\Settings\SettingsController;
-use App\Http\Controllers\Api\Pharmacy\PharmacyRegistrationController;
-use App\Http\Controllers\Api\User\UserController;
+use App\Http\Controllers\Api\Hospital\Home\HomeController;
 use App\Http\Middleware\ApiEnsureFrontendRequestsAreStateful;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Hospital\Doctor\DoctorController;
+use App\Http\Controllers\Api\Hospital\HospitalUsersController;
+use App\Http\Controllers\Api\Finance\Webhook\WebhookController;
+use App\Http\Controllers\Api\Hospital\Patient\PatientController;
+use App\Http\Controllers\Api\Hospital\Analytic\AnalyticController;
+use App\Http\Controllers\Api\Hospital\Frontdesk\FrontdeskController;
+use App\Http\Controllers\Api\Hospital\HospitalRegistrationController;
+use App\Http\Controllers\Api\Pharmacy\PharmacyRegistrationController;
+use App\Http\Controllers\Api\Hospital\Appointment\AppointmentController;
+use App\Http\Controllers\Api\Finance\Subscription\SubscriptionController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -107,7 +108,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');
         Route::get('list', [PharmacyRegistrationController::class, 'list'])->name('list');
         Route::get('/{uuid}/details', [PharmacyRegistrationController::class, 'getPharmacy'])->name('details');
-        Route::patch('/{id}/toggle-active', [\App\Http\Controllers\Api\Pharmacy\PharmacyController::class, 'toggleActive']);
+        Route::patch('/{id}/toggle-active', [PharmacyRegistrationController::class, 'toggleActive']);
         // Orders
         Route::get('/orders', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'index']);
         Route::post('/orders', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'store']);

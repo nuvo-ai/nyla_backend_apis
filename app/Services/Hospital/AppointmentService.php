@@ -224,6 +224,6 @@ class AppointmentService
     {
         return HospitalAppointment::with(['hospital', 'doctor', 'scheduler'])
             ->where('doctor_id', $doctorId)
-            ->get();    
+            ->get();
     }
 }
