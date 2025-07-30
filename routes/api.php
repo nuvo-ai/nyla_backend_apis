@@ -52,8 +52,8 @@ Route::post('/webhook/deploy', function () {
 
 
 Route::prefix("password")->as("password.")->group(function () {
-    Route::post('/forgot', [PasswordController::class, 'forgotPassword'])->name("forgot_password");
-    Route::post("/reset", [PasswordController::class, "resetPassword"])->name("reset_password");
+    Route::post('/forgot', [PasswordController::class, 'forgotPassword'])->name("forgot");
+    Route::post("/reset", [PasswordController::class, "resetPassword"])->name("reset");
 });
 Route::prefix("otp")->as("otp.")->group(function () {
     Route::post('/request', [VerificationController::class, 'request'])->name("request");

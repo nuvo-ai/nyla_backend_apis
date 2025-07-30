@@ -6,6 +6,7 @@ use App\Constants\General\AppConstants;
 use App\Constants\General\StatusConstants;
 use App\Constants\User\UserConstants;
 use App\Http\Resources\Hospital\DoctorResource;
+use App\Models\Hospital\Doctor;
 use App\Models\Hospital\HospitalPatient;
 use App\Models\Hospital\HospitalUser;
 use App\Models\User\User;
@@ -19,51 +20,52 @@ use Illuminate\Validation\ValidationException;
 class PatientService
 {
     public function validate(array $data)
-    {
-        $validator = Validator::make($data, [
-            'hospital_id'           => ['required', 'exists:hospitals,id'],
-            'user_id'               => ['required', 'exists:users,id'],
-            'doctor_id'             => [
-                'nullable',
-                'exists:hospital_users,id',
-                function ($attribute, $value, $fail) {
-                    if ($value) {
-                        $doctor = HospitalUser::find($value);
-                        if (!$doctor || $doctor->role !== UserConstants::DOCTOR) {
-                            $fail('The selected doctor does not have the correct role.');
-                        }
+{
+    $validator = Validator::make($data, [
+        'hospital_id'           => ['required', 'exists:hospitals,id'],
+        'user_id'               => ['required', 'exists:users,id'],
+        'doctor_id'             => [
+            'nullable',
+            'exists:doctors,id',
+            function ($attribute, $value, $fail) {
+                if ($value) {
+                    $doctor = Doctor::find($value);
+                    if (!$doctor) {
+                        $fail('The selected doctor does not exist.');
                     }
                 }
-            ],
-            'chief_complaints'      => ['nullable', 'string'],
-            'temperature'           => ['nullable', 'string', 'max:50'],
-            'weight'                => ['nullable', 'string', 'max:50'],
-            'height'                => ['nullable', 'string', 'max:50'],
-            'blood_pressure'        => ['nullable', 'string', 'max:50'],
-            'heart_rate'            => ['nullable', 'string', 'max:50'],
-            'respiratory_rate'      => ['nullable', 'string', 'max:50'],
-            'oxygen_saturation'     => ['nullable', 'string', 'max:50'],
-            'last_visit'            => ['nullable', 'date'],
-            'emergency_contact_name'   => ['nullable', 'string'],
-            'emergency_contact_phone'  => ['nullable', 'string'],
-            'current_symptoms'         => ['nullable', 'array'],
-            'pain_level'               => ['nullable', 'integer', 'between:0,10'],
-            'know_allergies'           => ['nullable', 'array'],
-            'visit_priority'           => ['nullable'],
-            'medical_history'          => ['nullable', 'string'],
-            'current_medications'      => ['nullable', 'array'],
-            'insurance_info'           => ['nullable', 'string'],
-            'visit_type'               => ['nullable', 'string'],
-            'referral_source'          => ['nullable', 'string'],
-            'status'                   => ['nullable'],
-        ]);
+            }
+        ],
+        'chief_complaints'      => ['nullable', 'string'],
+        'temperature'           => ['nullable', 'string', 'max:50'],
+        'weight'                => ['nullable', 'string', 'max:50'],
+        'height'                => ['nullable', 'string', 'max:50'],
+        'blood_pressure'        => ['nullable', 'string', 'max:50'],
+        'heart_rate'            => ['nullable', 'string', 'max:50'],
+        'respiratory_rate'      => ['nullable', 'string', 'max:50'],
+        'oxygen_saturation'     => ['nullable', 'string', 'max:50'],
+        'last_visit'            => ['nullable', 'date'],
+        'emergency_contact_name'   => ['nullable', 'string'],
+        'emergency_contact_phone'  => ['nullable', 'string'],
+        'current_symptoms'         => ['nullable', 'array'],
+        'pain_level'               => ['nullable', 'integer', 'between:0,10'],
+        'know_allergies'           => ['nullable', 'array'],
+        'visit_priority'           => ['nullable'],
+        'medical_history'          => ['nullable', 'string'],
+        'current_medications'      => ['nullable', 'array'],
+        'insurance_info'           => ['nullable', 'string'],
+        'visit_type'               => ['nullable', 'string'],
+        'referral_source'          => ['nullable', 'string'],
+        'status'                   => ['nullable'],
+    ]);
 
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
-        }
-
-        return $validator->validated();
+    if ($validator->fails()) {
+        throw new ValidationException($validator);
     }
+
+    return $validator->validated();
+}
+
 
     public static function getById($key, $column = "id"): HospitalPatient
     {
