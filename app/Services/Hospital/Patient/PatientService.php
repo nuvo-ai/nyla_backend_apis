@@ -133,7 +133,7 @@ class PatientService
 
     public function listPatients(array $filters = []): Collection
     {
-        $query = HospitalPatient::with(['hospital', 'doctor']);
+        $query = HospitalPatient::with(['user','hospital', 'doctor']);
 
         if (!empty($filters['status'])) {
             $status = strtolower($filters['status']);
