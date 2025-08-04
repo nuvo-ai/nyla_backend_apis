@@ -217,6 +217,7 @@ class AppointmentService
     public function getAppointment($id): HospitalAppointment
     {
         $appointment = HospitalAppointment::where('scheduler_id', auth()->id())->with(['hospital', 'doctor', 'scheduler'])->find($id);
+        dd($appointment);
         if (!$appointment) {
             throw new ModelNotFoundException("Appointment not found");
         }

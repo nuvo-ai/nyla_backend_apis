@@ -43,9 +43,6 @@ class PatientAIAssistanceService
     {
         return DB::transaction(function () use ($request) {
             $user = Auth::user();
-            if (!$user->patient) {
-                throw new Exception('Please, these chats or conversations are only meant for patients.');
-            }
             $title = $this->generateTitleFromPrompt($request->prompt);
 
             $validated = $this->validated([
@@ -68,7 +65,7 @@ class PatientAIAssistanceService
                     'user_id' => $user->id,
                     'ai_type' => $validated['ai_type'] ?? '',
                     'title' => $validated['title'],
-                    'patient_id' => $user->patient->id,
+                    'user_id' => $user->id,
                 ]);
             }
 
