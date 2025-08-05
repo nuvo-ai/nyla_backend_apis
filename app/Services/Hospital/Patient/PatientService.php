@@ -20,51 +20,49 @@ use Illuminate\Validation\ValidationException;
 class PatientService
 {
     public function validate(array $data)
-{
-    $validator = Validator::make($data, [
-        'hospital_id'           => ['required', 'exists:hospitals,id'],
-        'user_id'               => ['required', 'exists:users,id'],
-        'doctor_id'             => [
-            'nullable',
-            'exists:doctors,id',
-            function ($attribute, $value, $fail) {
-                if ($value) {
-                    $doctor = Doctor::find($value);
-                    if (!$doctor) {
-                        $fail('The selected doctor does not exist.');
+    {
+        $validator = Validator::make($data, [
+            'doctor_id'             => [
+                'nullable',
+                'exists:doctors,id',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $doctor = Doctor::find($value);
+                        if (!$doctor) {
+                            $fail('The selected doctor does not exist.');
+                        }
                     }
                 }
-            }
-        ],
-        'chief_complaints'      => ['nullable', 'string'],
-        'temperature'           => ['nullable', 'string', 'max:50'],
-        'weight'                => ['nullable', 'string', 'max:50'],
-        'height'                => ['nullable', 'string', 'max:50'],
-        'blood_pressure'        => ['nullable', 'string', 'max:50'],
-        'heart_rate'            => ['nullable', 'string', 'max:50'],
-        'respiratory_rate'      => ['nullable', 'string', 'max:50'],
-        'oxygen_saturation'     => ['nullable', 'string', 'max:50'],
-        'last_visit'            => ['nullable', 'date'],
-        'emergency_contact_name'   => ['nullable', 'string'],
-        'emergency_contact_phone'  => ['nullable', 'string'],
-        'current_symptoms'         => ['nullable', 'array'],
-        'pain_level'               => ['nullable', 'integer', 'between:0,10'],
-        'know_allergies'           => ['nullable', 'array'],
-        'visit_priority'           => ['nullable'],
-        'medical_history'          => ['nullable', 'string'],
-        'current_medications'      => ['nullable', 'array'],
-        'insurance_info'           => ['nullable', 'string'],
-        'visit_type'               => ['nullable', 'string'],
-        'referral_source'          => ['nullable', 'string'],
-        'status'                   => ['nullable'],
-    ]);
+            ],
+            'chief_complaints'      => ['nullable', 'string'],
+            'temperature'           => ['nullable', 'string', 'max:50'],
+            'weight'                => ['nullable', 'string', 'max:50'],
+            'height'                => ['nullable', 'string', 'max:50'],
+            'blood_pressure'        => ['nullable', 'string', 'max:50'],
+            'heart_rate'            => ['nullable', 'string', 'max:50'],
+            'respiratory_rate'      => ['nullable', 'string', 'max:50'],
+            'oxygen_saturation'     => ['nullable', 'string', 'max:50'],
+            'last_visit'            => ['nullable', 'date'],
+            'emergency_contact_name'   => ['nullable', 'string'],
+            'emergency_contact_phone'  => ['nullable', 'string'],
+            'current_symptoms'         => ['nullable', 'array'],
+            'pain_level'               => ['nullable', 'integer', 'between:0,10'],
+            'know_allergies'           => ['nullable', 'array'],
+            'visit_priority'           => ['nullable'],
+            'medical_history'          => ['nullable', 'string'],
+            'current_medications'      => ['nullable', 'array'],
+            'insurance_info'           => ['nullable', 'string'],
+            'visit_type'               => ['nullable', 'string'],
+            'referral_source'          => ['nullable', 'string'],
+            'status'                   => ['nullable'],
+        ]);
 
-    if ($validator->fails()) {
-        throw new ValidationException($validator);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        return $validator->validated();
     }
-
-    return $validator->validated();
-}
 
 
     public static function getById($key, $column = "id"): HospitalPatient
@@ -80,9 +78,10 @@ class PatientService
     {
         return DB::transaction(function () use ($data, $id) {
             $validated = $this->validate($data);
-            if (!empty($validated['user_id'])) {
-                $hospital_patient = HospitalPatient::where('hospital_id', $validated['hospital_id'])
-                    ->where('user_id', $validated['user_id']);
+            $user = User::getAuthenticatedUser();
+            if (!empty($data['user_id'])) {
+                $hospital_patient = HospitalPatient::where('hospital_id', $user->hospitalUser->hospital->id)
+                    ->where('user_id', $data['user_id']);
                 if ($id) {
                     $hospital_patient->where('id', '!=', $id);
                 }
@@ -92,10 +91,9 @@ class PatientService
                     ]);
                 }
             }
-
             $payload = [
-                'hospital_id'             => $validated['hospital_id'],
-                'user_id'                 => $validated['user_id'] ?? null,
+                'hospital_id'             => $user->hospitalUser->hospital->id,
+                'user_id'                 => $data['user_id'] ?? null,
                 'doctor_id'               => $validated['doctor_id'] ?? null,
                 'chief_complaints'        => $validated['chief_complaints'] ?? null,
                 'temperature'             => $validated['temperature'] ?? null,
@@ -133,7 +131,7 @@ class PatientService
 
     public function listPatients(array $filters = []): Collection
     {
-        $query = HospitalPatient::with(['user','hospital', 'doctor']);
+        $query = HospitalPatient::with(['user', 'hospital', 'doctor']);
 
         if (!empty($filters['status'])) {
             $status = strtolower($filters['status']);
