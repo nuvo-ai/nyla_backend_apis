@@ -79,18 +79,20 @@ class PatientService
         return DB::transaction(function () use ($data, $id) {
             $validated = $this->validate($data);
             $user = User::getAuthenticatedUser();
-            if (!empty($data['user_id'])) {
+            $existingUserId = $id ? HospitalPatient::find($id)->user_id : null;
+
+            if (!empty($data['user_id']) && $data['user_id'] != $existingUserId) {
                 $hospital_patient = HospitalPatient::where('hospital_id', $user?->hospitalUser?->hospital?->id)
-                    ->where('user_id', $data['user_id']);
-                if ($id) {
-                    $hospital_patient->where('id', '!=', $id);
-                }
+                    ->where('user_id', $data['user_id'])
+                    ->where('id', '<>', (int)$id);
+
                 if ($hospital_patient->exists()) {
                     throw ValidationException::withMessages([
                         'duplicate' => ['This patient already exists in our database.'],
                     ]);
                 }
             }
+
             $payload = [
                 'hospital_id'             => $user?->hospitalUser?->hospital?->id,
                 'user_id'                 => $data['user_id'] ?? null,
