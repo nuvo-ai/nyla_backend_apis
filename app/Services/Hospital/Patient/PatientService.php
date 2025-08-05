@@ -80,7 +80,7 @@ class PatientService
             $validated = $this->validate($data);
             $user = User::getAuthenticatedUser();
             if (!empty($data['user_id'])) {
-                $hospital_patient = HospitalPatient::where('hospital_id', $user->hospitalUser->hospital->id)
+                $hospital_patient = HospitalPatient::where('hospital_id', $user?->hospitalUser?->hospital?->id)
                     ->where('user_id', $data['user_id']);
                 if ($id) {
                     $hospital_patient->where('id', '!=', $id);
@@ -92,7 +92,7 @@ class PatientService
                 }
             }
             $payload = [
-                'hospital_id'             => $user->hospitalUser->hospital->id,
+                'hospital_id'             => $user?->hospitalUser?->hospital?->id,
                 'user_id'                 => $data['user_id'] ?? null,
                 'doctor_id'               => $validated['doctor_id'] ?? null,
                 'chief_complaints'        => $validated['chief_complaints'] ?? null,
@@ -117,7 +117,6 @@ class PatientService
                 'referral_source'         => $validated['referral_source'] ?? null,
                 'status'                  => $validated['status'] ?? StatusConstants::ACTIVE,
             ];
-
             if ($id) {
                 $patient = $this->getById($id);
                 $patient->update($payload);
