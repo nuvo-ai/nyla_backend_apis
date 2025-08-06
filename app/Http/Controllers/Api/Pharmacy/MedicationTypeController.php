@@ -3,29 +3,28 @@
 namespace App\Http\Controllers\Api\Pharmacy;
 
 use App\Http\Controllers\Controller;
-use App\Services\Pharmacy\MedicationService;
-use App\Http\Resources\Pharmacy\MedicationResource;
+use App\Services\Pharmacy\MedicationTypeService;
+use App\Http\Resources\Pharmacy\MedicationTypeResource;
 use Illuminate\Http\Request;
 use App\Helpers\ApiHelper;
-use App\Http\Resources\Pharmacy\PharmacyRegistrationResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Exception;
 
-class MedicationController extends Controller
+class MedicationTypeController extends Controller
 {
-    protected $medicationService;
+    protected $medicationTypeService;
 
-    public function __construct(MedicationService $medicationService)
+    public function __construct(MedicationTypeService $medicationTypeService)
     {
-        $this->medicationService = $medicationService;
+        $this->medicationTypeService = $medicationTypeService;
     }
 
     public function index(Request $request)
     {
         try {
-            $medications = $this->medicationService->list($request->all());
-            return ApiHelper::validResponse('Medications retrieved successfully', MedicationResource::collection($medications));
+            $medicationTypes = $this->medicationTypeService->list($request->all());
+            return ApiHelper::validResponse('Medication types retrieved successfully', MedicationTypeResource::collection($medicationTypes));
         } catch (Exception $e) {
             return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
         }
@@ -34,10 +33,10 @@ class MedicationController extends Controller
     public function show($id)
     {
         try {
-            $medication = $this->medicationService->show($id);
-            return ApiHelper::validResponse('Medication retrieved successfully', new MedicationResource($medication));
+            $medicationType = $this->medicationTypeService->show($id);
+            return ApiHelper::validResponse('Medication type retrieved successfully', new MedicationTypeResource($medicationType));
         } catch (ModelNotFoundException $e) {
-            return ApiHelper::problemResponse('Medication not found', 404, null, $e);
+            return ApiHelper::problemResponse('Medication type not found', 404, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
         }
@@ -46,8 +45,8 @@ class MedicationController extends Controller
     public function store(Request $request)
     {
         try {
-            $medication = $this->medicationService->create($request->all());
-            return ApiHelper::validResponse('Medication created successfully', new MedicationResource($medication));
+            $medicationType = $this->medicationTypeService->create($request->all());
+            return ApiHelper::validResponse('Medication type created successfully', new MedicationTypeResource($medicationType));
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse('Validation error', 422, null, $e);
         } catch (Exception $e) {
@@ -58,12 +57,12 @@ class MedicationController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $medication = $this->medicationService->update($id, $request->all());
-            return ApiHelper::validResponse('Medication updated successfully', new MedicationResource($medication));
+            $medicationType = $this->medicationTypeService->update($id, $request->all());
+            return ApiHelper::validResponse('Medication type updated successfully', new MedicationTypeResource($medicationType));
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse('Medication type not found', 404, null, $e);
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse('Validation error', 422, null, $e);
-        } catch (ModelNotFoundException $e) {
-            return ApiHelper::problemResponse('Medication not found', 404, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
         }
@@ -72,10 +71,10 @@ class MedicationController extends Controller
     public function destroy($id)
     {
         try {
-            $this->medicationService->delete($id);
-            return ApiHelper::validResponse('Medication deleted successfully');
+            $this->medicationTypeService->delete($id);
+            return ApiHelper::validResponse('Medication type deleted successfully');
         } catch (ModelNotFoundException $e) {
-            return ApiHelper::problemResponse('Medication not found', 404, null, $e);
+            return ApiHelper::problemResponse('Medication type not found', 404, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
         }

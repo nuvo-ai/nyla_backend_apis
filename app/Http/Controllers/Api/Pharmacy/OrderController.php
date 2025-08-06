@@ -4,7 +4,13 @@ namespace App\Http\Controllers\Api\Pharmacy;
 
 use App\Http\Controllers\Controller;
 use App\Services\Pharmacy\OrderService;
+use App\Http\Resources\Pharmacy\OrderResource;
 use Illuminate\Http\Request;
+use App\Helpers\ApiHelper;
+use App\Http\Resources\Pharmacy\PharmacyRegistrationResource;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
+use Exception;
 
 class OrderController extends Controller
 {
@@ -17,54 +23,112 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        $orders = $this->orderService->list($request->all());
-        return response()->json($orders);
+        try {
+            $orders = $this->orderService->list($request->all());
+            return ApiHelper::validResponse('Orders retrieved successfully', OrderResource::collection($orders));
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+        }
     }
 
     public function show($id)
     {
-        $order = $this->orderService->show($id);
-        return response()->json($order);
+        try {
+            $order = $this->orderService->show($id);
+            return ApiHelper::validResponse('Order retrieved successfully', new OrderResource($order));
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse('Order not found', 404, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+        }
     }
 
     public function store(Request $request)
     {
-        $order = $this->orderService->create($request->all());
-        return response()->json($order, 201);
+        try {
+            $order = $this->orderService->create($request->all());
+            return ApiHelper::validResponse('Order created successfully', new OrderResource($order));
+        } catch (ValidationException $e) {
+            return ApiHelper::inputErrorResponse('Validation error', 422, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+        }
     }
 
     public function update(Request $request, $id)
     {
-        $order = $this->orderService->update($id, $request->all());
-        return response()->json($order);
+        try {
+            $order = $this->orderService->update($id, $request->all());
+            return ApiHelper::validResponse('Order updated successfully', new OrderResource($order));
+        } catch (ValidationException $e) {
+            return ApiHelper::inputErrorResponse('Validation error', 422, null, $e);
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse('Order not found', 404, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+        }
     }
 
     public function destroy($id)
     {
-        $this->orderService->delete($id);
-        return response()->json(['message' => 'Order deleted successfully']);
+        try {
+            $this->orderService->delete($id);
+            return ApiHelper::validResponse('Order deleted successfully');
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse('Order not found', 404, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+        }
     }
 
     public function export($id)
     {
-        $order = $this->orderService->export($id);
-        return response()->json($order); // Placeholder for actual export
+        try {
+            $order = $this->orderService->export($id);
+            return ApiHelper::validResponse('Order exported successfully', $order);
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse('Order not found', 404, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+        }
     }
 
     public function emr(Request $request)
     {
-        $pharmacy_id = $request->get('pharmacy_id');
-        $emr = $this->orderService->emr($pharmacy_id);
-        return response()->json($emr);
+        try {
+            $pharmacy_id = $request->get('pharmacy_id');
+            $emr = $this->orderService->emr($pharmacy_id);
+            return ApiHelper::validResponse('EMR retrieved successfully', $emr);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+        }
     }
 
     public function statistics(Request $request)
     {
-        $pharmacy_id = $request->get('pharmacy_id');
-        if (!$pharmacy_id) {
-            return response()->json(['error' => 'pharmacy_id is required'], 422);
+        try {
+            $pharmacy_id = $request->get('pharmacy_id');
+            if (!$pharmacy_id) {
+                return ApiHelper::inputErrorResponse('pharmacy_id is required', 422);
+            }
+            $stats = $this->orderService->statistics($pharmacy_id);
+            return ApiHelper::validResponse('Pharmacy statistics retrieved successfully', $stats);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
         }
-        $stats = $this->orderService->statistics($pharmacy_id);
-        return response()->json($stats);
+    }
+
+    public function patientOrderHistory(Request $request)
+    {
+        try {
+            $patient_id = auth()->id();
+            $filters = $request->all();
+            $filters['patient_id'] = $patient_id;
+
+            $orders = $this->orderService->list($filters);
+            return ApiHelper::validResponse('Patient order history retrieved successfully', OrderResource::collection($orders));
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+        }
     }
 }
