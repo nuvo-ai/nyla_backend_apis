@@ -12,14 +12,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('module_preferences', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');  
-            $table->string('slug');
-            $table->text('description')->nullable();
-            $table->string('status')->default(StatusConstants::ACTIVE);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('module_preferences')) {
+            Schema::create('module_preferences', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('slug');
+                $table->text('description')->nullable();
+                $table->string('status')->default(StatusConstants::ACTIVE);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

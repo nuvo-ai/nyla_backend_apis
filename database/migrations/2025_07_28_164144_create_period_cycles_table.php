@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('period_cycles', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->date('last_period_start_date');
-            $table->integer('cycle_length');
-            $table->integer('period_length');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('period_cycles')) {
+            Schema::create('period_cycles', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->date('last_period_start_date');
+                $table->integer('cycle_length');
+                $table->integer('period_length');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

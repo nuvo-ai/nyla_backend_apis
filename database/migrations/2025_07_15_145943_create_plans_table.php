@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('plans', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('plan_code')->nullable()->unique();
-            $table->string('interval'); // monthly, annually, etc.
-            $table->unsignedBigInteger('amount');
-            $table->foreignId('currency_id')->constrained('currencies')->onDelete('cascade');
-            $table->string('description')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('plans')) {
+            Schema::create('plans', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('plan_code')->nullable()->unique();
+                $table->string('interval'); // monthly, annually, etc.
+                $table->unsignedBigInteger('amount');
+                $table->foreignId('currency_id')->constrained('currencies')->onDelete('cascade');
+                $table->string('description')->nullable();
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

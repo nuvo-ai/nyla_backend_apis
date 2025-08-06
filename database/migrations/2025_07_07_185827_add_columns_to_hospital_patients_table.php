@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('hospital_patients', function (Blueprint $table) {
-            $table->longText('chief_complaints')->after('oxygen_saturation');
-        });
+        if (!Schema::hasColumn('hospital_patients', 'chief_complaints')) {
+            Schema::table('hospital_patients', function (Blueprint $table) {
+                $table->longText('chief_complaints')->after('oxygen_saturation');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('hospital_patients', function (Blueprint $table) {
-            $table->dropColumn('chief_complaints');
-        });
+        if (Schema::hasColumn('hospital_patients', 'chief_complaints')) {
+            Schema::table('hospital_patients', function (Blueprint $table) {
+                $table->dropColumn('chief_complaints');
+            });
+        }
     }
 };

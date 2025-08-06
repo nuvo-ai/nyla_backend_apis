@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('hospital_appointments', function (Blueprint $table) {
-            $table->string('note')->nullable()->after('status');
-            $table->string('source')->nullable()->after('note');
-        });
+        if (!Schema::hasColumn('hospital_appointments', 'note')) {
+            Schema::table('hospital_appointments', function (Blueprint $table) {
+                $table->string('note')->nullable()->after('status');
+                $table->string('source')->nullable()->after('note');
+            });
+        }
     }
 
     /**
@@ -22,8 +24,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('hospital_appointments', function (Blueprint $table) {
-            $table->dropColumn(['note', 'source']);
-        });
+        if (Schema::hasColumn('hospital_appointments', 'note')) {
+            Schema::table('hospital_appointments', function (Blueprint $table) {
+                $table->dropColumn(['note', 'source']);
+            });
+        }
     }
 };

@@ -13,18 +13,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('hospital_appointments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('hospital_id')->constrained('hospitals')->cascadeOnDelete();
-            $table->foreignId('scheduler_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('doctor_id')->nullable()->constrained('doctors')->cascadeOnDelete();
-            $table->string('patient_name');
-            $table->string('appointment_type'); // e.g., consultation, follow-up, emergency
-            $table->date('appointment_date');
-            $table->time('appointment_time');
-            $table->string('status')->default(StatusConstants::PENDING); // pending, confirmed, cancelled, completed
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('hospital_appointments')) {
+            Schema::create('hospital_appointments', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('hospital_id')->constrained('hospitals')->cascadeOnDelete();
+                $table->foreignId('scheduler_id')->constrained('users')->cascadeOnDelete();
+                $table->foreignId('doctor_id')->nullable()->constrained('doctors')->cascadeOnDelete();
+                $table->string('patient_name');
+                $table->string('appointment_type'); // e.g., consultation, follow-up, emergency
+                $table->date('appointment_date');
+                $table->time('appointment_time');
+                $table->string('status')->default(StatusConstants::PENDING); // pending, confirmed, cancelled, completed
+                $table->timestamps();
+            });
+        }
     }
 
     /**
