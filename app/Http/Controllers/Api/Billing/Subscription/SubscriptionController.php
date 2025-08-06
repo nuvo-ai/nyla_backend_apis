@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Finance\Subscription;
+namespace App\Http\Controllers\Api\Billing\Subscription;
 
 use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
@@ -77,7 +77,6 @@ class SubscriptionController extends Controller
                 $subscription = $this->subscription_service->createSubscription($user, $plan_id, $paymentData);
                 return ApiHelper::validResponse("Subscription created (local)", SubscriptionResource::make($subscription));
             }
-            dd("Webhook will handle subscription creation in production environment");
             return ApiHelper::validResponse("Payment verified. Subscription will be created via webhook.");
         } catch (Exception $e) {
             return ApiHelper::problemResponse("Failed to verify payment or create subscription", 500, null, $e);

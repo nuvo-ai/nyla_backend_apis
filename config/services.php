@@ -66,5 +66,10 @@ return [
         'default_currency' => env('PAYSTACK_DEFAULT_CURRENCY', 'NGN'),
     ],
 
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+    ],
+
 
 ];

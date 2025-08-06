@@ -8,6 +8,7 @@ use App\Constants\User\UserConstants;
 use App\Http\Resources\Hospital\DoctorResource;
 use App\Models\Hospital\HospitalPatient;
 use App\Models\Hospital\HospitalUser;
+use App\Models\User\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -169,6 +170,7 @@ class PatientService
             'status' => $patient->status,
         ];
     }
+
 
     public function assign(Request $request, $patient)
     {

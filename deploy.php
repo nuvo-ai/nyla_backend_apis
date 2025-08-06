@@ -9,6 +9,9 @@ $projectPath = '/home/nylaafri/public_html/api.nyla.africa';
 // ✅ Branch to deploy
 $branch = 'staging';
 
+// ✅ Path to SSH key (if needed, can omit if already set in SSH agent)
+$sshKeyPath = '/home/nylaafri/.ssh/id_rsa';
+
 // ✅ Validate GitHub signature
 $payload = file_get_contents('php://input');
 $headers = getallheaders();
@@ -24,16 +27,18 @@ if (!hash_equals($signature, $headers['X-Hub-Signature-256'])) {
     die('Invalid signature');
 }
 
+// ✅ Set environment variable to use SSH for Git
+$gitSshCommand = "GIT_SSH_COMMAND='ssh -i $sshKeyPath -o StrictHostKeyChecking=no'";
+
 // ✅ Execute Laravel deployment commands
 $output = [];
 exec("
     cd $projectPath &&
-    git pull origin $branch &&
+    $gitSshCommand git pull origin $branch &&
     composer install --no-dev --optimize-autoloader &&
     php artisan migrate --force &&
     php artisan config:cache &&
-    php artisan route:cache &&
-    php artisan view:clear
+    php artisan route:cache 
 ", $output);
 
 // ✅ Optional: log output

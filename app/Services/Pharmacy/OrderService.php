@@ -21,6 +21,9 @@ class OrderService
         if (isset($filters['pharmacy_id'])) {
             $query->where('pharmacy_id', $filters['pharmacy_id']);
         }
+        if (isset($filters['patient_id'])) {
+            $query->where('patient_id', $filters['patient_id']);
+        }
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
         }
@@ -41,6 +44,7 @@ class OrderService
             'status' => 'required|in:pending,processing,accepted,completed,delivered,dispensed,declined',
             'total_price' => 'required|numeric',
             'prescription_url' => 'nullable|string',
+            'order_note' => 'nullable|string',
             'created_by' => 'required|exists:users,id',
             'items' => 'required|array',
             'items.*.medication_id' => 'required|exists:medications,id',
@@ -60,9 +64,10 @@ class OrderService
             $order = Order::create([
                 'pharmacy_id' => $data['pharmacy_id'],
                 'patient_id' => $data['patient_id'] ?? null,
-                'status' => $data['status'],
+                'status' => $data['status'] ?? 'pending',
                 'total_price' => $data['total_price'],
                 'prescription_url' => $data['prescription_url'] ?? null,
+                'order_note' => $data['order_note'] ?? null,
                 'created_by' => $data['created_by'],
             ]);
             foreach ($data['items'] as $item) {

@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('plans', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('plan_code')->unique();
-            $table->string('interval'); // monthly, yearly, etc.
+            $table->string('plan_code')->nullable()->unique();
+            $table->string('interval'); // monthly, annually, etc.
             $table->unsignedBigInteger('amount');
             $table->foreignId('currency_id')->constrained('currencies')->onDelete('cascade');
             $table->string('description')->nullable();

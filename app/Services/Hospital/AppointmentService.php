@@ -37,6 +37,7 @@ class AppointmentService
                     }
                 }
             ],
+            'title'             => ['nullable', 'string', 'max:255'],
             'patient_name'      => ['required', 'string', 'max:255'],
             'appointment_type'  => ['required', 'string', 'max:100'],
             'appointment_date'  => ['required', 'date', 'after_or_equal:today'],
@@ -75,6 +76,7 @@ class AppointmentService
                 'hospital_id'       => $validatedData['hospital_id'],
                 'scheduler_id'      => $validatedData['scheduler_id'] ?? auth()->user()->id,
                 'doctor_id'         => $validatedData['doctor_id'] ?? null,
+                'title'             => $validatedData['title'] ?? null,
                 'patient_name'      => $validatedData['patient_name'],
                 'appointment_type'  => $validatedData['appointment_type'],
                 'appointment_date'  => $validatedData['appointment_date'],
@@ -129,6 +131,7 @@ class AppointmentService
             }
 
             $appointment->update([
+                'title'             => $validatedData['title'] ?? $appointment->title,
                 'appointment_date'  => $validatedData['appointment_date'],
                 'appointment_time'  => $validatedData['appointment_time'],
                 'patient_name'      => $validatedData['patient_name'],

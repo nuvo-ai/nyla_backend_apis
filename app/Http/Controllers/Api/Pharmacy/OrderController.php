@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Pharmacy;
 
 use App\Http\Controllers\Controller;
 use App\Services\Pharmacy\OrderService;
+use App\Http\Resources\Pharmacy\OrderResource;
 use Illuminate\Http\Request;
 use App\Helpers\ApiHelper;
 use App\Http\Resources\Pharmacy\PharmacyRegistrationResource;
@@ -24,7 +25,7 @@ class OrderController extends Controller
     {
         try {
             $orders = $this->orderService->list($request->all());
-            return ApiHelper::validResponse('Orders retrieved successfully', $orders);
+            return ApiHelper::validResponse('Orders retrieved successfully', OrderResource::collection($orders));
         } catch (Exception $e) {
             return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
         }
@@ -34,7 +35,7 @@ class OrderController extends Controller
     {
         try {
             $order = $this->orderService->show($id);
-            return ApiHelper::validResponse('Order retrieved successfully', $order);
+            return ApiHelper::validResponse('Order retrieved successfully', new OrderResource($order));
         } catch (ModelNotFoundException $e) {
             return ApiHelper::problemResponse('Order not found', 404, null, $e);
         } catch (Exception $e) {
@@ -46,7 +47,7 @@ class OrderController extends Controller
     {
         try {
             $order = $this->orderService->create($request->all());
-            return ApiHelper::validResponse('Order created successfully', $order);
+            return ApiHelper::validResponse('Order created successfully', new OrderResource($order));
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse('Validation error', 422, null, $e);
         } catch (Exception $e) {
@@ -58,7 +59,7 @@ class OrderController extends Controller
     {
         try {
             $order = $this->orderService->update($id, $request->all());
-            return ApiHelper::validResponse('Order updated successfully', $order);
+            return ApiHelper::validResponse('Order updated successfully', new OrderResource($order));
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse('Validation error', 422, null, $e);
         } catch (ModelNotFoundException $e) {
@@ -112,6 +113,20 @@ class OrderController extends Controller
             }
             $stats = $this->orderService->statistics($pharmacy_id);
             return ApiHelper::validResponse('Pharmacy statistics retrieved successfully', $stats);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+        }
+    }
+
+    public function patientOrderHistory(Request $request)
+    {
+        try {
+            $patient_id = auth()->id();
+            $filters = $request->all();
+            $filters['patient_id'] = $patient_id;
+
+            $orders = $this->orderService->list($filters);
+            return ApiHelper::validResponse('Patient order history retrieved successfully', OrderResource::collection($orders));
         } catch (Exception $e) {
             return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
         }

@@ -30,6 +30,7 @@ class MedicationService
     {
         $validator = Validator::make($data, [
             'pharmacy_id' => 'required|exists:pharmacies,id',
+            'medication_type_id' => 'nullable|exists:medication_types,id',
             'name' => 'required|string',
             'description' => 'nullable|string',
             'stock' => 'required|integer|min:0',

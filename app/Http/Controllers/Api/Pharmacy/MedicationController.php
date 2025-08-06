@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Pharmacy;
 
 use App\Http\Controllers\Controller;
 use App\Services\Pharmacy\MedicationService;
+use App\Http\Resources\Pharmacy\MedicationResource;
 use Illuminate\Http\Request;
 use App\Helpers\ApiHelper;
 use App\Http\Resources\Pharmacy\PharmacyRegistrationResource;
@@ -24,7 +25,7 @@ class MedicationController extends Controller
     {
         try {
             $medications = $this->medicationService->list($request->all());
-            return ApiHelper::validResponse('Medications retrieved successfully', $medications);
+            return ApiHelper::validResponse('Medications retrieved successfully', MedicationResource::collection($medications));
         } catch (Exception $e) {
             return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
         }
@@ -34,7 +35,7 @@ class MedicationController extends Controller
     {
         try {
             $medication = $this->medicationService->show($id);
-            return ApiHelper::validResponse('Medication retrieved successfully', $medication);
+            return ApiHelper::validResponse('Medication retrieved successfully', new MedicationResource($medication));
         } catch (ModelNotFoundException $e) {
             return ApiHelper::problemResponse('Medication not found', 404, null, $e);
         } catch (Exception $e) {
@@ -46,7 +47,7 @@ class MedicationController extends Controller
     {
         try {
             $medication = $this->medicationService->create($request->all());
-            return ApiHelper::validResponse('Medication created successfully', $medication);
+            return ApiHelper::validResponse('Medication created successfully', new MedicationResource($medication));
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse('Validation error', 422, null, $e);
         } catch (Exception $e) {
@@ -58,7 +59,7 @@ class MedicationController extends Controller
     {
         try {
             $medication = $this->medicationService->update($id, $request->all());
-            return ApiHelper::validResponse('Medication updated successfully', $medication);
+            return ApiHelper::validResponse('Medication updated successfully', new MedicationResource($medication));
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse('Validation error', 422, null, $e);
         } catch (ModelNotFoundException $e) {

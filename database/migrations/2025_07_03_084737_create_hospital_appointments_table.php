@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('hospital_id')->constrained('hospitals')->cascadeOnDelete();
             $table->foreignId('scheduler_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('doctor_id')->nullable()->constrained('hospital_users')->cascadeOnDelete();
+            $table->foreignId('doctor_id')->nullable()->constrained('doctors')->cascadeOnDelete();
             $table->string('patient_name');
             $table->string('appointment_type'); // e.g., consultation, follow-up, emergency
             $table->date('appointment_date');
