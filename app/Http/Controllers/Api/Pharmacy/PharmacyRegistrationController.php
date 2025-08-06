@@ -76,6 +76,21 @@ class PharmacyRegistrationController extends Controller
         }
     }
 
+    public function toggleActive($id)
+    {
+        try {
+            $pharmacy = $this->pharmacy_service->toggleActive($id);
+            return ApiHelper::validResponse(
+                $pharmacy->is_active ? 'Pharmacy activated successfully' : 'Pharmacy deactivated successfully',
+                new \App\Http\Resources\Pharmacy\PharmacyRegistrationResource($pharmacy)
+            );
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse('Pharmacy not found', ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+
     private function requestedUserDataduringPharmacyRegistration(Request $request)
     {
         $generated_password = $this->generateRandomPasswordDuringpharmacyRegistration();

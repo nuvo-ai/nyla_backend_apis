@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Http\Resources\Pharmacy;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class MedicationResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'pharmacy_id' => $this->pharmacy_id,
+            'medication_type_id' => $this->medication_type_id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'stock' => $this->stock,
+            'price' => $this->price,
+            'is_active' => $this->is_active,
+            'pharmacy' => $this->whenLoaded('pharmacy', function () {
+                return [
+                    'id' => $this->pharmacy->id,
+                    'name' => $this->pharmacy->name,
+                    'email' => $this->pharmacy->email,
+                ];
+            }),
+            'medication_type' => $this->whenLoaded('medicationType', function () {
+                return [
+                    'id' => $this->medicationType->id,
+                    'name' => $this->medicationType->name,
+                    'description' => $this->medicationType->description,
+                ];
+            }),
+            'dosages' => MedicationDosageResource::collection($this->whenLoaded('dosages')),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
+    }
+}
