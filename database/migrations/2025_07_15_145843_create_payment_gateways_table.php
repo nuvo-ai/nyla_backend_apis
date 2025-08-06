@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payment_gateways', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('slug')->unique();
-            $table->boolean('is_active')->default(true);
-            $table->boolean('is_default')->default(false);
-            $table->string('public_key')->nullable()->unique();
-            $table->string('secret_key')->nullable()->unique();
-            $table->string('description')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('payment_gateways')) {
+            Schema::create('payment_gateways', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('slug')->unique();
+                $table->boolean('is_active')->default(true);
+                $table->boolean('is_default')->default(false);
+                $table->string('public_key')->nullable()->unique();
+                $table->string('secret_key')->nullable()->unique();
+                $table->string('description')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

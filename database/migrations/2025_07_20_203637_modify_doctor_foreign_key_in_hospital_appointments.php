@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('hospital_appointments', function (Blueprint $table) {
-            $table->dropForeign(['doctor_id']);
-            $table->foreign('doctor_id')->references('id')->on('doctors')->cascadeOnDelete();
-        });
+        if (!Schema::hasColumn('hospital_appointments', 'doctor_id')) {
+            Schema::table('hospital_appointments', function (Blueprint $table) {
+                $table->dropForeign(['doctor_id']);
+                $table->foreign('doctor_id')->references('id')->on('doctors')->cascadeOnDelete();
+            });
+        }
     }
 
     /**
@@ -22,9 +24,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('hospital_appointments', function (Blueprint $table) {
-            $table->dropForeign(['doctor_id']);
-            $table->foreign('doctor_id')->references('id')->on('hospital_users')->cascadeOnDelete();
-        });
+        if (Schema::hasColumn('hospital_appointments', 'doctor_id')) {
+            Schema::table('hospital_appointments', function (Blueprint $table) {
+                $table->dropForeign(['doctor_id']);
+                $table->foreign('doctor_id')->references('id')->on('hospital_users')->cascadeOnDelete();
+            });
+        }
     }
 };

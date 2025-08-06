@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('hospital_appointments', function (Blueprint $table) {
-             $table->string('title')->nullable()->after('doctor_id');
-        });
+        if (!Schema::hasColumn('hospital_appointments', 'title')) {
+            Schema::table('hospital_appointments', function (Blueprint $table) {
+                $table->string('title')->nullable()->after('doctor_id');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('hospital_appointments', function (Blueprint $table) {
-            //
-        });
+        if (Schema::hasColumn('hospital_appointments', 'title')) {
+            Schema::table('hospital_appointments', function (Blueprint $table) {
+                $table->dropColumn('title');
+            });
+        }
     }
 };

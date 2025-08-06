@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('chats', function (Blueprint $table) {
-            $table->id();
-             $table->foreignId('conversation_id')->constrained()->onDelete('cascade');
-            $table->enum('sender', ['user', 'ai']);
-            $table->text('content');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('chats')) {
+            Schema::create('chats', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('conversation_id')->constrained()->onDelete('cascade');
+                $table->enum('sender', ['user', 'ai']);
+                $table->text('content');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

@@ -11,8 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('medication_types')) {
+            return;
+        }
+
         Schema::table('medication_types', function (Blueprint $table) {
-            $table->foreignId('pharmacy_id')->nullable()->constrained('pharmacies')->onDelete('cascade')->after('id');
+            if (!Schema::hasColumn('medication_types', 'pharmacy_id')) {
+                $table->foreignId('pharmacy_id')->nullable()->constrained('pharmacies')->onDelete('cascade')->after('id');
+            }
         });
     }
 

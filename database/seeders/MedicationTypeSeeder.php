@@ -29,10 +29,17 @@ class MedicationTypeSeeder extends Seeder
 
             $pharmacy = \App\Models\Pharmacy\Pharmacy::create([
                 'user_id' => $user->id,
+                'uuid' => \Illuminate\Support\Str::uuid(),
                 'name' => 'Default Pharmacy',
-                'email' => 'pharmacy@example.com',
+                'license_number' => 'LIC123456',
+                'pharmacist_in_charge_name' => 'Dr. Default Pharmacist',
                 'phone' => '1234567890',
-                'address' => 'Default Address',
+                'email' => 'pharmacy@example.com',
+                'street_address' => 'Default Street Address',
+                'city' => 'Default City',
+                'state' => 'Default State',
+                'country' => 'Default Country',
+                'nafdac_certificate' => 'cert123.pdf',
                 'is_active' => true,
             ]);
         }

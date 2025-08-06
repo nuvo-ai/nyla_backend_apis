@@ -12,22 +12,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('hospital_patients', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('hospital_id')->constrained('hospitals')->onDelete('cascade');
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('doctor_id')->nullable()->constrained('doctors')->nullOnDelete();
-            $table->string('temperature')->nullable();
-            $table->string('weight')->nullable();
-            $table->string('height')->nullable();
-            $table->string('blood_pressure')->nullable();
-            $table->string('heart_rate')->nullable();
-            $table->string('respiratory_rate')->nullable();
-            $table->string('oxygen_saturation')->nullable();
-            $table->date('last_visit')->nullable();
-            $table->string('status')->default(StatusConstants::ACTIVE);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('hospital_patients')) {
+            Schema::create('hospital_patients', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('hospital_id')->constrained('hospitals')->onDelete('cascade');
+                $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+                $table->foreignId('doctor_id')->nullable()->constrained('hospital_users')->nullOnDelete();
+                $table->string('temperature')->nullable();
+                $table->string('weight')->nullable();
+                $table->string('height')->nullable();
+                $table->string('blood_pressure')->nullable();
+                $table->string('heart_rate')->nullable();
+                $table->string('respiratory_rate')->nullable();
+                $table->string('oxygen_saturation')->nullable();
+                $table->date('last_visit')->nullable();
+                $table->string('status')->default(StatusConstants::ACTIVE);
+                $table->timestamps();
+            });
+        }
+
     }
 
     /**

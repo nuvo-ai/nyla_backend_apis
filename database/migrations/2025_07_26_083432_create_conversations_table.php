@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('conversations', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('uuid')->unique();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('hospital_user_id')->nullable()->constrained('hospital_users')->onDelete('set null');
-            $table->foreignId('patient_id')->nullable()->constrained('hospital_patients')->onDelete('set null');
-            $table->string('ai_type')->default('chatgpt');
-            $table->string('title')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('conversations')) {
+            Schema::create('conversations', function (Blueprint $table) {
+                $table->id();
+                $table->uuid('uuid')->unique();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->foreignId('hospital_user_id')->nullable()->constrained('hospital_users')->onDelete('set null');
+                $table->foreignId('patient_id')->nullable()->constrained('hospital_patients')->onDelete('set null');
+                $table->string('ai_type')->default('chatgpt');
+                $table->string('title')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**
