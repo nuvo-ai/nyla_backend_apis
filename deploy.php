@@ -1,7 +1,7 @@
 <?php
 
 // ✅ Set your GitHub webhook secret
-$secret = 'nyla-webhook-secret-2025!';
+$secret =  getenv("GITHUB_TOKEN");;
 
 // ✅ Full path to your Laravel API project
 $projectPath = '/home/nylaafri/public_html/api.nyla.africa';
