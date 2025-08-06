@@ -106,7 +106,6 @@ class UserService
         unset($validated['name']);
         $validated['status'] = $validated['status'] ?? StatusConstants::ACTIVE;
         $validated['role'] = $validated['role'] ?? UserConstants::USER;
-        $validated['gender'] = $validated['gender'] ?? null;
         $validated['password'] = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make(Str::random(10));
 
         if (isset($portal)) {

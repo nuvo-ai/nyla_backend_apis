@@ -15,7 +15,6 @@ class Pin extends Model
         "type",
         "code",
         "expires_at",
-        "used_at",
     ];
 
     protected $casts = [

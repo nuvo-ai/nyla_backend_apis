@@ -10,7 +10,6 @@ class Medication extends Model
 {
     protected $fillable = [
         'pharmacy_id',
-        'medication_type_id',
         'name',
         'description',
         'stock',
@@ -26,15 +25,5 @@ class Medication extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
-    }
-
-    public function medicationType(): BelongsTo
-    {
-        return $this->belongsTo(MedicationType::class);
-    }
-
-    public function dosages(): HasMany
-    {
-        return $this->hasMany(MedicationDosage::class);
     }
 }

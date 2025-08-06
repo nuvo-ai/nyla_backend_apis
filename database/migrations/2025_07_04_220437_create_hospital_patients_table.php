@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('hospital_id')->constrained('hospitals')->onDelete('cascade');
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('doctor_id')->nullable()->constrained('doctors')->nullOnDelete();
+            $table->foreignId('doctor_id')->nullable()->constrained('hospital_users')->nullOnDelete();
             $table->string('temperature')->nullable();
             $table->string('weight')->nullable();
             $table->string('height')->nullable();

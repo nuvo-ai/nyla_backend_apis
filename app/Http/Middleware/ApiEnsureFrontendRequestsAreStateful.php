@@ -20,18 +20,9 @@ class ApiEnsureFrontendRequestsAreStateful
             return $next($request);
         } catch (AuthenticationException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Authentication required. Please provide a valid Bearer token.',
-                'errors' => null,
-                'code' => 401
+                'message' => 'Unauthenticated (from middleware)',
+                'error' => 'Authentication required.',
             ], 401);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'An unexpected error occurred. Please try again later.',
-                'errors' => null,
-                'code' => 500
-            ], 500);
         }
     }
 }

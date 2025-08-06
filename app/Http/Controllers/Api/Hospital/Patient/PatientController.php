@@ -76,11 +76,7 @@ class PatientController extends Controller
     public function update(Request $request, $patient)
     {
         try {
-            $existingPatient = $this->patient_service->getById($patient);
-            $data = $request->all();
-            $data['user_id'] = $existingPatient->user_id; 
-
-            $updatedPatient = $this->patient_service->save($data, $patient);
+            $updatedPatient = $this->patient_service->save($request->all(), $patient);
             return ApiHelper::validResponse("Patient updated successfully", PatientResource::make($updatedPatient));
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
@@ -90,7 +86,6 @@ class PatientController extends Controller
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
     }
-
 
 
     public function destroy($patient)
@@ -109,7 +104,7 @@ class PatientController extends Controller
     public function discharge(Request $request, $patient)
     {
         try {
-            $data = $this->patient_service->discharge($request, $patient);
+           $data = $this->patient_service->discharge($request, $patient);
             return ApiHelper::validResponse("Patient discharged successfully", $data);
         } catch (ModelNotFoundException $e) {
             return ApiHelper::problemResponse("Patient not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
@@ -121,7 +116,7 @@ class PatientController extends Controller
     public function assign(Request $request, $patient)
     {
         try {
-            $data = $this->patient_service->assign($request, $patient);
+          $data = $this->patient_service->assign($request, $patient);
             $get_patient = $this->patient_service->getById($patient);
             $patient_name = $get_patient->user->full_name;
             return ApiHelper::validResponse("Doctor assigned to " . $patient_name .   " successfully", $data);
@@ -131,10 +126,10 @@ class PatientController extends Controller
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
     }
-    public function stat()
+     public function stat()
     {
         try {
-            $patients = $this->patient_service->stat();
+           $patients = $this->patient_service->stat();
             return ApiHelper::validResponse("Patients stat retrieved successfully", $patients);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
@@ -150,7 +145,6 @@ class PatientController extends Controller
             'email'       => $request->input('email'),
             'phone'       => $request->input('phone'),
             'password'    => $generated_password,
-            'name'        => $request->input('name'),
             'first_name'        => $request->input('first_name'),
             'last_name'        => $request->input('last_name'),
             'gender'      => $request->input('gender'),

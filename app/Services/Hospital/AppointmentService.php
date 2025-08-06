@@ -160,7 +160,7 @@ class AppointmentService
                 }
             }
 
-             return $appointment;
+            return $appointment;
         });
     }
 
@@ -188,7 +188,7 @@ class AppointmentService
     }
     public function listAppointments(array $filters = []): Collection
     {
-        $query = HospitalAppointment::where('scheduler_id', auth()->id())->with(['hospital', 'doctor', 'scheduler']);
+        $query = HospitalAppointment::with(['hospital', 'doctor', 'scheduler']);
 
         if (!empty($filters['period'])) {
             switch ($filters['period']) {
@@ -216,8 +216,7 @@ class AppointmentService
 
     public function getAppointment($id): HospitalAppointment
     {
-        $appointment = HospitalAppointment::where('scheduler_id', auth()->id())->with(['hospital', 'doctor', 'scheduler'])->find($id);
-        dd($appointment);
+        $appointment = HospitalAppointment::with(['hospital', 'doctor', 'scheduler'])->find($id);
         if (!$appointment) {
             throw new ModelNotFoundException("Appointment not found");
         }
@@ -228,6 +227,6 @@ class AppointmentService
     {
         return HospitalAppointment::with(['hospital', 'doctor', 'scheduler'])
             ->where('doctor_id', $doctorId)
-            ->get();
+            ->get();    
     }
 }

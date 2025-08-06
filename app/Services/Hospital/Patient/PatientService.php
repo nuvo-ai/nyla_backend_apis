@@ -6,7 +6,6 @@ use App\Constants\General\AppConstants;
 use App\Constants\General\StatusConstants;
 use App\Constants\User\UserConstants;
 use App\Http\Resources\Hospital\DoctorResource;
-use App\Models\Hospital\Doctor;
 use App\Models\Hospital\HospitalPatient;
 use App\Models\Hospital\HospitalUser;
 use App\Models\User\User;
@@ -22,14 +21,16 @@ class PatientService
     public function validate(array $data)
     {
         $validator = Validator::make($data, [
+            'hospital_id'           => ['required', 'exists:hospitals,id'],
+            'user_id'               => ['required', 'exists:users,id'],
             'doctor_id'             => [
                 'nullable',
-                'exists:doctors,id',
+                'exists:hospital_users,id',
                 function ($attribute, $value, $fail) {
                     if ($value) {
-                        $doctor = Doctor::find($value);
-                        if (!$doctor) {
-                            $fail('The selected doctor does not exist.');
+                        $doctor = HospitalUser::find($value);
+                        if (!$doctor || $doctor->role !== UserConstants::DOCTOR) {
+                            $fail('The selected doctor does not have the correct role.');
                         }
                     }
                 }
@@ -64,7 +65,6 @@ class PatientService
         return $validator->validated();
     }
 
-
     public static function getById($key, $column = "id"): HospitalPatient
     {
         $model = HospitalPatient::where($column, $key)->first();
@@ -78,14 +78,12 @@ class PatientService
     {
         return DB::transaction(function () use ($data, $id) {
             $validated = $this->validate($data);
-            $user = User::getAuthenticatedUser();
-            $existingUserId = $id ? HospitalPatient::find($id)->user_id : null;
-
-            if (!empty($data['user_id']) && $data['user_id'] != $existingUserId) {
-                $hospital_patient = HospitalPatient::where('hospital_id', $user?->hospitalUser?->hospital?->id)
-                    ->where('user_id', $data['user_id'])
-                    ->where('id', '<>', (int)$id);
-
+            if (!empty($validated['user_id'])) {
+                $hospital_patient = HospitalPatient::where('hospital_id', $validated['hospital_id'])
+                    ->where('user_id', $validated['user_id']);
+                if ($id) {
+                    $hospital_patient->where('id', '!=', $id);
+                }
                 if ($hospital_patient->exists()) {
                     throw ValidationException::withMessages([
                         'duplicate' => ['This patient already exists in our database.'],
@@ -94,8 +92,8 @@ class PatientService
             }
 
             $payload = [
-                'hospital_id'             => $user?->hospitalUser?->hospital?->id,
-                'user_id'                 => $data['user_id'] ?? null,
+                'hospital_id'             => $validated['hospital_id'],
+                'user_id'                 => $validated['user_id'] ?? null,
                 'doctor_id'               => $validated['doctor_id'] ?? null,
                 'chief_complaints'        => $validated['chief_complaints'] ?? null,
                 'temperature'             => $validated['temperature'] ?? null,
@@ -119,6 +117,7 @@ class PatientService
                 'referral_source'         => $validated['referral_source'] ?? null,
                 'status'                  => $validated['status'] ?? StatusConstants::ACTIVE,
             ];
+
             if ($id) {
                 $patient = $this->getById($id);
                 $patient->update($payload);
@@ -132,7 +131,7 @@ class PatientService
 
     public function listPatients(array $filters = []): Collection
     {
-        $query = HospitalPatient::with(['user', 'hospital', 'doctor']);
+        $query = HospitalPatient::with(['hospital', 'doctor']);
 
         if (!empty($filters['status'])) {
             $status = strtolower($filters['status']);

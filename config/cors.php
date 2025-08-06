@@ -10,7 +10,6 @@ return [
         'http://localhost:3000',
         'http://192.168.1.192:3000',
         'http://localhost:8081',
-        'http://localhost:8080',
     ],
 
     'allowed_origins_patterns' => [],

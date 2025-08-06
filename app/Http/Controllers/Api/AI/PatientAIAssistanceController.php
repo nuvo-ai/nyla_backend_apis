@@ -12,7 +12,6 @@ use App\Models\User\User;
 use App\Services\AI\PatientAIAssistanceService;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class PatientAIAssistanceController extends Controller
@@ -45,41 +44,19 @@ class PatientAIAssistanceController extends Controller
         }
     }
 
-    public function listConversations()
+    public function getPatientConversation()
     {
         try {
             $user = User::getAuthenticatedUser();
-
-            $conversations = Conversation::where('user_id', $user->id)
-                ->latest()
-                ->select('uuid', 'title', 'ai_type', 'created_at')
+            $conversations = Conversation::with('chats')
+                ->where('user_id', $user->id)->where('patient_id', $user->patient->id)->latest()
                 ->get();
 
             if ($conversations->isEmpty()) {
                 return [];
             }
-
             return ApiHelper::validResponse('User conversations fetched successfully', [
                 'conversations' => $conversations,
-            ]);
-        } catch (Exception $e) {
-            $message = $e->getMessage() ?: $this->serverErrorMessage;
-            return ApiHelper::problemResponse($message, ApiConstants::SERVER_ERR_CODE, null, $e);
-        }
-    }
-
-
-    public function getConversationWithChats($uuid)
-    {
-        try {
-            $user = User::getAuthenticatedUser();
-            $conversation = Conversation::with('chats')
-                ->where('user_id', $user->id)
-                ->where('uuid', $uuid)
-                ->firstOrFail();
-
-            return ApiHelper::validResponse('Conversation chats fetched successfully', [
-                'conversation' => $conversation,
             ]);
         } catch (Exception $e) {
             $message = $e->getMessage() ?: $this->serverErrorMessage;

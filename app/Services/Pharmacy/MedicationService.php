@@ -11,7 +11,7 @@ class MedicationService
 {
     public function list(array $filters = [])
     {
-        $query = Medication::with(['pharmacy', 'medicationType', 'dosages']);
+        $query = Medication::query();
         if (isset($filters['pharmacy_id'])) {
             $query->where('pharmacy_id', $filters['pharmacy_id']);
         }
@@ -23,14 +23,13 @@ class MedicationService
 
     public function show($id)
     {
-        return Medication::with(['pharmacy', 'medicationType', 'dosages'])->findOrFail($id);
+        return Medication::findOrFail($id);
     }
 
     public function create(array $data)
     {
         $validator = Validator::make($data, [
             'pharmacy_id' => 'required|exists:pharmacies,id',
-            'medication_type_id' => 'nullable|exists:medication_types,id',
             'name' => 'required|string',
             'description' => 'nullable|string',
             'stock' => 'required|integer|min:0',
@@ -49,7 +48,7 @@ class MedicationService
             'Medication created',
             ['medication_id' => $medication->id, 'name' => $medication->name]
         );
-        return $medication->load(['pharmacy', 'medicationType', 'dosages']);
+        return $medication;
     }
 
     public function update($id, array $data)
@@ -64,7 +63,7 @@ class MedicationService
             'Medication updated',
             ['medication_id' => $medication->id, 'name' => $medication->name]
         );
-        return $medication->refresh()->load(['pharmacy', 'medicationType', 'dosages']);
+        return $medication->refresh();
     }
 
     public function delete($id)

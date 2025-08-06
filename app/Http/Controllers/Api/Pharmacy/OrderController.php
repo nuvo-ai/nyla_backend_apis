@@ -4,13 +4,7 @@ namespace App\Http\Controllers\Api\Pharmacy;
 
 use App\Http\Controllers\Controller;
 use App\Services\Pharmacy\OrderService;
-use App\Http\Resources\Pharmacy\OrderResource;
 use Illuminate\Http\Request;
-use App\Helpers\ApiHelper;
-use App\Http\Resources\Pharmacy\PharmacyRegistrationResource;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Validation\ValidationException;
-use Exception;
 
 class OrderController extends Controller
 {
@@ -23,141 +17,54 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        try {
-            $orders = $this->orderService->list($request->all());
-
-            if ($orders->isEmpty()) {
-                return ApiHelper::validResponse('No orders found', [], 200);
-            }
-
-            return ApiHelper::validResponse('Orders retrieved successfully', OrderResource::collection($orders));
-        } catch (Exception $e) {
-            return ApiHelper::problemResponse('Failed to retrieve orders. Please try again later.', 500, null, $e);
-        }
+        $orders = $this->orderService->list($request->all());
+        return response()->json($orders);
     }
 
     public function show($id)
     {
-        try {
-            $order = $this->orderService->show($id);
-            return ApiHelper::validResponse('Order retrieved successfully', new OrderResource($order));
-        } catch (ModelNotFoundException $e) {
-            return ApiHelper::problemResponse('Order not found', 404, null, $e);
-        } catch (Exception $e) {
-            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
-        }
+        $order = $this->orderService->show($id);
+        return response()->json($order);
     }
 
     public function store(Request $request)
     {
-        try {
-            $order = $this->orderService->create($request->all());
-            return ApiHelper::validResponse('Order created successfully', new OrderResource($order));
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
-            $errorMessage = 'Please check the following errors: ' . implode(', ', array_keys($errors));
-            return ApiHelper::inputErrorResponse($errorMessage, 422, null, $e);
-        } catch (Exception $e) {
-            return ApiHelper::problemResponse('Failed to create order. Please try again later.', 500, null, $e);
-        }
+        $order = $this->orderService->create($request->all());
+        return response()->json($order, 201);
     }
 
     public function update(Request $request, $id)
     {
-        try {
-            $order = $this->orderService->update($id, $request->all());
-            return ApiHelper::validResponse('Order updated successfully', new OrderResource($order));
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
-            $errorMessage = 'Please check the following errors: ' . implode(', ', array_keys($errors));
-            return ApiHelper::inputErrorResponse($errorMessage, 422, null, $e);
-        } catch (ModelNotFoundException $e) {
-            return ApiHelper::problemResponse('Order not found. Please check the order ID and try again.', 404, null, $e);
-        } catch (Exception $e) {
-            return ApiHelper::problemResponse('Failed to update order. Please try again later.', 500, null, $e);
-        }
+        $order = $this->orderService->update($id, $request->all());
+        return response()->json($order);
     }
 
     public function destroy($id)
     {
-        try {
-            $this->orderService->delete($id);
-            return ApiHelper::validResponse('Order deleted successfully');
-        } catch (ModelNotFoundException $e) {
-            return ApiHelper::problemResponse('Order not found. Please check the order ID and try again.', 404, null, $e);
-        } catch (Exception $e) {
-            return ApiHelper::problemResponse('Failed to delete order. Please try again later.', 500, null, $e);
-        }
+        $this->orderService->delete($id);
+        return response()->json(['message' => 'Order deleted successfully']);
     }
 
     public function export($id)
     {
-        try {
-            $order = $this->orderService->export($id);
-            return ApiHelper::validResponse('Order exported successfully', $order);
-        } catch (ModelNotFoundException $e) {
-            return ApiHelper::problemResponse('Order not found. Please check the order ID and try again.', 404, null, $e);
-        } catch (Exception $e) {
-            return ApiHelper::problemResponse('Failed to export order. Please try again later.', 500, null, $e);
-        }
+        $order = $this->orderService->export($id);
+        return response()->json($order); // Placeholder for actual export
     }
 
     public function emr(Request $request)
     {
-        try {
-            $pharmacy_id = $request->get('pharmacy_id');
-
-            if (!$pharmacy_id) {
-                return ApiHelper::inputErrorResponse('Pharmacy ID is required to retrieve EMR data.', 422);
-            }
-
-            $emr = $this->orderService->emr($pharmacy_id);
-
-            if ($emr->isEmpty()) {
-                return ApiHelper::validResponse('No EMR data found for this pharmacy', [], 200);
-            }
-
-            return ApiHelper::validResponse('EMR retrieved successfully', $emr);
-        } catch (Exception $e) {
-            return ApiHelper::problemResponse('Failed to retrieve EMR data. Please try again later.', 500, null, $e);
-        }
+        $pharmacy_id = $request->get('pharmacy_id');
+        $emr = $this->orderService->emr($pharmacy_id);
+        return response()->json($emr);
     }
 
     public function statistics(Request $request)
     {
-        try {
-            $pharmacy_id = $request->get('pharmacy_id');
-            if (!$pharmacy_id) {
-                return ApiHelper::inputErrorResponse('Pharmacy ID is required to retrieve statistics.', 422);
-            }
-            $stats = $this->orderService->statistics($pharmacy_id);
-            return ApiHelper::validResponse('Pharmacy statistics retrieved successfully', $stats);
-        } catch (Exception $e) {
-            return ApiHelper::problemResponse('Failed to retrieve pharmacy statistics. Please try again later.', 500, null, $e);
+        $pharmacy_id = $request->get('pharmacy_id');
+        if (!$pharmacy_id) {
+            return response()->json(['error' => 'pharmacy_id is required'], 422);
         }
-    }
-
-    public function patientOrderHistory(Request $request)
-    {
-        try {
-            $patient_id = auth()->id();
-
-            if (!$patient_id) {
-                return ApiHelper::problemResponse('Authentication required. Please log in to view your order history.', 401);
-            }
-
-            $filters = $request->all();
-            $filters['patient_id'] = $patient_id;
-
-            $orders = $this->orderService->list($filters);
-
-            if ($orders->isEmpty()) {
-                return ApiHelper::validResponse('No order history found. Start by placing your first order!', [], 200);
-            }
-
-            return ApiHelper::validResponse('Patient order history retrieved successfully', OrderResource::collection($orders));
-        } catch (Exception $e) {
-            return ApiHelper::problemResponse('Failed to retrieve order history. Please try again later.', 500, null, $e);
-        }
+        $stats = $this->orderService->statistics($pharmacy_id);
+        return response()->json($stats);
     }
 }

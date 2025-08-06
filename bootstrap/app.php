@@ -17,62 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
        $exceptions->render(function (AuthenticationException $e, $request) {
-            if ($request->expectsJson() || $request->is('api/*')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Authentication required. Please provide a valid Bearer token.',
-                    'errors' => null,
-                    'code' => 401
-                ], 401);
-            }
-
+            \Log::info('Custom AuthenticationException handler triggered');
             return response()->json([
                 'message' => 'Unauthenticated.',
                 'error' => 'Authentication required.',
             ], 401);
-        });
-
-        $exceptions->render(function (\Illuminate\Validation\ValidationException $e, $request) {
-            if ($request->expectsJson() || $request->is('api/*')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validation failed. Please check your input.',
-                    'errors' => $e->errors(),
-                    'code' => 422
-                ], 422);
-            }
-        });
-
-        $exceptions->render(function (\Illuminate\Database\Eloquent\ModelNotFoundException $e, $request) {
-            if ($request->expectsJson() || $request->is('api/*')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Resource not found. Please check the ID and try again.',
-                    'errors' => null,
-                    'code' => 404
-                ], 404);
-            }
-        });
-
-        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, $request) {
-            if ($request->expectsJson() || $request->is('api/*')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'API endpoint not found. Please check the URL and try again.',
-                    'errors' => null,
-                    'code' => 404
-                ], 404);
-            }
-        });
-
-        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException $e, $request) {
-            if ($request->expectsJson() || $request->is('api/*')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Method not allowed for this endpoint.',
-                    'errors' => null,
-                    'code' => 405
-                ], 405);
-            }
         });
     })->create();

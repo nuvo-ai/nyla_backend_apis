@@ -20,19 +20,20 @@ class PasswordService
 
     public function sendPasswordResetPin(array $data)
     {
-        $validated = Validator::make($data, [
+        $data = Validator::make($data, [
             'email' => 'required|email|exists:users,email',
         ], [
             'email.exists' => "The email address does not exist in our records.",
         ])->validate();
 
-        $user = User::firstWhere('email', $validated['email']);
+        $user = User::firstWhere($data);
+
         $pin_expiry = now()->addSeconds(config("system.configuration.pin_expiry"));
+
         $this->pin_service->create($user, [
             "type" => OtpConstants::TYPE_RESET_PASSWORD,
             "expires_at" => $pin_expiry,
             "length" => config("system.configuration.length", 4),
-            "email" => $user->email,
             "code_type" => "int",
         ]);
     }

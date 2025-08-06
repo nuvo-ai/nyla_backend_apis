@@ -75,17 +75,12 @@ class PinService
             throw new OtpException("Code has expired, kindly request a new code");
         }
 
-        if ($pin->expires_at->isPast()) {
-            throw new OtpException("This PIN has expired or has already been used.");
-        }
-
-
         $user = $pin->user;
 
         if ($data["type"] !== OtpConstants::TYPE_RESET_PASSWORD) {
             $pin->delete();
         }
-        $pin->update(['used_at' => now()]);
+
         return [
             "user" => $user,
             "pin" => $pin

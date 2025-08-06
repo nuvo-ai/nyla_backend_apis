@@ -21,18 +21,15 @@ class OrderService
         if (isset($filters['pharmacy_id'])) {
             $query->where('pharmacy_id', $filters['pharmacy_id']);
         }
-        if (isset($filters['patient_id'])) {
-            $query->where('patient_id', $filters['patient_id']);
-        }
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
         }
-        return $query->with(['items.medication', 'patient', 'creator'])->get();
+        return $query->with(['items', 'patient', 'creator'])->get();
     }
 
     public function show($id)
     {
-        return Order::with(['items.medication', 'patient', 'creator'])->findOrFail($id);
+        return Order::with(['items', 'patient', 'creator'])->findOrFail($id);
     }
 
     public function create(array $data)
@@ -44,7 +41,7 @@ class OrderService
             'status' => 'required|in:pending,processing,accepted,completed,delivered,dispensed,declined',
             'total_price' => 'required|numeric',
             'prescription_url' => 'nullable|string',
-            'order_note' => 'nullable|string',
+            'created_by' => 'required|exists:users,id',
             'items' => 'required|array',
             'items.*.medication_id' => 'required|exists:medications,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -53,7 +50,6 @@ class OrderService
         if ($validator->fails()) {
             throw new ValidationException($validator);
         }
-        $data['created_by'] = auth()->id();
         $pharmacy = \App\Models\Pharmacy\Pharmacy::findOrFail($data['pharmacy_id']);
         if (!$pharmacy->is_active) {
             throw ValidationException::withMessages([
@@ -64,10 +60,9 @@ class OrderService
             $order = Order::create([
                 'pharmacy_id' => $data['pharmacy_id'],
                 'patient_id' => $data['patient_id'] ?? null,
-                'status' => $data['status'] ?? 'pending',
+                'status' => $data['status'],
                 'total_price' => $data['total_price'],
                 'prescription_url' => $data['prescription_url'] ?? null,
-                'order_note' => $data['order_note'] ?? null,
                 'created_by' => $data['created_by'],
             ]);
             foreach ($data['items'] as $item) {
@@ -86,23 +81,17 @@ class OrderService
                 'Order created',
                 ['order_id' => $order->id]
             );
-            return $order->load(['items.medication', 'patient', 'creator']);
+            return $order->load(['items', 'patient', 'creator']);
         });
     }
 
     public function update($id, array $data)
     {
         $order = Order::findOrFail($id);
-        $oldStatus = $order->status;
         $order->update($data);
         $order->refresh();
         // Optionally update items
-        $order->load(['items.medication', 'patient', 'creator', 'pharmacy']);
-
-        // Handle stock deduction when order is delivered
-        if (isset($data['status']) && $data['status'] === 'delivered' && $oldStatus !== 'delivered') {
-            $this->deductStockFromOrder($order);
-        }
+        $order->load(['items', 'patient', 'creator', 'pharmacy']);
 
         // Log activity: Order status update
         if (isset($data['status'])) {
@@ -180,50 +169,5 @@ class OrderService
             'total_orders_completed' => $totalCompleted,
             'total_orders_delivered' => $totalDelivered,
         ];
-    }
-
-    /**
-     * Deduct stock from medications when order is delivered
-     */
-    private function deductStockFromOrder($order)
-    {
-        foreach ($order->items as $item) {
-            $medication = $item->medication;
-            if ($medication) {
-                // Check if there's enough stock
-                if ($medication->stock >= $item->quantity) {
-                    // Deduct the quantity from stock
-                    $medication->decrement('stock', $item->quantity);
-
-                    // Log the stock deduction activity
-                    PharmacyActivityService::log(
-                        $order->pharmacy_id,
-                        auth()->id() ?? $order->created_by,
-                        'Stock deducted for delivered order',
-                        [
-                            'order_id' => $order->id,
-                            'medication_id' => $medication->id,
-                            'medication_name' => $medication->name,
-                            'quantity_deducted' => $item->quantity,
-                            'remaining_stock' => $medication->stock - $item->quantity
-                        ]
-                    );
-                } else {
-                    // Log insufficient stock warning
-                    PharmacyActivityService::log(
-                        $order->pharmacy_id,
-                        auth()->id() ?? $order->created_by,
-                        'Insufficient stock for order delivery',
-                        [
-                            'order_id' => $order->id,
-                            'medication_id' => $medication->id,
-                            'medication_name' => $medication->name,
-                            'requested_quantity' => $item->quantity,
-                            'available_stock' => $medication->stock
-                        ]
-                    );
-                }
-            }
-        }
     }
 }

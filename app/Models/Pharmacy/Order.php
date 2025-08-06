@@ -21,7 +21,6 @@ class Order extends Model
         'status',
         'total_price',
         'prescription_url',
-        'order_note',
         'created_by',
     ];
 

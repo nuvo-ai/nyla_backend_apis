@@ -39,7 +39,6 @@ class LoginController extends Controller
             $user = $this->login_service->authenticate($request->all());
             $data["user"] =  UserResource::make($user)->toArray($request);
             $data["token"] = $user->createToken(SanctumService::SESSION_KEY)->plainTextToken;
-            $data['gender'] = $user->gender;
             LoginService::newLogin($user);
             return ApiHelper::validResponse("Logged in successfully", $data);
         } catch (ValidationException $e) {

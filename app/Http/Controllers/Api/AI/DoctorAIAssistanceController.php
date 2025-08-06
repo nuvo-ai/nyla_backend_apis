@@ -64,28 +64,5 @@ class DoctorAIAssistanceController extends Controller
             $message = $e->getMessage() ?: $this->serverErrorMessage;
             return ApiHelper::problemResponse($message, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
-
-    }
-
-     public function getConversationWithChats($uuid)
-    {
-        try {
-            $user = User::getAuthenticatedUser();
-            $doctor = $user->doctor;
-            if (!$doctor) {
-                throw new Exception('Could not get conversation chats for this user.');
-            }
-            $conversation = Conversation::with('chats')
-                ->where('user_id', $user->id)
-                ->where('uuid', $uuid)
-                ->firstOrFail();
-
-            return ApiHelper::validResponse('Conversation details fetched successfully', [
-                'conversation' => $conversation,
-            ]);
-        } catch (Exception $e) {
-            $message = $e->getMessage() ?: $this->serverErrorMessage;
-            return ApiHelper::problemResponse($message, ApiConstants::SERVER_ERR_CODE, null, $e);
-        }
     }
 }
