@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('lab_technicians', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('hospital_id')->constrained('hospitals')->cascadeOnDelete();
-            $table->foreignId('hospital_user_id')->constrained('hospital_users')->cascadeOnDelete();
-            $table->string('deparment');
-            $table->string('years_of_expirience')->nullable();
-            $table->string('certification')->nullable();
-            $table->string('speciaization')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('lab_technicians')) {
+            Schema::create('lab_technicians', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+                $table->foreignId('hospital_id')->constrained('hospitals')->cascadeOnDelete();
+                $table->foreignId('hospital_user_id')->constrained('hospital_users')->cascadeOnDelete();
+                $table->string('deparment');
+                $table->string('years_of_expirience')->nullable();
+                $table->string('certification')->nullable();
+                $table->string('speciaization')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

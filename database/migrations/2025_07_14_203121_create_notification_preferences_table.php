@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('notification_preferences', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->boolean('email')->default(false);
-            $table->boolean('sms')->default(false);
-            $table->boolean('push')->default(false);
-            $table->boolean('appointment_reminders')->default(false);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('notification_preferences')) {
+            Schema::create('notification_preferences', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->boolean('email')->default(false);
+                $table->boolean('sms')->default(false);
+                $table->boolean('push')->default(false);
+                $table->boolean('appointment_reminders')->default(false);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('front_desks', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('hospital_id')->constrained('hospitals')->cascadeOnDelete();
-            $table->foreignId('hospital_user_id')->constrained('hospital_users')->cascadeOnDelete();
-            $table->string('shift')->nullable();
-            $table->string('department');
-            $table->string('years_of_expirience')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('front_desks')) {
+            Schema::create('front_desks', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+                $table->foreignId('hospital_id')->constrained('hospitals')->cascadeOnDelete();
+                $table->foreignId('hospital_user_id')->constrained('hospital_users')->cascadeOnDelete();
+                $table->string('shift')->nullable();
+                $table->string('department');
+                $table->string('years_of_expirience')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

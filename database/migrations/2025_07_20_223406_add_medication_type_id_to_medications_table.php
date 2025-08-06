@@ -8,8 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!Schema::hasTable('medications')) {
+            return;
+        }
+
         Schema::table('medications', function (Blueprint $table) {
-            $table->foreignId('medication_type_id')->nullable()->constrained('medication_types')->onDelete('set null')->after('pharmacy_id');
+            if (!Schema::hasColumn('medications', 'medication_type_id')) {
+                $table->foreignId('medication_type_id')->nullable()->constrained('medication_types')->onDelete('set null')->after('pharmacy_id');
+            }
         });
     }
 
@@ -20,4 +26,4 @@ return new class extends Migration
             $table->dropColumn('medication_type_id');
         });
     }
-}; 
+};

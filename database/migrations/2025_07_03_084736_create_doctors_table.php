@@ -12,17 +12,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('doctors', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('hospital_id')->constrained('hospitals')->cascadeOnDelete();
-            $table->foreignId('hospital_user_id')->constrained('hospital_users')->cascadeOnDelete();
-            $table->string('medical_number')->unique();
-            $table->json('medical_specialties')->nullable();
-            $table->json('departments')->nullable();
-            $table->string('status')->default(StatusConstants::AVAILABLE);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('doctors')) {
+            Schema::create('doctors', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+                $table->foreignId('hospital_id')->constrained('hospitals')->cascadeOnDelete();
+                $table->foreignId('hospital_user_id')->constrained('hospital_users')->cascadeOnDelete();
+                $table->string('medical_number')->unique();
+                $table->json('medical_specialties')->nullable();
+                $table->json('departments')->nullable();
+                $table->string('status')->default(StatusConstants::AVAILABLE);
+                $table->timestamps();
+            });
+        }
     }
 
     /**
