@@ -24,9 +24,14 @@ class MedicationDosageController extends Controller
     {
         try {
             $dosages = $this->medicationDosageService->list($request->all());
+
+            if ($dosages->isEmpty()) {
+                return ApiHelper::validResponse('No medication dosages found', [], 200);
+            }
+
             return ApiHelper::validResponse('Medication dosages retrieved successfully', MedicationDosageResource::collection($dosages));
         } catch (Exception $e) {
-            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+            return ApiHelper::problemResponse('Failed to retrieve medication dosages. Please try again later.', 500, null, $e);
         }
     }
 
@@ -36,9 +41,9 @@ class MedicationDosageController extends Controller
             $dosage = $this->medicationDosageService->show($id);
             return ApiHelper::validResponse('Medication dosage retrieved successfully', new MedicationDosageResource($dosage));
         } catch (ModelNotFoundException $e) {
-            return ApiHelper::problemResponse('Medication dosage not found', 404, null, $e);
+            return ApiHelper::problemResponse('Medication dosage not found. Please check the dosage ID and try again.', 404, null, $e);
         } catch (Exception $e) {
-            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+            return ApiHelper::problemResponse('Failed to retrieve medication dosage. Please try again later.', 500, null, $e);
         }
     }
 
@@ -48,9 +53,11 @@ class MedicationDosageController extends Controller
             $dosage = $this->medicationDosageService->create($request->all());
             return ApiHelper::validResponse('Medication dosage created successfully', new MedicationDosageResource($dosage));
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse('Validation error', 422, null, $e);
+            $errors = $e->errors();
+            $errorMessage = 'Please check the following errors: ' . implode(', ', array_keys($errors));
+            return ApiHelper::inputErrorResponse($errorMessage, 422, null, $e);
         } catch (Exception $e) {
-            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+            return ApiHelper::problemResponse('Failed to create medication dosage. Please try again later.', 500, null, $e);
         }
     }
 
@@ -60,11 +67,13 @@ class MedicationDosageController extends Controller
             $dosage = $this->medicationDosageService->update($id, $request->all());
             return ApiHelper::validResponse('Medication dosage updated successfully', new MedicationDosageResource($dosage));
         } catch (ModelNotFoundException $e) {
-            return ApiHelper::problemResponse('Medication dosage not found', 404, null, $e);
+            return ApiHelper::problemResponse('Medication dosage not found. Please check the dosage ID and try again.', 404, null, $e);
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse('Validation error', 422, null, $e);
+            $errors = $e->errors();
+            $errorMessage = 'Please check the following errors: ' . implode(', ', array_keys($errors));
+            return ApiHelper::inputErrorResponse($errorMessage, 422, null, $e);
         } catch (Exception $e) {
-            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+            return ApiHelper::problemResponse('Failed to update medication dosage. Please try again later.', 500, null, $e);
         }
     }
 
@@ -74,9 +83,9 @@ class MedicationDosageController extends Controller
             $this->medicationDosageService->delete($id);
             return ApiHelper::validResponse('Medication dosage deleted successfully');
         } catch (ModelNotFoundException $e) {
-            return ApiHelper::problemResponse('Medication dosage not found', 404, null, $e);
+            return ApiHelper::problemResponse('Medication dosage not found. Please check the dosage ID and try again.', 404, null, $e);
         } catch (Exception $e) {
-            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+            return ApiHelper::problemResponse('Failed to delete medication dosage. Please try again later.', 500, null, $e);
         }
     }
 
@@ -87,9 +96,14 @@ class MedicationDosageController extends Controller
     {
         try {
             $dosages = $this->medicationDosageService->getDosagesByMedication($medicationId);
+
+            if ($dosages->isEmpty()) {
+                return ApiHelper::validResponse('No dosages found for this medication', [], 200);
+            }
+
             return ApiHelper::validResponse('Medication dosages retrieved successfully', MedicationDosageResource::collection($dosages));
         } catch (Exception $e) {
-            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+            return ApiHelper::problemResponse('Failed to retrieve medication dosages. Please try again later.', 500, null, $e);
         }
     }
 
@@ -100,9 +114,14 @@ class MedicationDosageController extends Controller
     {
         try {
             $forms = $this->medicationDosageService->getAvailableForms($medicationId);
+
+            if (empty($forms)) {
+                return ApiHelper::validResponse('No forms available for this medication', [], 200);
+            }
+
             return ApiHelper::validResponse('Available forms retrieved successfully', $forms);
         } catch (Exception $e) {
-            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+            return ApiHelper::problemResponse('Failed to retrieve available forms. Please try again later.', 500, null, $e);
         }
     }
 }

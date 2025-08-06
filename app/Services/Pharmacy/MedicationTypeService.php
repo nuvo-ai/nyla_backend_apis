@@ -10,7 +10,10 @@ class MedicationTypeService
 {
     public function list(array $filters = [])
     {
-        $query = MedicationType::query();
+        $query = MedicationType::with(['pharmacy', 'medications']);
+        if (isset($filters['pharmacy_id'])) {
+            $query->where('pharmacy_id', $filters['pharmacy_id']);
+        }
         if (isset($filters['is_active'])) {
             $query->where('is_active', $filters['is_active']);
         }
@@ -19,12 +22,13 @@ class MedicationTypeService
 
     public function show($id)
     {
-        return MedicationType::findOrFail($id);
+        return MedicationType::with(['pharmacy', 'medications'])->findOrFail($id);
     }
 
     public function create(array $data)
     {
         $validator = Validator::make($data, [
+            'pharmacy_id' => 'required|exists:pharmacies,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
@@ -34,7 +38,8 @@ class MedicationTypeService
             throw new ValidationException($validator);
         }
 
-        return MedicationType::create($validator->validated());
+        $medicationType = MedicationType::create($validator->validated());
+        return $medicationType->load(['pharmacy', 'medications']);
     }
 
     public function update($id, array $data)
@@ -42,6 +47,7 @@ class MedicationTypeService
         $medicationType = MedicationType::findOrFail($id);
 
         $validator = Validator::make($data, [
+            'pharmacy_id' => 'sometimes|required|exists:pharmacies,id',
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
@@ -52,7 +58,7 @@ class MedicationTypeService
         }
 
         $medicationType->update($validator->validated());
-        return $medicationType->refresh();
+        return $medicationType->refresh()->load(['pharmacy', 'medications']);
     }
 
     public function delete($id)

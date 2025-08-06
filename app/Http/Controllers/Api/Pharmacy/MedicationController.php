@@ -25,9 +25,14 @@ class MedicationController extends Controller
     {
         try {
             $medications = $this->medicationService->list($request->all());
+
+            if ($medications->isEmpty()) {
+                return ApiHelper::validResponse('No medications found', [], 200);
+            }
+
             return ApiHelper::validResponse('Medications retrieved successfully', MedicationResource::collection($medications));
         } catch (Exception $e) {
-            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+            return ApiHelper::problemResponse('Failed to retrieve medications. Please try again later.', 500, null, $e);
         }
     }
 
@@ -37,9 +42,9 @@ class MedicationController extends Controller
             $medication = $this->medicationService->show($id);
             return ApiHelper::validResponse('Medication retrieved successfully', new MedicationResource($medication));
         } catch (ModelNotFoundException $e) {
-            return ApiHelper::problemResponse('Medication not found', 404, null, $e);
+            return ApiHelper::problemResponse('Medication not found. Please check the medication ID and try again.', 404, null, $e);
         } catch (Exception $e) {
-            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+            return ApiHelper::problemResponse('Failed to retrieve medication. Please try again later.', 500, null, $e);
         }
     }
 
@@ -49,9 +54,11 @@ class MedicationController extends Controller
             $medication = $this->medicationService->create($request->all());
             return ApiHelper::validResponse('Medication created successfully', new MedicationResource($medication));
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse('Validation error', 422, null, $e);
+            $errors = $e->errors();
+            $errorMessage = 'Please check the following errors: ' . implode(', ', array_keys($errors));
+            return ApiHelper::inputErrorResponse($errorMessage, 422, null, $e);
         } catch (Exception $e) {
-            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+            return ApiHelper::problemResponse('Failed to create medication. Please try again later.', 500, null, $e);
         }
     }
 
@@ -61,11 +68,13 @@ class MedicationController extends Controller
             $medication = $this->medicationService->update($id, $request->all());
             return ApiHelper::validResponse('Medication updated successfully', new MedicationResource($medication));
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse('Validation error', 422, null, $e);
+            $errors = $e->errors();
+            $errorMessage = 'Please check the following errors: ' . implode(', ', array_keys($errors));
+            return ApiHelper::inputErrorResponse($errorMessage, 422, null, $e);
         } catch (ModelNotFoundException $e) {
-            return ApiHelper::problemResponse('Medication not found', 404, null, $e);
+            return ApiHelper::problemResponse('Medication not found. Please check the medication ID and try again.', 404, null, $e);
         } catch (Exception $e) {
-            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+            return ApiHelper::problemResponse('Failed to update medication. Please try again later.', 500, null, $e);
         }
     }
 
@@ -75,9 +84,9 @@ class MedicationController extends Controller
             $this->medicationService->delete($id);
             return ApiHelper::validResponse('Medication deleted successfully');
         } catch (ModelNotFoundException $e) {
-            return ApiHelper::problemResponse('Medication not found', 404, null, $e);
+            return ApiHelper::problemResponse('Medication not found. Please check the medication ID and try again.', 404, null, $e);
         } catch (Exception $e) {
-            return ApiHelper::problemResponse(ApiHelper::SERVER_ERROR_MESSAGE, 500, null, $e);
+            return ApiHelper::problemResponse('Failed to delete medication. Please try again later.', 500, null, $e);
         }
     }
 }

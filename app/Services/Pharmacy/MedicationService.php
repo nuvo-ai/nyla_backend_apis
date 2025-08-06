@@ -11,7 +11,7 @@ class MedicationService
 {
     public function list(array $filters = [])
     {
-        $query = Medication::query();
+        $query = Medication::with(['pharmacy', 'medicationType', 'dosages']);
         if (isset($filters['pharmacy_id'])) {
             $query->where('pharmacy_id', $filters['pharmacy_id']);
         }
@@ -23,7 +23,7 @@ class MedicationService
 
     public function show($id)
     {
-        return Medication::findOrFail($id);
+        return Medication::with(['pharmacy', 'medicationType', 'dosages'])->findOrFail($id);
     }
 
     public function create(array $data)
@@ -49,7 +49,7 @@ class MedicationService
             'Medication created',
             ['medication_id' => $medication->id, 'name' => $medication->name]
         );
-        return $medication;
+        return $medication->load(['pharmacy', 'medicationType', 'dosages']);
     }
 
     public function update($id, array $data)
@@ -64,7 +64,7 @@ class MedicationService
             'Medication updated',
             ['medication_id' => $medication->id, 'name' => $medication->name]
         );
-        return $medication->refresh();
+        return $medication->refresh()->load(['pharmacy', 'medicationType', 'dosages']);
     }
 
     public function delete($id)
