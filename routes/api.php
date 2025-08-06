@@ -53,8 +53,8 @@ Route::post('/webhook/deploy', function () {
 
 
 Route::prefix("password")->as("password.")->group(function () {
-    Route::post('/forgot', [PasswordController::class, 'forgotPassword'])->name("forgot_password");
-    Route::post("/reset", [PasswordController::class, "resetPassword"])->name("reset_password");
+    Route::post('/forgot', [PasswordController::class, 'forgotPassword'])->name("forgot");
+    Route::post("/reset", [PasswordController::class, "resetPassword"])->name("reset");
 });
 Route::prefix("otp")->as("otp.")->group(function () {
     Route::post('/request', [VerificationController::class, 'request'])->name("request");
@@ -121,15 +121,18 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
     Route::prefix('users')->as('users.')->group(function () {
         Route::prefix('patient')->as('patient.')->group(function () {
             Route::post('conversations/ask', [PatientAIAssistanceController::class, 'ask'])->name('conversations.ask');
-            Route::get('conversations/get', [PatientAIAssistanceController::class, 'getPatientConversation'])->name('conversations.get');
+            Route::get('conversations/get', [PatientAIAssistanceController::class, 'listConversations'])->name('conversations.get');
+            Route::get('/conversations/{uuid}/chats', [PatientAIAssistanceController::class, 'getConversationWithChats'])->name('conversations.chats');
         });
         Route::prefix('doctor')->as('doctor.')->group(function () {
             Route::post('conversations/ask', [DoctorAIAssistanceController::class, 'ask'])->name('conversations.ask');
             Route::get('conversations/get', [DoctorAIAssistanceController::class, 'getDoctorConversation'])->name('conversations.get');
+            Route::get('/conversations/{uuid}/chats', [DoctorAIAssistanceController::class, 'getConversationWithChats'])->name('conversations.chats');
         });
         Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
             Route::post('conversations/ask', [PharmacyAIAssistanceController::class, 'ask'])->name('conversations.ask');
             Route::get('conversations/get', [PharmacyAIAssistanceController::class, 'getPharmacyConversation'])->name('conversations.get');
+            Route::get('/conversations/{uuid}/chats', [PharmacyAIAssistanceController::class, 'getConversationWithChats'])->name('conversations.chats');
         });
 
         Route::prefix('tracker')->as('tracker.')->group(function () {

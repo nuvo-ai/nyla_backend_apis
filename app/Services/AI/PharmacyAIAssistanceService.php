@@ -45,7 +45,6 @@ class PharmacyAIAssistanceService
 
     public function createConversation(Request $request)
     {
-        // dd($request->all());
         return DB::transaction(function () use ($request) {
             $user = Auth::user();
             if (!$user->hospitalUser || strtolower(!$user->hospitalUser->role) === 'doctor') {
