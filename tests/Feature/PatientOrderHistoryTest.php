@@ -176,7 +176,8 @@ class PatientOrderHistoryTest extends TestCase
         $response->assertStatus(200);
         $responseData = $response->json();
         $this->assertTrue($responseData['success']);
-        $this->assertCount(0, $responseData['data']);
+        $this->assertEquals('No order history found. Start by placing your first order!', $responseData['message']);
+        $this->assertEmpty($responseData['data']);
     }
 
     public function test_patient_order_history_includes_order_details()
