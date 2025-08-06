@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Billing;
+namespace App\Http\Resources\Billing\Plan;
 
 use App\Constants\General\CurrencyConstants;
 use Illuminate\Http\Request;

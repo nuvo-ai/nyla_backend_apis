@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
             // UserSeeder::class,
             // CurrencyTableSeeder::class,
             // PaymentGatewayTableSeeder::class,
+            CountrySeeder::class,
+            StateSeeder::class,
             MedicationTypeSeeder::class,
             MedicationDosageSeeder::class,
         ]);

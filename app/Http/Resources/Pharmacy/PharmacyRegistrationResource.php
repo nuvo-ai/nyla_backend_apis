@@ -3,6 +3,8 @@
 namespace App\Http\Resources\Pharmacy;
 
 use App\Http\Resources\OperatingHourResource;
+use App\Http\Resources\Pharmacy\PharmacyContactResource;
+use App\Http\Resources\Pharmacy\PharmacyServiceResource;
 use App\Http\Resources\User\UserResource;
 use App\Models\Pharmacy\Pharmacy;
 use Illuminate\Http\Request;

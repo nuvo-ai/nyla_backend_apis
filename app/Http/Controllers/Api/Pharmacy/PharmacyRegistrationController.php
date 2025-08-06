@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Pharmacy;
 use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\pharmacy\PharmacyRegistrationResource;
+use App\Http\Resources\Pharmacy\PharmacyRegistrationResource;
 use App\Models\Pharmacy\Pharmacy;
 use App\Services\Pharmacy\PharmacyService;
 use App\Services\User\UserService;
