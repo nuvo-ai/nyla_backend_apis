@@ -16,6 +16,7 @@ class PatientResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id'              => $this->id,
             'user'            => new UserResource($this->whenLoaded('user')),
             'hospital_id'             => $this->hospital_id,
             'doctor_id'               => $this->doctor_id,

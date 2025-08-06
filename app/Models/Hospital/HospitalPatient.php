@@ -27,8 +27,9 @@ class HospitalPatient extends Model
 
     public function doctor()
     {
-        return $this->belongsTo(HospitalUser::class, 'doctor_id')->with('user');
+        return $this->belongsTo(Doctor::class, 'doctor_id')->with('user');
     }
+
 
     public function emrs()
     {

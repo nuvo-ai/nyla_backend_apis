@@ -33,6 +33,7 @@ class RegisterController extends Controller
                 'password' => 'required|string|min:6',
                 'confirm_password' => 'required|same:password',
                 'portal' => 'nullable|string',
+                'gender' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
