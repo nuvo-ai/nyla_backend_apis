@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Billing;
+namespace App\Services\Billing\Webhook;
 
 use App\Models\General\Plan;
 use App\Models\General\Subscription;
