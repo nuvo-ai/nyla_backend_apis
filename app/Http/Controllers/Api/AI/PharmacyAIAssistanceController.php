@@ -27,11 +27,9 @@ class PharmacyAIAssistanceController extends Controller
             $result = $this->pharmacy_ai_assistance_service->createConversation($request);
 
             $conversation = $result['conversation'];
-            $user = $conversation->user;
             $chats = PatientAIAssistanceResource::collection($conversation->chats()->get());
 
             return ApiHelper::validResponse('Conversation created successfully', [
-                'user' => new UserResource($user),
                 'prompt' => $result['prompt'],
                 'response' => $result['response'],
                 'chats' => $chats,

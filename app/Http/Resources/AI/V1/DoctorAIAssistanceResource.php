@@ -19,6 +19,7 @@ class DoctorAIAssistanceResource extends JsonResource
             'id' => $this->id,
             'message' => $this->content,
             'conversation_id' => $this->conversation_id ?? null,
+            'user' => new UserResource($this->whenLoaded('user')),
             'created_at' => formatDate($this->created_at),
         ];
     }

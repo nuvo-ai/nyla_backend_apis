@@ -6,7 +6,7 @@ use App\Http\Resources\User\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PatientAIAssistanceResource extends JsonResource
+class FoodAnalyzerAIAssistanceResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -19,7 +19,7 @@ class PatientAIAssistanceResource extends JsonResource
             'id' => $this->id,
             'message' => $this->content,
             'conversation_id' => $this->conversation_id ?? null,
-             'user' => new UserResource($this->whenLoaded('user')),
+            'user' => new UserResource($this->whenLoaded('user')),
             'created_at' => formatDate($this->created_at),
         ];
     }
