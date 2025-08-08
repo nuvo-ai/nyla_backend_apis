@@ -135,11 +135,11 @@ class FoodAnalyzerAIAssistanceService
     {
         $summary = "\n\nUser uploaded a food sample for analysis.";
 
-        if (!$request->hasFile('file')) {
+        $file = $request->file('file') ?? $request->file('prompt');
+
+        if (!$file) {
             return '';
         }
-
-        $file = $request->file('file');
         $extension = strtolower($file->getClientOriginalExtension());
         $originalName = $file->getClientOriginalName();
 
