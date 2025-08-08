@@ -50,8 +50,14 @@ class DoctorAIAssistanceService
             if (!$user->hospitalUser || strtolower(!$user->hospitalUser->role) === 'doctor') {
                 throw new Exception('Please, these chats or conversations are only meant for doctors.');
             }
-            $titleText = $request->prompt ?? $request->quick_action;
-            $title = $this->generateTitleFromPrompt( $titleText);
+            $titleText = $request->prompt ?? $request->quick_action ?? '';
+            $title = $this->generateTitleFromPrompt($titleText);
+            if (empty($title)) {
+                $aiTitlePrompt = "Generate a concise conversation title for this prompt: " . $titleText;
+                $title = $this->chatgpt_service->sendPrompt($aiTitlePrompt);
+                $title = Str::limit(trim($title), 255);
+            }
+            $title = $this->generateTitleFromPrompt($titleText);
 
             $validated = $this->validated([
                 'prompt' => $request->prompt,
@@ -218,8 +224,12 @@ class DoctorAIAssistanceService
 
 
 
-    protected function generateTitleFromPrompt(string $prompt): ?string
+    protected function generateTitleFromPrompt(?string $prompt): ?string
     {
+        if (!is_string($prompt) || trim($prompt) === '') {
+            return null;
+        }
+
         $text = trim(strip_tags($prompt));
         $words = preg_split('/\s+/', $text);
 
