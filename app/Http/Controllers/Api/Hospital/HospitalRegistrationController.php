@@ -48,26 +48,32 @@ class HospitalRegistrationController extends Controller
     }
 
     public function registerHospital(Request $request)
-{
-    try {
-        $userData = $this->requestedUserDataduringHospitalRegistration($request);
-        $user = $this->user->create($userData);
+    {
+        try {
+            $userData = $this->requestedUserDataduringHospitalRegistration($request);
+            $user = $this->user->create($userData);
 
-        $hospital_data = $request->except([
-            'user_name', 'user_email', 'user_phone', 'portal', 'password', 'generated_password'
-        ]);
+            $hospital_data = $request->except([
+                'user_name',
+                'user_email',
+                'user_phone',
+                'portal',
+                'password',
+                'generated_password'
+            ]);
 
-        $hospital_data['user_id'] = $user->id;
+            $hospital_data['user_id'] = $user->id;
 
-        $hospital = $this->hospital_service->createHospital($hospital_data);
+            $hospital = $this->hospital_service->createHospital($hospital_data);
 
-        return ApiHelper::validResponse("Hospital created successfully", HospitalRegistrationResource::make($hospital));
-    } catch (ValidationException $e) {
-        return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
-    } catch (Exception $e) {
-        return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+            return ApiHelper::validResponse("Hospital created successfully", HospitalRegistrationResource::make($hospital));
+        } catch (ValidationException $e) {
+             $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
     }
-}
 
 
     public function updateHospital(Request $request, $id)
@@ -78,7 +84,8 @@ class HospitalRegistrationController extends Controller
 
             return ApiHelper::validResponse("Hospital updated successfully", HospitalRegistrationResource::make($hospital));
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }

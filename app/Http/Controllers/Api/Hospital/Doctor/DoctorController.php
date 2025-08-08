@@ -65,7 +65,8 @@ class DoctorController extends Controller
 
             return ApiHelper::validResponse("Doctor created successfully", DoctorResource::make($doctor));
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
@@ -90,7 +91,8 @@ class DoctorController extends Controller
             $doctor = $this->doctor_service->save($request->all(), $doctor);
             return ApiHelper::validResponse("Doctor updated successfully", DoctorResource::make($doctor));
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (ModelNotFoundException $e) {
             return ApiHelper::problemResponse("Doctor not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
         } catch (Exception $e) {

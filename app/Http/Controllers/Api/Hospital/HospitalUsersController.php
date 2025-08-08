@@ -39,7 +39,8 @@ class HospitalUsersController extends Controller
             $hospitalUser = $user->hospitalUser()->with('user')->first();
             return ApiHelper::validResponse("Hospital user create successfully", HospitalUsersResource::make($hospitalUser));
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
@@ -48,7 +49,7 @@ class HospitalUsersController extends Controller
     public function delete($id)
     {
         try {
-          $data = $this->hospital_user_service->deleteHospitalUser($id);
+            $data = $this->hospital_user_service->deleteHospitalUser($id);
             return ApiHelper::validResponse("Hospital user deleted successfully", $data);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
@@ -61,7 +62,8 @@ class HospitalUsersController extends Controller
             $data = $this->hospital_user_service->assignRoleToUser($request->all(), $id);
             return ApiHelper::validResponse("Hospital user role updated successfully", $data);
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }

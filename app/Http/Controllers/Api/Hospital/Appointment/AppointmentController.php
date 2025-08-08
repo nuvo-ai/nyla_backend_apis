@@ -27,7 +27,8 @@ class AppointmentController extends Controller
             $appointment = $this->hospital_appointment_service->book($request->all());
             return ApiHelper::validResponse("Appointment booked successfully", AppointmentResource::make($appointment));
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
@@ -39,7 +40,8 @@ class AppointmentController extends Controller
             $appointment = $this->hospital_appointment_service->update($request->all(), $appointment);
             return ApiHelper::validResponse("Appointment updated successfully", AppointmentResource::make($appointment));
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
@@ -51,7 +53,8 @@ class AppointmentController extends Controller
             $appointment = $this->hospital_appointment_service->updateStatus($request, $id);
             return ApiHelper::validResponse("Appointment status successfully", $appointment);
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (ModelNotFoundException $e) {
             return ApiHelper::problemResponse($this->validationErrorMessage, ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
         } catch (Exception $e) {

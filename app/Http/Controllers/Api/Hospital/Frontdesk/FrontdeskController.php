@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api\Hospital\Frontdesk;
 
 use App\Constants\General\ApiConstants;
@@ -65,7 +66,8 @@ class FrontdeskController extends Controller
 
             return ApiHelper::validResponse("Frontdesk created successfully", FrontdeskResource::make($frontdesk));
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
@@ -77,7 +79,8 @@ class FrontdeskController extends Controller
             $frontdesk = $this->frontdesk_service->save($request->all(), $frontdesk);
             return ApiHelper::validResponse("Frontdesk updated successfully", FrontdeskResource::make($frontdesk));
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (ModelNotFoundException $e) {
             return ApiHelper::problemResponse("Frontdesk not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
         } catch (Exception $e) {

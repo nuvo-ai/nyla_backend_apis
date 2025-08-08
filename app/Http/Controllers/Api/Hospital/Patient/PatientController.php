@@ -54,7 +54,8 @@ class PatientController extends Controller
 
             return ApiHelper::validResponse("Patient created successfully", PatientResource::make($patient));
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
@@ -78,12 +79,13 @@ class PatientController extends Controller
         try {
             $existingPatient = $this->patient_service->getById($patient);
             $data = $request->all();
-            $data['user_id'] = $existingPatient->user_id; 
+            $data['user_id'] = $existingPatient->user_id;
 
             $updatedPatient = $this->patient_service->save($data, $patient);
             return ApiHelper::validResponse("Patient updated successfully", PatientResource::make($updatedPatient));
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (ModelNotFoundException $e) {
             return ApiHelper::problemResponse("Patient not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
         } catch (Exception $e) {
