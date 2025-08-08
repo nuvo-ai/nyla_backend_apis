@@ -59,6 +59,7 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                PDO::ATTR_EMULATE_PREPARES => true, // ✅ Add this to fix the 1615 error
             ]) : [],
         ],
 
@@ -111,10 +112,6 @@ return [
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
-
-        'options' => extension_loaded('pdo_mysql') ? array_filter([
-            PDO::ATTR_EMULATE_PREPARES => true,
-        ]) : [],
 
     ],
 
