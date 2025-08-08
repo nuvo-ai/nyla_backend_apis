@@ -11,6 +11,7 @@ use App\Services\User\UserService;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
@@ -47,33 +48,40 @@ class HospitalRegistrationController extends Controller
         }
     }
 
-    public function registerHospital(Request $request)
-    {
-        try {
-            $userData = $this->requestedUserDataduringHospitalRegistration($request);
-            $user = $this->user->create($userData);
+   public function registerHospital(Request $request)
+{
+    DB::beginTransaction();
 
-            $hospital_data = $request->except([
-                'user_name',
-                'user_email',
-                'user_phone',
-                'portal',
-                'password',
-                'generated_password'
-            ]);
+    try {
+        $userData = $this->requestedUserDataduringHospitalRegistration($request);
+        $user = $this->user->create($userData);
 
-            $hospital_data['user_id'] = $user->id;
+        $hospital_data = $request->except([
+            'user_name',
+            'user_email',
+            'user_phone',
+            'portal',
+            'password',
+            'generated_password'
+        ]);
 
-            $hospital = $this->hospital_service->createHospital($hospital_data);
+        $hospital_data['user_id'] = $user->id;
 
-            return ApiHelper::validResponse("Hospital created successfully", HospitalRegistrationResource::make($hospital));
-        } catch (ValidationException $e) {
-             $message = $e->getMessage() ?: $this->serverErrorMessage;
-            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
-        } catch (Exception $e) {
-            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
-        }
+        $hospital = $this->hospital_service->createHospital($hospital_data);
+
+        DB::commit();
+
+        return ApiHelper::validResponse("Hospital created successfully", HospitalRegistrationResource::make($hospital));
+    } catch (ValidationException $e) {
+        DB::rollBack();
+        $message = $e->getMessage() ?: $this->serverErrorMessage;
+        return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+    } catch (Exception $e) {
+        DB::rollBack();
+        return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
     }
+}
+
 
 
     public function updateHospital(Request $request, $id)

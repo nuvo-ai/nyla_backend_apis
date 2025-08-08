@@ -69,89 +69,84 @@ class HospitalService
 
     public function createHospital(array $data): Hospital
     {
-        return DB::transaction(function () use ($data) {
-            $this->validate($data);
-            // Create hospital
-            $hospital = Hospital::create([
-                'uuid' => Str::uuid(),
-                'user_id' => $data['user_id'] ?? null,
-                'name' => $data['hospital_name'],
-                'type' => $data['hospital_type'],
-                'registration_number' => $data['registration_number'],
-                'phone' => $data['hospital_phone'],
-                'email' => $data['hospital_email'],
-                'logo_path' => $this->handleFileUpload($data['logo'] ?? null, 'hospital-logos'),
-                'street_address' => $data['street_address'],
-                'city' => $data['city'],
-                'state' => $data['state'],
-                'country' => $data['country'],
-                'google_maps_location' => $data['google_maps_location'] ?? null,
-                'number_of_beds' => $data['number_of_beds'] ?? null,
-                'license_path' => $this->handleFileUpload($data['license'] ?? null, 'hospital-licenses'),
-                'request_onsite_setup' => $data['request_onsite_setup'] ?? false,
-                'terms_accepted' => $data['accept_terms'] ?? false,
-                'status' => $data['status'] ?? 'pending',
-            ]);
+        $this->validate($data);
 
-            // Create primary contact
-            $hospital_contact = $hospital->contacts()->create([
-                'uuid' => Str::uuid(),
-                'name' => $data['primary_contact_name'],
-                'email' => $data['primary_contact_email'],
-                'phone' => $data['primary_contact_phone'],
-                'role' => $data['primary_contact_role'],
-                'type' => 'primary'
-            ]);
+        $hospital = Hospital::create([
+            'uuid' => Str::uuid(),
+            'user_id' => $data['user_id'] ?? null,
+            'name' => $data['hospital_name'],
+            'type' => $data['hospital_type'],
+            'registration_number' => $data['registration_number'],
+            'phone' => $data['hospital_phone'],
+            'email' => $data['hospital_email'],
+            'logo_path' => $this->handleFileUpload($data['logo'] ?? null, 'hospital-logos'),
+            'street_address' => $data['street_address'],
+            'city' => $data['city'],
+            'state' => $data['state'],
+            'country' => $data['country'],
+            'google_maps_location' => $data['google_maps_location'] ?? null,
+            'number_of_beds' => $data['number_of_beds'] ?? null,
+            'license_path' => $this->handleFileUpload($data['license'] ?? null, 'hospital-licenses'),
+            'request_onsite_setup' => $data['request_onsite_setup'] ?? false,
+            'terms_accepted' => $data['accept_terms'] ?? false,
+            'status' => $data['status'] ?? 'pending',
+        ]);
 
-            if (!empty($data['user_id'])) {
-                $user = User::find($data['user_id']);
-                if ($user) {
-                    $user->hospital_contact_id = $hospital_contact->id;
-                    $user->role = $data['role'] ?? UserConstants::USER;
-                    $user->save();
-                }
-                if ($user && $user->hospitalUser) {
-                    $user->hospitalUser->hospital_id = $hospital->id;
-                    $user->hospitalUser->role = $data['role'] ?? UserConstants::ADMIN;
-                    $user->hospitalUser->save();
-                }
+        $hospital_contact = $hospital->contacts()->create([
+            'uuid' => Str::uuid(),
+            'name' => $data['primary_contact_name'],
+            'email' => $data['primary_contact_email'],
+            'phone' => $data['primary_contact_phone'],
+            'role' => $data['primary_contact_role'],
+            'type' => 'primary'
+        ]);
+
+        if (!empty($data['user_id'])) {
+            $user = User::find($data['user_id']);
+            if ($user) {
+                $user->hospital_contact_id = $hospital_contact->id;
+                $user->role = $data['role'] ?? UserConstants::USER;
+                $user->save();
             }
-
-            // Attach departments
-            if (isset($data['departments']) && is_array($data['departments'])) {
-                $departmentIds = [];
-                foreach ($data['departments'] as $deptName) {
-                    $department = Department::firstOrCreate(['name' => $deptName]);
-                    $departmentIds[] = $department->id;
-                }
-                $hospital->departments()->attach($departmentIds);
+            if ($user && $user->hospitalUser) {
+                $user->hospitalUser->hospital_id = $hospital->id;
+                $user->hospitalUser->role = $data['role'] ?? UserConstants::ADMIN;
+                $user->hospitalUser->save();
             }
+        }
 
-            // Attach services
-            if (isset($data['services']) && is_array($data['services'])) {
-                $serviceIds = [];
-                foreach ($data['services'] as $serviceName) {
-                    $service = Service::firstOrCreate(['name' => $serviceName]);
-                    $serviceIds[] = $service->id;
-                }
-                $hospital->services()->attach($serviceIds);
+        if (isset($data['departments']) && is_array($data['departments'])) {
+            $departmentIds = [];
+            foreach ($data['departments'] as $deptName) {
+                $department = Department::firstOrCreate(['name' => $deptName]);
+                $departmentIds[] = $department->id;
             }
+            $hospital->departments()->attach($departmentIds);
+        }
 
-            // Create operating hours
-            if (isset($data['operating_hours']) && is_array($data['operating_hours'])) {
-                foreach ($data['operating_hours'] as $day => $hours) {
-                    $hospital->operatingHours()->create([
-                        'day_of_week' => $day,
-                        'start_time' => $hours['start'] ?? null,
-                        'end_time' => $hours['end'] ?? null,
-                        'is_closed' => empty($hours['start']) && empty($hours['end'])
-                    ]);
-                }
+        if (isset($data['services']) && is_array($data['services'])) {
+            $serviceIds = [];
+            foreach ($data['services'] as $serviceName) {
+                $service = Service::firstOrCreate(['name' => $serviceName]);
+                $serviceIds[] = $service->id;
             }
+            $hospital->services()->attach($serviceIds);
+        }
 
-            return $hospital->load(['user', 'contacts', 'departments', 'services', 'operatingHours']);
-        });
+        if (isset($data['operating_hours']) && is_array($data['operating_hours'])) {
+            foreach ($data['operating_hours'] as $day => $hours) {
+                $hospital->operatingHours()->create([
+                    'day_of_week' => $day,
+                    'start_time' => $hours['start'] ?? null,
+                    'end_time' => $hours['end'] ?? null,
+                    'is_closed' => empty($hours['start']) && empty($hours['end'])
+                ]);
+            }
+        }
+
+        return $hospital->load(['user', 'contacts', 'departments', 'services', 'operatingHours']);
     }
+
 
     public function updateHospital(array $data, $hospital_id): Hospital
     {
