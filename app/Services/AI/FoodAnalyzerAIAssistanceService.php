@@ -2,11 +2,8 @@
 
 namespace App\Services\AI;
 
-use App\Helpers\Helper;
 use App\Models\General\Chat;
 use App\Models\General\Conversation;
-use App\Models\Hospital\HospitalPatient;
-use App\Models\User\User;
 use App\Services\AI\ChatGPT\ChatGPTService;
 use Exception;
 use Illuminate\Http\Request;
@@ -48,7 +45,13 @@ class FoodAnalyzerAIAssistanceService
     {
         return DB::transaction(function () use ($request) {
             $user = Auth::user();
-            $titleText = $request->prompt ?? $request->quick_action;
+            $titleText = $request->prompt ?? $request->quick_action ?? '';
+            $title = $this->generateTitleFromPrompt($titleText);
+            if (empty($title)) {
+                $aiTitlePrompt = "Generate a concise conversation title for this prompt: " . $titleText;
+                $title = $this->chatgpt_service->sendPrompt($aiTitlePrompt);
+                $title = Str::limit(trim($title), 255);
+            }
             $title = $this->generateTitleFromPrompt($titleText);
 
             $validated = $this->validated([

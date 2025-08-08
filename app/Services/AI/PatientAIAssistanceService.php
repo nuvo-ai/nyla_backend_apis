@@ -4,7 +4,6 @@ namespace App\Services\AI;
 
 use App\Models\General\Chat;
 use App\Models\General\Conversation;
-use App\Models\User\User;
 use App\Services\AI\ChatGPT\ChatGPTService;
 use Exception;
 use Illuminate\Http\Request;
@@ -13,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 
 class PatientAIAssistanceService
 {
@@ -43,7 +43,14 @@ class PatientAIAssistanceService
     {
         return DB::transaction(function () use ($request) {
             $user = Auth::user();
-            $title = $this->generateTitleFromPrompt($request->prompt);
+              $titleText = $request->prompt;
+            $title = $this->generateTitleFromPrompt($titleText);
+            if (empty($title)) {
+                $aiTitlePrompt = "Generate a concise conversation title for this prompt: " . $titleText;
+                $title = $this->chatgpt_service->sendPrompt($aiTitlePrompt);
+                $title = Str::limit(trim($title), 255);
+            }
+            $title = $this->generateTitleFromPrompt($titleText);
 
             $validated = $this->validated([
                 'prompt' => $request->prompt,
