@@ -186,6 +186,15 @@ class AppointmentService
             'updated_at' => $appointment->updated_at->toDateTimeString(),
         ];
     }
+
+    public function delete($id): bool
+    {
+        $appointment = HospitalAppointment::findOrFail($id);
+        if ($appointment->scheduler_id !== auth()->id()) {
+            throw new ModelNotFoundException("You do not have permission to delete this appointment.");
+        }
+        return $appointment->delete();
+    }
     public function listAppointments(array $filters = []): Collection
     {
         $query = HospitalAppointment::where('scheduler_id', auth()->id())->with(['hospital', 'doctor', 'scheduler']);
@@ -217,7 +226,6 @@ class AppointmentService
     public function getAppointment($id): HospitalAppointment
     {
         $appointment = HospitalAppointment::where('scheduler_id', auth()->id())->with(['hospital', 'doctor', 'scheduler'])->find($id);
-        dd($appointment);
         if (!$appointment) {
             throw new ModelNotFoundException("Appointment not found");
         }

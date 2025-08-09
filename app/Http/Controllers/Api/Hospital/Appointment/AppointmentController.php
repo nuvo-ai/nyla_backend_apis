@@ -62,6 +62,18 @@ class AppointmentController extends Controller
         }
     }
 
+    public function deleteAppointment($id)
+    {
+        try {
+            $this->hospital_appointment_service->delete($id);
+            return ApiHelper::validResponse("Appointment deleted successfully", null);
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse($this->validationErrorMessage, ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+
     public function listAppointments(Request $request)
     {
         try {

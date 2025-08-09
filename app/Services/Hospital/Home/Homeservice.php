@@ -36,8 +36,13 @@ class Homeservice
         $previousMonthPatients = HospitalPatient::where('hospital_id', $hospital?->id)->whereBetween('created_at', [$previousStartDate, $previousEndDate])->count();
 
         // Patients registered today
-        $todayAppointments = HospitalAppointment::where('hospital_id', $hospital?->id)->whereDate('created_at', $today)->count();
-        $yesterdayAppointments = HospitalAppointment::where('hospital_id', $hospital?->id)->whereDate('created_at', Carbon::yesterday())->count();
+        $todayAppointments = HospitalAppointment::where('hospital_id', $hospital?->id)
+            ->whereDate('appointment_date', $today)
+            ->count();
+
+        $yesterdayAppointments = HospitalAppointment::where('hospital_id', $hospital?->id)
+            ->whereDate('appointment_date', Carbon::yesterday())
+            ->count();
 
         // Active staff count (example logic)
         $currentMonthStaffs = HospitalPatient::where('hospital_id', $hospital?->id)->whereBetween('created_at', [$currentStartDate, $currentEndDate])->count(); // Replace with Staff model if applicable
@@ -67,7 +72,7 @@ class Homeservice
             return [];
         }
         $appointments = HospitalAppointment::whereDate('appointment_date', now()->toDateString())
-            ->with(['scheduler', 'hospital'])->where('hospital_id', $hospital->id)
+            ->with(['hospital'])->where('hospital_id', $hospital->id)
             ->orderBy('appointment_time')
             ->get();
         return AppointmentResource::collection($appointments);
