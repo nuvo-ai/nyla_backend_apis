@@ -160,7 +160,7 @@ class AppointmentService
                 }
             }
 
-             return $appointment;
+            return $appointment;
         });
     }
 
@@ -190,7 +190,8 @@ class AppointmentService
     public function delete($id): bool
     {
         $appointment = HospitalAppointment::findOrFail($id);
-        if ($appointment->scheduler_id !== auth()->id()) {
+        $userRole = auth()->user()->role ?? null;
+        if ($appointment->scheduler_id !== auth()->id() && $userRole !== UserConstants::ADMIN) {
             throw new ModelNotFoundException("You do not have permission to delete this appointment.");
         }
         return $appointment->delete();
