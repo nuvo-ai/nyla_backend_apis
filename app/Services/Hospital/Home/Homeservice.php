@@ -21,7 +21,10 @@ class Homeservice
 
     private function stats()
     {
-        $hospital = User::getAuthenticatedUser()->hospital;
+        $hospital = User::getAuthenticatedUser()->hospitalUser->hospital;
+        if (!$hospital) {
+            return [];
+        }
         $currentStartDate = Carbon::now()->startOfMonth();
         $previousStartDate = Carbon::now()->subMonth()->startOfMonth();
         $currentEndDate = Carbon::now()->endOfMonth();
@@ -29,16 +32,16 @@ class Homeservice
         $today = Carbon::today();
 
         // Monthly patient count for this and previous month
-        $currentMonthPatients = HospitalPatient::where('hospital_id', $hospital->id)->whereBetween('created_at', [$currentStartDate, $currentEndDate])->count();
-        $previousMonthPatients = HospitalPatient::where('hospital_id', $hospital->id)->whereBetween('created_at', [$previousStartDate, $previousEndDate])->count();
+        $currentMonthPatients = HospitalPatient::where('hospital_id', $hospital?->id)->whereBetween('created_at', [$currentStartDate, $currentEndDate])->count();
+        $previousMonthPatients = HospitalPatient::where('hospital_id', $hospital?->id)->whereBetween('created_at', [$previousStartDate, $previousEndDate])->count();
 
         // Patients registered today
-        $todayAppointments = HospitalAppointment::where('hospital_id', $hospital->id)->whereDate('created_at', $today)->count();
-        $yesterdayAppointments = HospitalAppointment::where('hospital_id', $hospital->id)->whereDate('created_at', Carbon::yesterday())->count();
+        $todayAppointments = HospitalAppointment::where('hospital_id', $hospital?->id)->whereDate('created_at', $today)->count();
+        $yesterdayAppointments = HospitalAppointment::where('hospital_id', $hospital?->id)->whereDate('created_at', Carbon::yesterday())->count();
 
         // Active staff count (example logic)
-        $currentMonthStaffs = HospitalPatient::where('hospital_id', $hospital->id)->whereBetween('created_at', [$currentStartDate, $currentEndDate])->count(); // Replace with Staff model if applicable
-        $previousMonthStaffs = HospitalPatient::where('hospital_id', $hospital->id)->whereBetween('created_at', [$previousStartDate, $previousEndDate])->count();
+        $currentMonthStaffs = HospitalPatient::where('hospital_id', $hospital?->id)->whereBetween('created_at', [$currentStartDate, $currentEndDate])->count(); // Replace with Staff model if applicable
+        $previousMonthStaffs = HospitalPatient::where('hospital_id', $hospital?->id)->whereBetween('created_at', [$previousStartDate, $previousEndDate])->count();
 
         return [
             'total_monthly_patients' => [
