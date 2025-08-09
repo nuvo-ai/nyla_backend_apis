@@ -109,6 +109,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
             Route::get('/{id}/details', [AppointmentController::class, 'getAppointment'])->name('details');
             Route::get('/doctor/{doctorId}/appointments', [AppointmentController::class, 'getDoctorAppointments'])->name('doctor.appointments');
             Route::get('/patient/{patientId}/appointments', [AppointmentController::class, 'getPatientAppointments'])->name('patient.appointments');
+            Route::delete('delete/{id}', [AppointmentController::class, 'deleteAppointment'])->name('delete');
         });
 
         Route::resource('patients', PatientController::class);
