@@ -62,8 +62,12 @@ class Homeservice
 
     private function getRecentAppointments()
     {
+        $hospital = User::getAuthenticatedUser()->hospitalUser->hospital;
+        if (!$hospital) {
+            return [];
+        }
         $appointments = HospitalAppointment::whereDate('appointment_date', now()->toDateString())
-            ->with(['scheduler', 'hospital'])
+            ->with(['scheduler', 'hospital'])->where('hospital_id', $hospital->id)
             ->orderBy('appointment_time')
             ->get();
         return AppointmentResource::collection($appointments);
