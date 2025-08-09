@@ -9,6 +9,7 @@ use App\Services\User\UserService;
 use App\Http\Controllers\Controller;
 use App\Services\User\ProfileService;
 use App\Constants\General\ApiConstants;
+use App\Http\Resources\Hospital\HospitalRegistrationResource;
 use App\Http\Resources\User\UserResource;
 use App\Services\Hospital\HospitalService;
 use Illuminate\Validation\ValidationException;
