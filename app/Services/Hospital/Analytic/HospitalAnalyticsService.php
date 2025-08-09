@@ -21,6 +21,12 @@ class HospitalAnalyticsService
 
         $stats = $this->getAnalyticData($period);
 
+        // Get today's appointments
+        $todaysAppointments = HospitalAppointment::whereDate('appointment_date', now()->toDateString())
+            ->with(['doctor', 'scheduler', 'hospital'])
+            ->orderBy('appointment_time')
+            ->get();
+
         return [
             "cards" => [
                 [
@@ -37,13 +43,6 @@ class HospitalAnalyticsService
                     "class" => "primary",
                     'period' =>  $period,
                 ],
-                // [
-                //     "title" => "Satisfaction",
-                //     "value" => $stats['satisfactionScore'] . "/5",
-                //     "percentage_change" => $stats['satisfactionChange'],
-                //     "class" => "success",
-                //     'period' =>  $period,
-                // ],
                 [
                     "title" => "Active Staffs",
                     "value" => array_sum($stats['activeStaffs']),
@@ -54,6 +53,7 @@ class HospitalAnalyticsService
             ],
 
             "dashboard_data" => $stats,
+            "todays_appointments" => $todaysAppointments,
         ];
     }
 
@@ -125,10 +125,10 @@ class HospitalAnalyticsService
         $departments = Department::whereHas('hospitals.patients', function ($query) use ($startDate) {
             $query->whereBetween('created_at', [$startDate, now()]);
         })->withCount(['hospitals as patient_count' => function ($query) use ($startDate) {
-                $query->whereHas('patients', function ($q) use ($startDate) {
-                    $q->whereBetween('created_at', [$startDate, now()]);
-                });
-            }])->pluck('patient_count', 'name')
+            $query->whereHas('patients', function ($q) use ($startDate) {
+                $q->whereBetween('created_at', [$startDate, now()]);
+            });
+        }])->pluck('patient_count', 'name')
             ->toArray();
 
         return [
