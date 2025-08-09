@@ -139,7 +139,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
             Route::get('/conversations/{uuid}/chats', [PharmacyAIAssistanceController::class, 'getConversationWithChats'])->name('conversations.chats');
         });
 
-         Route::prefix('food-analyzer')->as('food-analyzer.')->group(function () {
+        Route::prefix('food-analyzer')->as('food-analyzer.')->group(function () {
             Route::post('conversations/ask', [FoodAnalyzerAIAssistanceController::class, 'ask'])->name('conversations.ask');
             Route::get('conversations/get', [FoodAnalyzerAIAssistanceController::class, 'getPharmacyConversation'])->name('conversations.get');
             Route::get('/conversations/{uuid}/chats', [FoodAnalyzerAIAssistanceController::class, 'getConversationWithChats'])->name('conversations.chats');
@@ -150,6 +150,8 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
             Route::post('/period-cycle/store', [PeriodCycleController::class, 'store'])->name('period-cycle.store');
             Route::get('/period-cycle/show', [PeriodCycleController::class, 'show'])->name('period-cycle.show');
         });
+
+        Route::get('user/hospital', [UserController::class, 'getUserHospital'])->name('user.hospital');
     });
     Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
         Route::put('/update/{id}', [PharmacyRegistrationController::class, 'updatePharmacy'])->name('update');
@@ -201,6 +203,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::patch('/preferences', [SettingsController::class, 'updatePreferences'])->name('preferences.update');
         Route::patch('/password/update', [SettingsController::class, 'changePassword'])->name('password.update');
     });
+
 
     Route::prefix('billings')->as('billings.')->group(function () {
         Route::post('plans/create', [PlanController::class, 'create'])->name('plans.create');

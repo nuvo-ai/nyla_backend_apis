@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Services\User\ProfileService;
 use App\Constants\General\ApiConstants;
 use App\Http\Resources\User\UserResource;
+use App\Services\Hospital\HospitalService;
 use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
@@ -20,13 +21,14 @@ class UserController extends Controller
     public $blocked_user_service;
     public $avatar_service;
     public $social_auth_link_service;
+     public $hospital_service;
 
     public function __construct()
     {
         $this->user_service = new UserService;
         $this->profile_service = new ProfileService;
+          $this->hospital_service = new HospitalService;
     }
-
     public function me()
     {
         try {
@@ -57,6 +59,19 @@ class UserController extends Controller
             return ApiHelper::validResponse("User deleted successfully", UserResource::make($user));
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+
+    public function getUserHospital()
+    {
+        try {
+            $hospital = $this->hospital_service->getUserHospital();
+            if (!$hospital) {
+                return ApiHelper::problemResponse("No hospital found for the specified user", ApiConstants::NOT_FOUND_ERR_CODE);
+            }
+            return ApiHelper::validResponse("Hospital retrieved successfully", HospitalRegistrationResource::make($hospital));
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }

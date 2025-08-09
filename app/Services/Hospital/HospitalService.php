@@ -300,6 +300,11 @@ class HospitalService
         return Hospital::where('uuid', $uuid)->where('user_id', User::getAuthenticatedUser()->id)->firstOrFail();
     }
 
+    public function getUserHospital(): ?Hospital
+    {
+        return Hospital::where('user_id', User::getAuthenticatedUser()->id)->first();
+    }
+
 
     public function approveHospital(Hospital $hospital): Hospital
     {
