@@ -31,23 +31,30 @@ class HospitalAppointment extends Model
         return $this->belongsTo(Hospital::class);
     }
 
-    public static function hasConflict(array $data, bool $checkPatient = false): bool
+    public static function hasConflict(array $data, bool $checkPatient = false, ?int $excludeId = null): bool
     {
-        $query = self::where('hospital_id', $data['hospital_id'])
-            ->where('doctor_id', $data['doctor_id'])
-            ->where('appointment_date', $data['appointment_date'])
-            ->where('appointment_time', $data['appointment_time'])
+        $query = self::where('hospital_id', $data['hospital_id'] ?? null)
+            ->where('doctor_id', $data['doctor_id'] ?? null)
+            ->where('appointment_date', $data['appointment_date'] ?? null)
+            ->where('appointment_time', $data['appointment_time'] ?? null)
             ->whereIn('status', [
                 StatusConstants::PENDING,
                 StatusConstants::SCHEDULED,
             ]);
 
+        // Exclude the current appointment when updating
+        if (!empty($excludeId)) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        // Check patient/scheduler conflicts if required
         if ($checkPatient) {
             $query->where(function ($q) use ($data) {
-                $q->where('patient_name', $data['patient_name'])
-                    ->orWhere('scheduler_id', $data['scheduler_id']);
+                $q->where('patient_name', $data['patient_name'] ?? null)
+                    ->orWhere('scheduler_id', $data['scheduler_id'] ?? null);
             });
         }
+
         return $query->exists();
     }
 }
