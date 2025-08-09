@@ -11,9 +11,14 @@ class Homeservice
 {
     public function getData()
     {
+        $todaysAppointments = HospitalAppointment::whereDate('appointment_date', now()->toDateString())
+            ->with(['doctor', 'scheduler', 'hospital'])
+            ->orderBy('appointment_time')
+            ->get();
         return [
             'stats' => $this->stats(),
             'recent_appointments' => $this->getRecentAppointments(),
+            'todays_appointments' => $todaysAppointments,
         ];
     }
 

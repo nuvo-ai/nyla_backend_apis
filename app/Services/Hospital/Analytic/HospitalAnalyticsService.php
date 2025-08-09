@@ -21,12 +21,6 @@ class HospitalAnalyticsService
 
         $stats = $this->getAnalyticData($period);
 
-        // Get today's appointments
-        $todaysAppointments = HospitalAppointment::whereDate('appointment_date', now()->toDateString())
-            ->with(['doctor', 'scheduler', 'hospital'])
-            ->orderBy('appointment_time')
-            ->get();
-
         return [
             "cards" => [
                 [
@@ -53,7 +47,6 @@ class HospitalAnalyticsService
             ],
 
             "dashboard_data" => $stats,
-            "todays_appointments" => $todaysAppointments,
         ];
     }
 
