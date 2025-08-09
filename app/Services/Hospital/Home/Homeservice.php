@@ -72,7 +72,7 @@ class Homeservice
             return [];
         }
         $appointments = HospitalAppointment::whereDate('appointment_date', now()->toDateString())
-            ->with(['hospital'])->where('hospital_id', $hospital->id)
+            ->with(['hospital', 'scheduler, doctor'])->where('hospital_id', $hospital->id)
             ->orderBy('appointment_time')
             ->get();
         return AppointmentResource::collection($appointments);
