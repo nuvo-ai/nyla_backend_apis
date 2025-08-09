@@ -58,7 +58,7 @@ class Homeservice
     private function getRecentAppointments()
     {
         $appointments = HospitalAppointment::whereDate('appointment_date', now()->toDateString())
-            ->with(['scheduler', 'hospital'])
+            // ->with(['scheduler', 'hospital'])
             ->orderBy('appointment_time')
             ->get();
         return AppointmentResource::collection($appointments);
