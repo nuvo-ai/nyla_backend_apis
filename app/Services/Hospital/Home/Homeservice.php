@@ -2,6 +2,7 @@
 
 namespace App\Services\Hospital\Home;
 
+use App\Http\Resources\Hospital\AppointmentResource;
 use App\Models\Hospital\HospitalAppointment;
 use App\Models\Hospital\HospitalPatient;
 use Carbon\Carbon;
@@ -11,14 +12,9 @@ class Homeservice
 {
     public function getData()
     {
-        $todaysAppointments = HospitalAppointment::whereDate('appointment_date', now()->toDateString())
-            ->with(['doctor', 'scheduler', 'hospital'])
-            ->orderBy('appointment_time')
-            ->get();
         return [
             'stats' => $this->stats(),
-            'recent_appointments' => $this->getRecentAppointments(),
-            'todays_appointments' => $todaysAppointments,
+            'today_appointments' => $this->getRecentAppointments(),
         ];
     }
 
@@ -61,9 +57,11 @@ class Homeservice
 
     private function getRecentAppointments()
     {
-        $appointments = HospitalAppointment::where('created_at', '>=', Carbon::now()->today())
-            ->latest('created_at')->limit(3)->get();
-        return $appointments;
+        $appointments = HospitalAppointment::whereDate('appointment_date', now()->toDateString())
+            ->with(['doctor', 'scheduler', 'hospital'])
+            ->orderBy('appointment_time')
+            ->get();
+        return AppointmentResource::collection($appointments);
     }
 
     private function calculatePercentageChange($current, $previous)
