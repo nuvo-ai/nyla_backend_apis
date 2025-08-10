@@ -111,9 +111,9 @@ class HospitalAnalyticsService
             $start = $startDate->copy()->add($i, $interval);
             $end = $start->copy()->endOf($interval);
 
-            $patients[$i] = HospitalPatient::where('user_id', User::getAuthenticatedUser()?->hospitalUser?->user_id)->whereBetween('created_at', [$start, $end])->count();
-            $appointments[$i] = HospitalAppointment::where('user_id', User::getAuthenticatedUser()?->hospitalUser?->user_id)->whereBetween('created_at', [$start, $end])->count();
-            $active_staffs[$i] = HospitalUser::where('user_id', User::getAuthenticatedUser()?->hospitalUser?->user_id)->whereBetween('created_at', [$start, $end])->count();
+            $patients[$i] = HospitalPatient::where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->hotel?->id)->whereBetween('created_at', [$start, $end])->count();
+            $appointments[$i] = HospitalAppointment::where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->hotel?->id)->whereBetween('created_at', [$start, $end])->count();
+            $active_staffs[$i] = HospitalUser::where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->hotel?->id)->whereBetween('created_at', [$start, $end])->count();
         }
 
         $departments = Department::whereHas('hospitals.patients', function ($query) use ($startDate) {

@@ -133,7 +133,7 @@ class PatientService
     public function listPatients(array $filters = []): Collection
     {
         $query = HospitalPatient::with(['user', 'hospital', 'doctor'])
-            ->where('user_id', User::getAuthenticatedUser()?->hospitalUser?->_user_id);
+            ->where('hotal_id', User::getAuthenticatedUser()?->hospitalUser?->hotel?->id);
 
         if (!empty($filters['status'])) {
             $status = strtolower($filters['status']);
@@ -191,10 +191,10 @@ class PatientService
     public function stat()
     {
         return [
-            'total_patients' => HospitalPatient::where('user_id', User::getAuthenticatedUser()?->hospitalUser?->_user_id)->count(),
-            'active_patients' => HospitalPatient::where('user_id', User::getAuthenticatedUser()?->hospitalUser?->_user_id)->where('status', StatusConstants::ACTIVE)->count(),
-            'admitted_patients' => HospitalPatient::where('user_id', User::getAuthenticatedUser()?->hospitalUser?->_user_id)->where('status', StatusConstants::ADMITTED)->count(),
-            'discharged_patients' => HospitalPatient::where('user_id', User::getAuthenticatedUser()?->hospitalUser?->_user_id)->where('status', StatusConstants::DISCHARGE)->count()
+            'total_patients' => HospitalPatient::where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->hotel?->id)->count(),
+            'active_patients' => HospitalPatient::where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->hotel?->id)->where('status', StatusConstants::ACTIVE)->count(),
+            'admitted_patients' => HospitalPatient::where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->hotel?->id)->where('status', StatusConstants::ADMITTED)->count(),
+            'discharged_patients' => HospitalPatient::where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->hotel?->id)->where('status', StatusConstants::DISCHARGE)->count()
         ];
     }
 }
