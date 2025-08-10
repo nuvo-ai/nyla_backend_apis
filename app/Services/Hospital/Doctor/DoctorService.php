@@ -19,9 +19,9 @@ class DoctorService
     public function validate(array $data)
     {
         $validator = Validator::make($data, [
-            'user_id' => ['required', 'exists:users,id'],
-            'hospital_id' => ['required', 'exists:hospitals,id'],
-            'hospital_user_id' => ['required', 'exists:hospital_users,id'],
+            // 'user_id' => ['required', 'exists:users,id'],
+            // 'hospital_id' => ['required', 'exists:hospitals,id'],
+            // 'hospital_user_id' => ['required', 'exists:hospital_users,id'],
             'medical_number' => ['required', 'string', 'unique:doctors,medical_number'],
             'departments' => ['nullable', 'array', 'min:1'],
             'departments.*' => ['string'],
@@ -38,13 +38,12 @@ class DoctorService
 
     public function save(array $data, ?int $id = null): Doctor
     {
-        return DB::transaction(function () use ($data, $id) {
             $validated = $this->validate($data);
-
+            $user = User::getAuthenticatedUser();
             $payload = [
-                'user_id' => $validated['user_id'],
-                'hospital_id' => $validated['hospital_id'],
-                'hospital_user_id' => $validated['hospital_user_id'],
+                'user_id' => $user->id,
+                'hospital_id' => $user->hospitalUser?->hospital?->id,
+                'hospital_user_id' => $user->hospitalUser?->id,
                 'medical_number' => $validated['medical_number'],
                 'departments' => $validated['departments'],
                 'status' => $validated['status'] ?? StatusConstants::AVAILABLE,
@@ -77,7 +76,6 @@ class DoctorService
             }
 
             return $doctor->load(['user', 'hospitalUser', 'hospital']);
-        });
     }
 
     public static function getById($key, $column = "id"): Doctor
@@ -113,7 +111,7 @@ class DoctorService
     public function assign($doctor)
     {
         return DB::transaction(function () use ($doctor) {
-          $doctor = $this->getById($doctor);
+            $doctor = $this->getById($doctor);
         });
     }
 }

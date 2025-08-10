@@ -14,9 +14,9 @@ class FrontDeskService
     public function validate(array $data)
     {
         $validator = Validator::make($data, [
-            'user_id' => ['required_if:id,null', 'exists:users,id'],
-            'hospital_id' => ['required_if:id,null', 'exists:hospitals,id'],
-            'hospital_user_id' => ['required_if:id,null', 'exists:hospital_users,id'],
+            // 'user_id' => ['required_if:id,null', 'exists:users,id'],
+            // 'hospital_id' => ['required_if:id,null', 'exists:hospitals,id'],
+            // 'hospital_user_id' => ['required_if:id,null', 'exists:hospital_users,id'],
             'shift' => ['nullable', 'string'],
             'department' => ['required', 'string'],
             'years_of_experience' => ['nullable', 'string'],
@@ -41,24 +41,22 @@ class FrontDeskService
 
     public function save(array $data, ?int $id = null): FrontDesk
     {
-        return DB::transaction(function () use ($data, $id) {
-            $validated = $this->validate(array_merge($data, ['id' => $id]), $id);
+        $validated = $this->validate(array_merge($data, ['id' => $id]), $id);
 
-            if ($id) {
-                $staff = self::getById($id);
-                $staff->update($validated);
-            } else {
-                $staff = FrontDesk::create($validated);
-            }
+        if ($id) {
+            $staff = self::getById($id);
+            $staff->update($validated);
+        } else {
+            $staff = FrontDesk::create($validated);
+        }
 
-            return $staff->load('user', 'hospital', 'hospitalUser');
-        });
+        return $staff->load('user', 'hospital', 'hospitalUser');
     }
 
     public function list(array $filters = [])
     {
         $query = FrontDesk::with(['user', 'hospital', 'hospitalUser'])
-        ->where('user_id', User::getAuthenticatedUser()?->hospitalUser?->user_id);
+            ->where('user_id', User::getAuthenticatedUser()?->hospitalUser?->user_id);
 
         if (!empty($filters['department'])) {
             $query->where('department', $filters['department']);

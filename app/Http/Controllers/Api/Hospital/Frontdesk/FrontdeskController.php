@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class FrontdeskController extends Controller
 {
@@ -46,6 +47,7 @@ class FrontdeskController extends Controller
 
     public function store(Request $request)
     {
+        DB::beginTransaction();
         try {
             // User creation data
             $userData = $request->only(['first_name', 'last_name', 'phone_number', 'email', 'password', 'hospital_id']);
@@ -63,27 +65,34 @@ class FrontdeskController extends Controller
             ]);
 
             $frontdesk = $this->frontdesk_service->save($frontdeskPayload);
-
+            DB::commit();
             return ApiHelper::validResponse("Frontdesk created successfully", FrontdeskResource::make($frontdesk));
         } catch (ValidationException $e) {
+             DB::rollBack();
             $message = $e->getMessage() ?: $this->serverErrorMessage;
             return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
+             DB::rollBack();
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
     }
 
     public function update(Request $request, $frontdesk)
     {
+        DB::beginTransaction();
         try {
             $frontdesk = $this->frontdesk_service->save($request->all(), $frontdesk);
             return ApiHelper::validResponse("Frontdesk updated successfully", FrontdeskResource::make($frontdesk));
+            DB::commit();
         } catch (ValidationException $e) {
+             DB::rollBack();
             $message = $e->getMessage() ?: $this->serverErrorMessage;
             return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (ModelNotFoundException $e) {
+             DB::rollBack();
             return ApiHelper::problemResponse("Frontdesk not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
         } catch (Exception $e) {
+             DB::rollBack();
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
     }

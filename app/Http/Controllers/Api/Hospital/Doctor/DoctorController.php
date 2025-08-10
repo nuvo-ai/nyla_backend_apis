@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class DoctorController extends Controller
 {
@@ -47,6 +48,7 @@ class DoctorController extends Controller
 
     public function store(Request $request)
     {
+        DB::beginTransaction();
         try {
             $userData = $request->except($this->requestedDoctorDataDuringCreation());
             $userData['portal'] = 'Hospital';
@@ -62,11 +64,13 @@ class DoctorController extends Controller
                 'hospital_user_id' => $hospitalUser?->id,
             ]);
             $doctor = $this->doctor_service->save($doctorPayload);
-
+            DB::commit();
             return ApiHelper::validResponse("Doctor created successfully", DoctorResource::make($doctor));
         } catch (ValidationException $e) {
+            DB::rollBack();
             $message = $e->getMessage() ?: $this->serverErrorMessage;
             return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            DB::rollBack();
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
@@ -87,15 +91,20 @@ class DoctorController extends Controller
 
     public function update(Request $request, $doctor)
     {
+        DB::beginTransaction();
         try {
             $doctor = $this->doctor_service->save($request->all(), $doctor);
+            DB::commit();
             return ApiHelper::validResponse("Doctor updated successfully", DoctorResource::make($doctor));
         } catch (ValidationException $e) {
+            DB::rollBack();
             $message = $e->getMessage() ?: $this->serverErrorMessage;
             return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (ModelNotFoundException $e) {
+            DB::rollBack();
             return ApiHelper::problemResponse("Doctor not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
         } catch (Exception $e) {
+            DB::rollBack();
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
     }
