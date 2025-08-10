@@ -25,6 +25,13 @@ class HospitalUsersResource extends JsonResource
             'state' => $this->user->state ?? null,
             'city' => $this->user->city ?? null,
             'role' => $this->role,
+            'departments' => is_array($this->doctor->departments ?? null)
+                ? ($this->doctor->departments[0] ?? null)
+                : ($this->doctor->departments ?? (
+                    is_array($this->frontdesk->departments ?? null)
+                    ? ($this->frontdesk->departments[0] ?? null)
+                    : $this->frontdesk->departments ?? null
+                )),
             'user_account_id' => $this->user_account_id,
             'hospital' => new HospitalRegistrationResource($this->whenLoaded('hospital')),
             "created_at" => formatDate($this->created_at),

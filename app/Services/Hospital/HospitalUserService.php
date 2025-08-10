@@ -25,7 +25,7 @@ class HospitalUserService
     }
     public function listHospitalUsers(array $filters = []): Collection
     {
-        $query = HospitalUser::with('user');
+        $query = HospitalUser::with(['user', 'doctor', 'frontdesk']);;
 
         if (!empty($filters['status'])) {
             $status = strtolower($filters['status']);
