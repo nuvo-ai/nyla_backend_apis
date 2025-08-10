@@ -3,6 +3,7 @@
 namespace App\Services\Hospital;
 
 use App\Models\Hospital\FrontDesk;
+use App\Models\User\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -56,7 +57,8 @@ class FrontDeskService
 
     public function list(array $filters = [])
     {
-        $query = FrontDesk::with(['user', 'hospital', 'hospitalUser']);
+        $query = FrontDesk::with(['user', 'hospital', 'hospitalUser'])
+        ->where('user_id', User::getAuthenticatedUser()?->hospitalUser?->user_id);
 
         if (!empty($filters['department'])) {
             $query->where('department', $filters['department']);

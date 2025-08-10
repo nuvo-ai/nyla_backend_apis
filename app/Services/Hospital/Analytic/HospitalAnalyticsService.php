@@ -6,6 +6,7 @@ use App\Models\General\Department;
 use App\Models\Hospital\HospitalAppointment;
 use App\Models\Hospital\HospitalPatient;
 use App\Models\Hospital\HospitalUser;
+use App\Models\User\User;
 use Carbon\Carbon;
 
 class HospitalAnalyticsService
@@ -110,9 +111,9 @@ class HospitalAnalyticsService
             $start = $startDate->copy()->add($i, $interval);
             $end = $start->copy()->endOf($interval);
 
-            $patients[$i] = HospitalPatient::whereBetween('created_at', [$start, $end])->count();
-            $appointments[$i] = HospitalAppointment::whereBetween('created_at', [$start, $end])->count();
-            $active_staffs[$i] = HospitalUser::whereBetween('created_at', [$start, $end])->count();
+            $patients[$i] = HospitalPatient::where('user_id', User::getAuthenticatedUser()?->hospitalUser?->user_id)->whereBetween('created_at', [$start, $end])->count();
+            $appointments[$i] = HospitalAppointment::where('user_id', User::getAuthenticatedUser()?->hospitalUser?->user_id)->whereBetween('created_at', [$start, $end])->count();
+            $active_staffs[$i] = HospitalUser::where('user_id', User::getAuthenticatedUser()?->hospitalUser?->user_id)->whereBetween('created_at', [$start, $end])->count();
         }
 
         $departments = Department::whereHas('hospitals.patients', function ($query) use ($startDate) {
