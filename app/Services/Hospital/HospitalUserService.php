@@ -27,7 +27,8 @@ class HospitalUserService
     public function listHospitalUsers(array $filters = []): Collection
     {
         $query = HospitalUser::with(['user', 'doctor', 'frontdesk'])
-            ->where('user_id', User::getAuthenticatedUser()->user->id);
+            ->where('user_id', User::getAuthenticatedUser()->user?->id)
+            ->where('hospital_id', User::getAuthenticatedUser()->hospitalUser?->hospital?->id);
 
         if (!empty($filters['status'])) {
             $status = strtolower($filters['status']);
