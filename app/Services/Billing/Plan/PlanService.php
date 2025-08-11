@@ -136,7 +136,7 @@ class PlanService
 
     public function getPlan($planCode)
     {
-        $plan = Plan::where('plan_code', $planCode)->first();
+        $plan = Plan::with('features')->where('plan_code', $planCode)->first();
 
         if (!$plan) {
             throw new ModelNotFoundException("Plan with code '{$planCode}' not found in database.");
@@ -147,7 +147,7 @@ class PlanService
 
     public function list()
     {
-        return Plan::active()->get();
+        return Plan::with('features')->active()->get();
     }
 
     public function delete($planCode)
