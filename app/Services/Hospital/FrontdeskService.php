@@ -43,9 +43,13 @@ class FrontdeskService
     public function save(array $data, ?int $id = null): FrontDesk
     {
         $validated = $this->validate(array_merge($data, ['id' => $id]), $id);
+        $user = User::getAuthenticatedUser();
 
         if ($id) {
             $staff = self::getById($id);
+            $validated['user_id'] = $data['user_id'] ?? $user->id;
+            $validated['hospital_id'] = $user->hospitalUser?->hospital?->id;
+            $validated['hospital_user_id'] = $user->hospitalUser?->id;
             $staff->update($validated);
             $staff->role = $data['role'] ?? UserConstants::FRONT_DESK;
             $staff->save();
