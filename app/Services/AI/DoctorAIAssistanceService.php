@@ -43,145 +43,149 @@ class DoctorAIAssistanceService
         return $validator->validated();
     }
 
-   public function createConversation(Request $request)
-{
-    return DB::transaction(function () use ($request) {
-        $user = Auth::user();
-        if (!$user->hospitalUser || strtolower($user->hospitalUser->role) !== 'doctor') {
-            throw new Exception('Please, these chats or conversations are only meant for doctors.');
-        }
-
-        $titleText = $request->prompt ?? $request->quick_action ?? '';
-        $title = $this->generateTitleFromPrompt($titleText);
-        if (empty($title)) {
-            $aiTitlePrompt = "Generate a concise conversation title for this prompt: " . $titleText;
-            $title = $this->chatgpt_service->sendPrompt($aiTitlePrompt);
-            $title = Str::limit(trim($title), 255);
-        }
-
-        $validated = $this->validated([
-            'prompt' => $request->prompt,
-            'conversation_id' => $request->conversation_id ?? 0,
-            'ai_type' => $request->ai_type,
-            'title' => $title,
-        ]);
-
-        if (!empty($validated['conversation_id']) && $validated['conversation_id'] > 0) {
-            $conversation = Conversation::where('id', $validated['conversation_id'])
-                ->where('user_id', $user->id)
-                ->first();
-
-            if (!$conversation) {
-                throw new Exception('Conversation not found.');
+    public function createConversation(Request $request)
+    {
+        return DB::transaction(function () use ($request) {
+            $user = Auth::user();
+            if (
+                !$user->hospitalUser ||
+                !in_array(strtolower($user->hospitalUser->role), ['doctor', 'admin', 'frontdesk'])
+            ) {
+                throw new Exception('Please, these chats or conversations are only meant for doctors or admins.');
             }
-        } else {
-            $conversation = Conversation::create([
-                'user_id' => $user->id,
-                'ai_type' => $validated['ai_type'] ?? '',
-                'title' => $validated['title'],
-                'hospital_user_id' => $user->hospitalUser->id,
+
+
+            $titleText = $request->prompt ?? $request->quick_action ?? '';
+            $title = $this->generateTitleFromPrompt($titleText);
+            if (empty($title)) {
+                $aiTitlePrompt = "Generate a concise conversation title for this prompt: " . $titleText;
+                $title = $this->chatgpt_service->sendPrompt($aiTitlePrompt);
+                $title = Str::limit(trim($title), 255);
+            }
+
+            $validated = $this->validated([
+                'prompt' => $request->prompt,
+                'conversation_id' => $request->conversation_id ?? 0,
+                'ai_type' => $request->ai_type,
+                'title' => $title,
             ]);
-        }
 
-        $uploadedFileSummary = '';
-        if ($request->hasFile('file')) {
-            $uploadedFileSummary = $this->uploadedFile($request);
-        }
+            if (!empty($validated['conversation_id']) && $validated['conversation_id'] > 0) {
+                $conversation = Conversation::where('id', $validated['conversation_id'])
+                    ->where('user_id', $user->id)
+                    ->first();
 
-        $patientSummary = "";
-        if ($request->filled('patient_id')) {
-            $patient = HospitalPatient::find($request->patient_id);
-
-            if ($patient) {
-                $patientUser = optional($patient->user);
-                $details = [
-                    "[Patient EMR Tag]: Patient with EMR found. Details:",
-                    "Name: " . $patientUser->full_name,
-                    "Gender: " . $patientUser->gender,
-                    "Date of Birth: " . $patient->date_of_birth,
-                ];
-
-                if ($patient->temperature) $details[] = "Temperature: {$patient->temperature}";
-                if ($patient->weight) $details[] = "Weight: {$patient->weight}";
-                if ($patient->height) $details[] = "Height: {$patient->height}";
-                if ($patient->blood_pressure) $details[] = "Blood Pressure: {$patient->blood_pressure}";
-                if ($patient->heart_rate) $details[] = "Heart Rate: {$patient->heart_rate}";
-                if ($patient->respiratory_rate) $details[] = "Respiratory Rate: {$patient->respiratory_rate}";
-                if ($patient->oxygen_saturation) $details[] = "Oxygen Saturation: {$patient->oxygen_saturation}";
-                if ($patient->last_visit) $details[] = "Last Visit: {$patient->last_visit}";
-                if ($patient->emergency_contact_name) $details[] = "Emergency Contact Name: {$patient->emergency_contact_name}";
-                if ($patient->emergency_contact_phone) $details[] = "Emergency Contact Phone: {$patient->emergency_contact_phone}";
-                if ($patient->chief_complaints) $details[] = "Chief Complaints: {$patient->chief_complaints}";
-                if ($patient->pain_level) $details[] = "Pain Level: {$patient->pain_level}";
-                if ($patient->visit_priority) $details[] = "Visit Priority: {$patient->visit_priority}";
-                if ($patient->visit_type) $details[] = "Visit Type: {$patient->visit_type}";
-                if ($patient->referral_source) $details[] = "Referral Source: {$patient->referral_source}";
-                if ($patient->medical_history) $details[] = "Medical History: {$patient->medical_history}";
-                if ($patient->insurance_info) $details[] = "Insurance Info: {$patient->insurance_info}";
-
-                if (!empty($patient->current_symptoms)) {
-                    $details[] = "Current Symptoms: " . implode(', ', (array) $patient->current_symptoms);
+                if (!$conversation) {
+                    throw new Exception('Conversation not found.');
                 }
-
-                if (!empty($patient->know_allergies)) {
-                    $details[] = "Known Allergies: " . implode(', ', (array) $patient->know_allergies);
-                }
-
-                if (!empty($patient->current_medications)) {
-                    $details[] = "Current Medications: " . implode(', ', (array) $patient->current_medications);
-                }
-
-                $patientSummary = "\n\n" . implode("\n", $details);
             } else {
-                $patientSummary = "\n\n[Patient EMR Tag]: No patient found with the provided ID.";
+                $conversation = Conversation::create([
+                    'user_id' => $user->id,
+                    'ai_type' => $validated['ai_type'] ?? '',
+                    'title' => $validated['title'],
+                    'hospital_user_id' => $user->hospitalUser->id,
+                ]);
             }
-        }
 
-        $quickAction = $request->quick_action ? "\n\n[Action Requested]: " . $request->quick_action : '';
-        $promptText = trim($request->prompt ?? '');
+            $uploadedFileSummary = '';
+            if ($request->hasFile('file')) {
+                $uploadedFileSummary = $this->uploadedFile($request);
+            }
 
-        $hasFile = $request->hasFile('file');
-        if (empty($promptText) && empty($quickAction) && $hasFile) {
-            $promptText = "You have uploaded a file. Please specify what you want Nyla AI to do with this file.";
-        }
+            $patientSummary = "";
+            if ($request->filled('patient_id')) {
+                $patient = HospitalPatient::find($request->patient_id);
 
-        if (empty($promptText) && empty($quickAction) && !$hasFile && !$request->filled('patient_id')) {
-            throw new Exception('You must provide at least one of: prompt, quick action, file, or patient for analysis.');
-        }
+                if ($patient) {
+                    $patientUser = optional($patient->user);
+                    $details = [
+                        "[Patient EMR Tag]: Patient with EMR found. Details:",
+                        "Name: " . $patientUser->full_name,
+                        "Gender: " . $patientUser->gender,
+                        "Date of Birth: " . $patient->date_of_birth,
+                    ];
 
-        $safeContent = $request->prompt ?? $request->quick_action ?? $promptText ?? "No input provided.";
+                    if ($patient->temperature) $details[] = "Temperature: {$patient->temperature}";
+                    if ($patient->weight) $details[] = "Weight: {$patient->weight}";
+                    if ($patient->height) $details[] = "Height: {$patient->height}";
+                    if ($patient->blood_pressure) $details[] = "Blood Pressure: {$patient->blood_pressure}";
+                    if ($patient->heart_rate) $details[] = "Heart Rate: {$patient->heart_rate}";
+                    if ($patient->respiratory_rate) $details[] = "Respiratory Rate: {$patient->respiratory_rate}";
+                    if ($patient->oxygen_saturation) $details[] = "Oxygen Saturation: {$patient->oxygen_saturation}";
+                    if ($patient->last_visit) $details[] = "Last Visit: {$patient->last_visit}";
+                    if ($patient->emergency_contact_name) $details[] = "Emergency Contact Name: {$patient->emergency_contact_name}";
+                    if ($patient->emergency_contact_phone) $details[] = "Emergency Contact Phone: {$patient->emergency_contact_phone}";
+                    if ($patient->chief_complaints) $details[] = "Chief Complaints: {$patient->chief_complaints}";
+                    if ($patient->pain_level) $details[] = "Pain Level: {$patient->pain_level}";
+                    if ($patient->visit_priority) $details[] = "Visit Priority: {$patient->visit_priority}";
+                    if ($patient->visit_type) $details[] = "Visit Type: {$patient->visit_type}";
+                    if ($patient->referral_source) $details[] = "Referral Source: {$patient->referral_source}";
+                    if ($patient->medical_history) $details[] = "Medical History: {$patient->medical_history}";
+                    if ($patient->insurance_info) $details[] = "Insurance Info: {$patient->insurance_info}";
 
-        $prompt = new Chat([
-            'sender' => 'user',
-            'content' => $safeContent,
-        ]);
-        $conversation->chats()->save($prompt);
+                    if (!empty($patient->current_symptoms)) {
+                        $details[] = "Current Symptoms: " . implode(', ', (array) $patient->current_symptoms);
+                    }
 
-        $instructionsJson = Storage::get('ai_contexts/doctor_instructions.json');
-        $instructions = json_decode($instructionsJson, true);
+                    if (!empty($patient->know_allergies)) {
+                        $details[] = "Known Allergies: " . implode(', ', (array) $patient->know_allergies);
+                    }
 
-        $systemPrompt = "You are an assistant for the Nyla app. Here's the app context:\n\n"
-            . json_encode($instructions, JSON_PRETTY_PRINT)
-            . $patientSummary
-            . $uploadedFileSummary
-            . $quickAction
-            . "\n\nUser asked: " .  $promptText;
+                    if (!empty($patient->current_medications)) {
+                        $details[] = "Current Medications: " . implode(', ', (array) $patient->current_medications);
+                    }
 
-        $responseText = $this->chatgpt_service->sendPrompt($systemPrompt);
+                    $patientSummary = "\n\n" . implode("\n", $details);
+                } else {
+                    $patientSummary = "\n\n[Patient EMR Tag]: No patient found with the provided ID.";
+                }
+            }
 
-        $response = new Chat([
-            'sender' => 'ai',
-            'content' => $responseText ?? "No response generated.",
-        ]);
-        $conversation->chats()->save($response);
+            $quickAction = $request->quick_action ? "\n\n[Action Requested]: " . $request->quick_action : '';
+            $promptText = trim($request->prompt ?? '');
 
-        return [
-            'conversation' => $conversation,
-            'prompt' => $safeContent,
-            'response' => $responseText,
-        ];
-    });
-}
+            $hasFile = $request->hasFile('file');
+            if (empty($promptText) && empty($quickAction) && $hasFile) {
+                $promptText = "You have uploaded a file. Please specify what you want Nyla AI to do with this file.";
+            }
+
+            if (empty($promptText) && empty($quickAction) && !$hasFile && !$request->filled('patient_id')) {
+                throw new Exception('You must provide at least one of: prompt, quick action, file, or patient for analysis.');
+            }
+
+            $safeContent = $request->prompt ?? $request->quick_action ?? $promptText ?? "No input provided.";
+
+            $prompt = new Chat([
+                'sender' => 'user',
+                'content' => $safeContent,
+            ]);
+            $conversation->chats()->save($prompt);
+
+            $instructionsJson = Storage::get('ai_contexts/doctor_instructions.json');
+            $instructions = json_decode($instructionsJson, true);
+
+            $systemPrompt = "You are an assistant for the Nyla app. Here's the app context:\n\n"
+                . json_encode($instructions, JSON_PRETTY_PRINT)
+                . $patientSummary
+                . $uploadedFileSummary
+                . $quickAction
+                . "\n\nUser asked: " .  $promptText;
+
+            $responseText = $this->chatgpt_service->sendPrompt($systemPrompt);
+
+            $response = new Chat([
+                'sender' => 'ai',
+                'content' => $responseText ?? "No response generated.",
+            ]);
+            $conversation->chats()->save($response);
+
+            return [
+                'conversation' => $conversation,
+                'prompt' => $safeContent,
+                'response' => $responseText,
+            ];
+        });
+    }
 
 
     public function uploadedFile(Request $request)
