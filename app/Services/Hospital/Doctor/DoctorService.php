@@ -102,7 +102,8 @@ class DoctorService
 
     public function listDoctors(array $filters = [])
     {
-        $query = Doctor::with(['user', 'hospital']);
+        $query = Doctor::with(['user', 'hospitalUser', 'hospital'])
+         ->where('hospital_id', User::getAuthenticatedUser()->hospitalUser?->hospital?->id);
 
         if (!empty($filters['hospital_id'])) {
             $query->where('hospital_id', $filters['hospital_id']);

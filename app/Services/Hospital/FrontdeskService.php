@@ -65,7 +65,7 @@ class FrontdeskService
     public function list(array $filters = [])
     {
         $query = FrontDesk::with(['user', 'hospital', 'hospitalUser'])
-            ->where('user_id', User::getAuthenticatedUser()?->hospitalUser?->user_id);
+            ->where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->user_id);
 
         if (!empty($filters['department'])) {
             $query->where('department', $filters['department']);

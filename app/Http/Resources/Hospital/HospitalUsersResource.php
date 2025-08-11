@@ -2,8 +2,6 @@
 
 namespace App\Http\Resources\Hospital;
 
-use App\Http\Resources\OperatingHourResource;
-use App\Http\Resources\User\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -28,9 +26,9 @@ class HospitalUsersResource extends JsonResource
             'departments' => is_array($this->doctor->departments ?? null)
                 ? ($this->doctor->departments[0] ?? null)
                 : ($this->doctor->departments ?? (
-                    is_array($this->frontdesk->departments ?? null)
-                    ? ($this->frontdesk->departments[0] ?? null)
-                    : $this->frontdesk->departments ?? null
+                    is_array($this->frontdesk->department ?? null)
+                    ? ($this->frontdesk->department[0] ?? null)
+                    : $this->frontdesk->department ?? null
                 )),
             'user_account_id' => $this->user_account_id,
             'hospital' => new HospitalRegistrationResource($this->whenLoaded('hospital')),
