@@ -50,7 +50,7 @@ class FrontdeskController extends Controller
         DB::beginTransaction();
         try {
             // User creation data
-            $userData = $request->only(['first_name', 'last_name', 'phone_number', 'email', 'password', 'hospital_id']);
+            $userData = $request->only(['name', 'first_name', 'last_name', 'phone_number', 'email', 'password', 'hospital_id']);
             $userData['portal'] = 'Hospital';
 
             $user = $this->user_service->create($userData);
