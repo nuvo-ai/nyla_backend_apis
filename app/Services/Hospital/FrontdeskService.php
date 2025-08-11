@@ -47,15 +47,15 @@ class FrontdeskService
 
         if ($id) {
             $staff = self::getById($id);
-            $validated['user_id'] = $data['user_id'] ?? $user->id;
-            $validated['hospital_id'] = $user->hospitalUser?->hospital?->id;
-            $validated['hospital_user_id'] = $user->hospitalUser?->id;
             $staff->update($validated);
             $staff->role = $data['role'] ?? UserConstants::FRONT_DESK;
             $staff->save();
         } else {
+             $validated['user_id'] = $data['user_id'] ?? $user->id;
+            $validated['hospital_id'] = $user->hospitalUser?->hospital?->id;
+            $validated['hospital_user_id'] = $user->hospitalUser?->id;
             $staff = FrontDesk::create($validated);
-            $staff->role = $data['role'] ?? UserConstants::FRONT_DESK;
+            $staff->hospitalUser->role = $data['role'] ?? UserConstants::FRONT_DESK;
             $staff->save();
         }
 
