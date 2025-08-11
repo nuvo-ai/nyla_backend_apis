@@ -134,7 +134,9 @@ class DoctorAIAssistanceService
                     if (!empty($patient->current_medications)) {
                         $details[] = "Current Medications: " . implode(', ', (array) $patient->current_medications);
                     }
-
+                    if ($patient->user && $patient->user->date_of_birth) {
+                        $details[] = "Date of Birth (from User): " . $patient->user->date_of_birth;
+                    }
                     $patientSummary = "\n\n" . implode("\n", $details);
                 } else {
                     $patientSummary = "\n\n[Patient EMR Tag]: No patient found with the provided ID.";
