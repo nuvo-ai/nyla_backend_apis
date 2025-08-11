@@ -66,7 +66,7 @@ class DoctorService
             if (!empty($data['user_id'])) {
                 $user = User::find($data['user_id']);
                 if ($user) {
-                    $hospitalContact = HospitalContact::where('hospital_id', $validated['hospital_id'])->first();
+                    $hospitalContact = HospitalContact::where('hospital_id', $user->hospitalUser?->hospital?->id)->first();
                     if ($hospitalContact) {
                         $user->hospital_contact_id = $hospitalContact->id;
                     }
