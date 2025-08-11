@@ -22,7 +22,7 @@ class UserResource extends JsonResource
             "last_name" => $this->last_name,
             "email" => (string) $this->email,
             "phone_number" => $this->phone,
-            "role" => $this->role,
+            "role" => $this->hospitalUser ? $this->hospitalUser->role : $this->role,
             'date_of_birth' => $this->date_of_birth ?? null,
             'gender' => $this->gender ?? null,
             "avatar" => $this->avatar,
