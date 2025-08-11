@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 
-class FrontDeskService
+class FrontdeskService
 {
     public function validate(array $data)
     {

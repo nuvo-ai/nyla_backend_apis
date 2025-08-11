@@ -6,7 +6,7 @@ use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Hospital\FrontdeskResource;
-use App\Services\Hospital\FrontDeskService;
+use App\Services\Hospital\FrontdeskService;
 use App\Services\User\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
