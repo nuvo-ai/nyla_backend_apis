@@ -2,6 +2,7 @@
 
 namespace App\Services\Hospital;
 
+use App\Constants\User\UserConstants;
 use App\Models\Hospital\FrontDesk;
 use App\Models\User\User;
 use Illuminate\Support\Facades\Validator;
@@ -46,8 +47,12 @@ class FrontDeskService
         if ($id) {
             $staff = self::getById($id);
             $staff->update($validated);
+            $staff->role = $data['role'] ?? UserConstants::FRONT_DESK;
+            $staff->save();
         } else {
             $staff = FrontDesk::create($validated);
+            $staff->role = $data['role'] ?? UserConstants::FRONT_DESK;
+            $staff->save();
         }
 
         return $staff->load('user', 'hospital', 'hospitalUser');

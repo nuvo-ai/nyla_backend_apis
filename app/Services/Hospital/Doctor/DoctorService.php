@@ -80,6 +80,10 @@ class DoctorService
                 $user->role = $data['role'] ?? UserConstants::USER;
                 $user->save();
             }
+            if($user->hospitalUser) {
+                $user->hospitalUser->role = $data['role'] ?? UserConstants::DOCTOR;
+                $user->hospitalUser->save();
+            }
         }
 
         return $doctor->load(['user', 'hospitalUser', 'hospital']);
