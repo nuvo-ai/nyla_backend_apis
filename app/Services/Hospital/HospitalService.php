@@ -151,7 +151,7 @@ class HospitalService
     public function updateHospital(array $data, $hospital_id): Hospital
     {
         return DB::transaction(function () use ($hospital_id, $data) {
-            $this->validate($data);
+            // $this->validate($data);
 
             // Update hospital basic info
             $hospital = $this->getById($hospital_id);
