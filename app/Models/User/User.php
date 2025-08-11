@@ -131,7 +131,7 @@ class User extends Authenticatable
     }
     public static function getAuthenticatedUser()
     {
-        return Auth::user();
+        return Auth::user()->load('hospitalUser.hospital');
     }
 
     public function modulePreferences()

@@ -46,35 +46,34 @@ class DoctorController extends Controller
         ];
     }
 
-    public function store(Request $request)
-    {
-        DB::beginTransaction();
-        try {
-            $userData = $request->except($this->requestedDoctorDataDuringCreation());
-            $userData['portal'] = 'Hospital';
-            $userData['hospital_id'] = $request->hospital_id;
+  public function store(Request $request)
+{
+    DB::beginTransaction();
+    try {
+        $userData = $request->except($this->requestedDoctorDataDuringCreation());
+        $userData['portal'] = 'Hospital';
 
-            $user = $this->user_service->create($userData);
-            $hospitalUser = $user->hospitalUser;
-            $requestDoctorData = $request->only($this->requestedDoctorDataDuringCreation());
+        $user = $this->user_service->create($userData);
+        $hospitalUser = $user->hospitalUser;
+        $requestDoctorData = $request->only($this->requestedDoctorDataDuringCreation());
 
-            $doctorPayload = array_merge($requestDoctorData, [
-                'user_id' => $user->id,
-                'hospital_id' => $hospitalUser?->hospital_id,
-                'hospital_user_id' => $hospitalUser?->id,
-            ]);
-            $doctor = $this->doctor_service->save($doctorPayload);
-            DB::commit();
-            return ApiHelper::validResponse("Doctor created successfully", DoctorResource::make($doctor));
-        } catch (ValidationException $e) {
-            DB::rollBack();
-            $message = $e->getMessage() ?: $this->serverErrorMessage;
-            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
-            DB::rollBack();
-        } catch (Exception $e) {
-            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
-        }
+        $doctorPayload = array_merge($requestDoctorData, [
+            'user_id' => $user->id,
+        ]);
+
+        $doctor = $this->doctor_service->save($doctorPayload);
+        DB::commit();
+        return ApiHelper::validResponse("Doctor created successfully", DoctorResource::make($doctor));
+    } catch (ValidationException $e) {
+        DB::rollBack();
+        $message = $e->getMessage() ?: $this->serverErrorMessage;
+        return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+    } catch (Exception $e) {
+        DB::rollBack();
+        return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
     }
+}
+
 
 
     public function show($doctor)

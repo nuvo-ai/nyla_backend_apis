@@ -38,45 +38,53 @@ class DoctorService
 
     public function save(array $data, ?int $id = null): Doctor
     {
-            $validated = $this->validate($data);
-            $user = User::getAuthenticatedUser();
-            $payload = [
-                'user_id' => $user->id,
-                'hospital_id' => $user->hospitalUser?->hospital?->id,
-                'hospital_user_id' => $user->hospitalUser?->id,
-                'medical_number' => $validated['medical_number'],
-                'departments' => $validated['departments'],
-                'status' => $validated['status'] ?? StatusConstants::AVAILABLE,
-            ];
+        $validated = $this->validate($data);
 
-            if (isset($data['departments'])) {
-                $payload['departments'] = $data['departments'];
-            }
+        $user = User::getAuthenticatedUser();
 
-            if (isset($data['medical_specialties'])) {
-                $payload['medical_specialties'] = $data['medical_specialties'];
-            }
+        if (!$user->hospitalUser) {
+            throw new \Exception("Authenticated user is not associated with any hospital user.");
+        }
 
-            if ($id) {
-                $doctor = $this->getById($id);
-                $doctor->update($payload);
-            } else {
-                $doctor = Doctor::create($payload);
-            }
-            if (!empty($data['user_id'])) {
-                $user = User::find($data['user_id']);
-                if ($user) {
-                    $hospitalContact = HospitalContact::where('hospital_id', $user->hospitalUser?->hospital?->id)->first();
-                    if ($hospitalContact) {
-                        $user->hospital_contact_id = $hospitalContact->id;
-                    }
-                    $user->role = $data['role'] ?? UserConstants::USER;
-                    $user->save();
+        if (!$user->hospitalUser->hospital) {
+            throw new \Exception("Authenticated user hospital user is not linked to a hospital.");
+        }
+
+        $payload = [
+            'user_id' => $user->id,
+            'hospital_id' => $user->hospitalUser->hospital->id,
+            'hospital_user_id' => $user->hospitalUser->id,
+            'medical_number' => $validated['medical_number'],
+            'departments' => $validated['departments'] ?? null,
+            'status' => $validated['status'] ?? StatusConstants::AVAILABLE,
+        ];
+
+        if (isset($data['medical_specialties'])) {
+            $payload['medical_specialties'] = $data['medical_specialties'];
+        }
+
+        if ($id) {
+            $doctor = $this->getById($id);
+            $doctor->update($payload);
+        } else {
+            $doctor = Doctor::create($payload);
+        }
+
+        if (!empty($data['user_id'])) {
+            $user = User::find($data['user_id']);
+            if ($user) {
+                $hospitalContact = HospitalContact::where('hospital_id', $user->hospitalUser?->hospital?->id)->first();
+                if ($hospitalContact) {
+                    $user->hospital_contact_id = $hospitalContact->id;
                 }
+                $user->role = $data['role'] ?? UserConstants::USER;
+                $user->save();
             }
+        }
 
-            return $doctor->load(['user', 'hospitalUser', 'hospital']);
+        return $doctor->load(['user', 'hospitalUser', 'hospital']);
     }
+
 
     public static function getById($key, $column = "id"): Doctor
     {
