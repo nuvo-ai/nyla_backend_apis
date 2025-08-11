@@ -15,6 +15,9 @@ class MedicationService
         if (isset($filters['pharmacy_id'])) {
             $query->where('pharmacy_id', $filters['pharmacy_id']);
         }
+        if (isset($filters['medication_type_id'])) {
+            $query->where('medication_type_id', $filters['medication_type_id']);
+        }
         if (isset($filters['is_active'])) {
             $query->where('is_active', $filters['is_active']);
         }
@@ -24,6 +27,21 @@ class MedicationService
     public function show($id)
     {
         return Medication::with(['pharmacy', 'medicationType', 'dosages'])->findOrFail($id);
+    }
+
+    public function getByMedicationType($medicationTypeId, array $filters = [])
+    {
+        $query = Medication::with(['pharmacy', 'medicationType', 'dosages'])
+            ->where('medication_type_id', $medicationTypeId);
+
+        if (isset($filters['pharmacy_id'])) {
+            $query->where('pharmacy_id', $filters['pharmacy_id']);
+        }
+        if (isset($filters['is_active'])) {
+            $query->where('is_active', $filters['is_active']);
+        }
+
+        return $query->get();
     }
 
     public function create(array $data)
