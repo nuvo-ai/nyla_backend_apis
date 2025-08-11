@@ -177,6 +177,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::get('/medications/{id}', [\App\Http\Controllers\Api\Pharmacy\MedicationController::class, 'show']);
         Route::put('/medications/{id}', [\App\Http\Controllers\Api\Pharmacy\MedicationController::class, 'update']);
         Route::delete('/medications/{id}', [\App\Http\Controllers\Api\Pharmacy\MedicationController::class, 'destroy']);
+        Route::get('/medication-types/{medicationTypeId}/medications', [\App\Http\Controllers\Api\Pharmacy\MedicationController::class, 'getByMedicationType']);
 
         // Medication Types
         Route::get('/medication-types', [\App\Http\Controllers\Api\Pharmacy\MedicationTypeController::class, 'index']);

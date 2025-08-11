@@ -48,6 +48,21 @@ class MedicationController extends Controller
         }
     }
 
+    public function getByMedicationType($medicationTypeId, Request $request)
+    {
+        try {
+            $medications = $this->medicationService->getByMedicationType($medicationTypeId, $request->all());
+
+            if ($medications->isEmpty()) {
+                return ApiHelper::validResponse('No medications found for this medication type', [], 200);
+            }
+
+            return ApiHelper::validResponse('Medications retrieved successfully', MedicationResource::collection($medications));
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse('Failed to retrieve medications. Please try again later.', 500, null, $e);
+        }
+    }
+
     public function store(Request $request)
     {
         try {
