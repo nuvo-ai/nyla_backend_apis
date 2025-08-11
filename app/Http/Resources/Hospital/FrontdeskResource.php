@@ -18,7 +18,7 @@ class FrontdeskResource extends JsonResource
         return [
             'id' => $this->id,
             'user' => new UserResource($this->whenLoaded('user')),
-            'hospital_user' => new HospitalUsersResource($this->whenLoaded('hospitalUser')),
+            'hospital_user' => $this->hospitalUser,
             'shift' => $this->shift ?? null,
             'department' => $this->department ?? null,
             'years_of_experience' => $this->years_of_experience ?? null,
