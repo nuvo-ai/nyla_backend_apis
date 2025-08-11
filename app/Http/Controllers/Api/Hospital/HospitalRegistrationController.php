@@ -36,10 +36,10 @@ class HospitalRegistrationController extends Controller
         }
     }
 
-    public function getHospital(string $uuid)
+    public function getHospital()
     {
         try {
-            $hospitals = $this->hospital_service->getHospital($uuid);
+            $hospitals = $this->hospital_service->getHospital();
             return ApiHelper::validResponse("Hospital retrieved successfully", HospitalRegistrationResource::make($hospitals));
         } catch (ModelNotFoundException $e) {
             return ApiHelper::problemResponse("Hospital with the specified identifier was not found in the system", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);

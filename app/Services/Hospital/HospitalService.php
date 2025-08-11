@@ -295,9 +295,9 @@ class HospitalService
         return $query->get();
     }
 
-    public function getHospital(string $uuid): ?Hospital
+    public function getHospital(): ?Hospital
     {
-        return Hospital::where('uuid', $uuid)->where('user_id', User::getAuthenticatedUser()->id)->firstOrFail();
+        return Hospital::where('user_id', User::getAuthenticatedUser()->id)->firstOrFail();
     }
 
     public function getUserHospital(): ?Hospital

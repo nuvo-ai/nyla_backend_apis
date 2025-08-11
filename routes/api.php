@@ -93,7 +93,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
 
         Route::put('/update/{id}', [HospitalRegistrationController::class, 'updateHospital'])->name('update');
         Route::get('list', [HospitalRegistrationController::class, 'list'])->name('list');
-        Route::get('/{uuid}/details', [HospitalRegistrationController::class, 'getHospital'])->name('details');
+        Route::get('/details', [HospitalRegistrationController::class, 'getHospital'])->name('details');
 
         Route::prefix('users')->as('users.')->group(function () {
             Route::post('/create', [HospitalUsersController::class, 'create'])->name('create');
