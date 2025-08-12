@@ -94,8 +94,8 @@ class PatientService
             }
 
             $payload = [
-                'hospital_id'             => $user?->hospitalUser?->_user_id,
-                'user_id'                 => $data['user_id'] ?? null,
+                'hospital_id'             => $user?->hospitalUser?->hospital->id,
+                'user_id'                 => $data['user_id'] ?? $user?->id,
                 'doctor_id'               => $validated['doctor_id'] ?? null,
                 'chief_complaints'        => $validated['chief_complaints'] ?? null,
                 'temperature'             => $validated['temperature'] ?? null,
