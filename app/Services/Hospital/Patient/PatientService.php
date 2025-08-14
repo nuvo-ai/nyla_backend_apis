@@ -130,26 +130,35 @@ class PatientService
         });
     }
 
-    public function listPatients(array $filters = []): Collection
-    {
-        $query = HospitalPatient::with(['user', 'hospital', 'doctor'])
-            ->where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->hospital?->id);
+   public function listPatients(array $filters = []): Collection
+{
+    $user = User::getAuthenticatedUser();
 
-        if (!empty($filters['status'])) {
-            $status = strtolower($filters['status']);
-            $query->whereRaw('LOWER(status) = ?', [$status]);
-        }
+    $query = HospitalPatient::with(['user', 'hospital', 'doctor']);
 
-        if (!empty($filters['search'])) {
-            $query->search($filters['search']);
-        }
-
-        if (!empty($filters['hospital_id'])) {
-            $query->where('hospital_id', $filters['hospital_id']);
-        }
-
-        return $query->get();
+    if ($user?->hospitalUser?->hospital?->id) {
+        $query->where('hospital_id', $user->hospitalUser->hospital->id);
     }
+
+    if ($user?->hospitalUser?->role && strcasecmp($user->hospitalUser->role, 'Doctor') === 0) {
+        $doctorId = $user->doctor->id ?? null;
+        if ($doctorId) {
+            $query->where('doctor_id', $doctorId);
+        }
+    } elseif (!empty($filters['doctor_id'])) {
+        $query->where('doctor_id', $filters['doctor_id']);
+    }
+
+    if (!empty($filters['status'])) {
+        $query->whereRaw('LOWER(status) = ?', [strtolower($filters['status'])]);
+    }
+
+    if (!empty($filters['search'])) {
+        $query->search($filters['search']);
+    }
+
+    return $query->get();
+}
 
     public function discharge(Request $request, $patient_id)
     {
