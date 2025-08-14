@@ -43,8 +43,15 @@ class PrescriptionService
                 $prescription->update($validated);
                 $prescription->medications()->delete(); // clear old meds
             } else {
-                $validated['doctor_id'] = User::getAuthenticatedUser()->doctor->id;
-                $validated['hospital_id'] = User::getAuthenticatedUser()->hospitalUser->hospital->id;
+                $user = User::getAuthenticatedUser();
+                if (!$user->doctor) {
+                    throw new \Exception("Authenticated user is not a doctor.");
+                }
+                if (!$user->hospitalUser) {
+                    throw new \Exception("Authenticated user is not associated with any hospital user.");
+                }
+                $validated['doctor_id'] = User::getAuthenticatedUser()->doctor?->id;
+                $validated['hospital_id'] = User::getAuthenticatedUser()->hospitalUser?->hospital?->id;
                 $prescription = Prescription::create($validated);
             }
 
