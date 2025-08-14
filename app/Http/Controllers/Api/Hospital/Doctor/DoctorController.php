@@ -6,6 +6,7 @@ use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Hospital\DoctorResource;
+use App\Services\Hospital\Doctor\DashboardStatsService;
 use App\Services\Hospital\Doctor\DoctorService;
 use App\Services\User\UserService;
 use Illuminate\Http\Request;
@@ -18,11 +19,14 @@ class DoctorController extends Controller
 {
     protected $doctor_service;
     protected $user_service;
+    protected $doctor_dashboard_service;
+
 
     public function __construct()
     {
         $this->doctor_service = new DoctorService;
         $this->user_service = new UserService;
+        $this->doctor_dashboard_service = new DashboardStatsService;
     }
 
     public function index(Request $request)
@@ -115,6 +119,16 @@ class DoctorController extends Controller
             return ApiHelper::validResponse("Doctor deleted successfully");
         } catch (ModelNotFoundException $e) {
             return ApiHelper::problemResponse("Doctor not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+
+    public function getDashboardData()
+    {
+        try {
+            $stats = $this->doctor_dashboard_service->getStats();
+            return ApiHelper::validResponse("Doctor dashboard stats retrieved successfully", $stats);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }

@@ -152,7 +152,7 @@ class PatientController extends Controller
             'email'       => $request->input('email'),
             'phone'       => $request->input('phone'),
             'password'    => $generated_password,
-            'name'        => $request->input('name'),
+            'name'        => $request->input('name') ?? $request->input('first_name') . ' ' . $request->input('last_name'),
             'first_name'        => $request->input('first_name'),
             'last_name'        => $request->input('last_name'),
             'gender'      => $request->input('gender'),

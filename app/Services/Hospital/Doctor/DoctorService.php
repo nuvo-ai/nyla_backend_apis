@@ -9,6 +9,7 @@ use App\Models\Hospital\HospitalContact;
 use App\Models\Hospital\HospitalPatient;
 use App\Models\Portal;
 use App\Models\User\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
@@ -79,7 +80,7 @@ class DoctorService
                 $user->role = $data['role'] ?? UserConstants::USER;
                 $user->save();
             }
-            if($user->hospitalUser) {
+            if ($user->hospitalUser) {
                 $user->hospitalUser->role = $data['role'] ?? UserConstants::DOCTOR;
                 $user->hospitalUser->save();
             }
@@ -102,7 +103,7 @@ class DoctorService
     public function listDoctors(array $filters = [])
     {
         $query = Doctor::with(['user', 'hospitalUser', 'hospital'])
-         ->where('hospital_id', User::getAuthenticatedUser()->hospitalUser?->hospital?->id);
+            ->where('hospital_id', User::getAuthenticatedUser()->hospitalUser?->hospital?->id);
 
         if (!empty($filters['hospital_id'])) {
             $query->where('hospital_id', $filters['hospital_id']);

@@ -121,8 +121,11 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::resource('visit-notes', VisitNoteController::class);
         Route::resource('prescriptions', PrescriptionController::class);
 
-        Route::post('prescription/send-to-frontdesk/{prescription}', [PrescriptionController::class, 'sendToFrontdesk'])->name('prescription.send-to-frontdesk');
+        Route::prefix('doctor')->as('doctor.')->group(function () {
+            Route::get('/dashboard-data', [DoctorController::class, 'getDashboardData'])->name('dashboard-data');
+        });
 
+        Route::post('prescription/send-to-frontdesk/{prescription}', [PrescriptionController::class, 'sendToFrontdesk'])->name('prescription.send-to-frontdesk');
 
         Route::patch('patient/discharge/{patient}', [PatientController::class, 'discharge'])->name('patient.discharge');
         Route::patch('patient/assign-doctor/{patient}', [PatientController::class, 'assign'])->name('patient.assign-doctor');
