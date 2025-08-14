@@ -60,7 +60,6 @@ class DoctorController extends Controller
         $doctorPayload = array_merge($requestDoctorData, [
             'user_id' => $user->id,
         ]);
-
         $doctor = $this->doctor_service->save($doctorPayload);
         DB::commit();
         return ApiHelper::validResponse("Doctor created successfully", DoctorResource::make($doctor));

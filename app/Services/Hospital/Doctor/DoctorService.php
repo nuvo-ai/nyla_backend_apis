@@ -19,7 +19,7 @@ class DoctorService
     public function validate(array $data)
     {
         $validator = Validator::make($data, [
-            // 'user_id' => ['required', 'exists:users,id'],
+            'user_id' => ['required', 'exists:users,id'],
             // 'hospital_id' => ['required', 'exists:hospitals,id'],
             // 'hospital_user_id' => ['required', 'exists:hospital_users,id'],
             'medical_number' => ['required', 'string', 'unique:doctors,medical_number'],
@@ -39,7 +39,6 @@ class DoctorService
     public function save(array $data, ?int $id = null): Doctor
     {
         $validated = $this->validate($data);
-
         $user = User::getAuthenticatedUser();
 
         if (!$user->hospitalUser) {
@@ -51,7 +50,7 @@ class DoctorService
         }
 
         $payload = [
-            'user_id' => $user->id,
+            'user_id' => $validated['user_id'] ?? $user->id,
             'hospital_id' => $user->hospitalUser->hospital->id,
             'hospital_user_id' => $user->hospitalUser->id,
             'medical_number' => $validated['medical_number'],

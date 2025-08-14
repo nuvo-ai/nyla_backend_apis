@@ -26,10 +26,13 @@ use App\Http\Controllers\Api\Hospital\Frontdesk\FrontdeskController;
 use App\Http\Controllers\Api\Hospital\HospitalRegistrationController;
 use App\Http\Controllers\Api\Hospital\HospitalUsersController;
 use App\Http\Controllers\Api\Hospital\Patient\PatientController;
+use App\Http\Controllers\Api\Hospital\Prescription\PrescriptionController;
 use App\Http\Controllers\Api\Hospital\Tracker\PeriodCycleController;
+use App\Http\Controllers\Api\Hospital\VisitNote\VisitNoteController;
 use App\Http\Controllers\Api\Pharmacy\PharmacyRegistrationController;
 use App\Http\Controllers\Api\User\ModulePreferenceController;
 use App\Http\Middleware\ApiEnsureFrontendRequestsAreStateful;
+use App\Models\Hospital\Prescription;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -115,6 +118,11 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::resource('patients', PatientController::class);
         Route::resource('doctors', DoctorController::class);
         Route::resource('frontdesks', FrontdeskController::class);
+        Route::resource('visit-notes', VisitNoteController::class);
+        Route::resource('prescriptions', PrescriptionController::class);
+
+        Route::post('prescription/send-to-frontdesk/{prescription}', [PrescriptionController::class, 'sendToFrontdesk'])->name('prescription.send-to-frontdesk');
+
 
         Route::patch('patient/discharge/{patient}', [PatientController::class, 'discharge'])->name('patient.discharge');
         Route::patch('patient/assign-doctor/{patient}', [PatientController::class, 'assign'])->name('patient.assign-doctor');

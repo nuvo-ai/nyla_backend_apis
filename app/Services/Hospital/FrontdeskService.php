@@ -15,7 +15,7 @@ class FrontdeskService
     public function validate(array $data)
     {
         $validator = Validator::make($data, [
-            // 'user_id' => ['required_if:id,null', 'exists:users,id'],
+            'user_id' => ['required_if:id,null', 'exists:users,id'],
             // 'hospital_id' => ['required_if:id,null', 'exists:hospitals,id'],
             // 'hospital_user_id' => ['required_if:id,null', 'exists:hospital_users,id'],
             'shift' => ['nullable', 'string'],
