@@ -12,20 +12,20 @@ class UserResource extends JsonResource
     {
         $hospitalUserData = null;
 
-        if ($this->hospitalUser) {
+        if ($this?->hospitalUser) {
             if (strcasecmp($this->hospitalUser->role, 'Doctor') === 0) {
                 $hospitalUserData = [
-                    "role"   => $this->hospitalUser->role,
-                    "doctor" => $this->hospitalUser->doctor ?? null,
+                    "role"   => $this?->hospitalUser->role,
+                    "doctor" => $this?->hospitalUser->doctor ?? null,
                 ];
-            } elseif (strcasecmp($this->hospitalUser->role, 'FrontDesk') === 0) {
+            } elseif (strcasecmp($this?->hospitalUser->role, 'FrontDesk') === 0) {
                 $hospitalUserData = [
-                    "role"      => $this->hospitalUser->role,
-                    "frontdesk" => $this->hospitalUser->frontdesk ?? null,
+                    "role"      => $this?->hospitalUser->role,
+                    "frontdesk" => $this?->hospitalUser->frontdesk ?? null,
                 ];
             } else {
                 $hospitalUserData = [
-                    "role" => $this->hospitalUser->role,
+                    "role" => $this?->hospitalUser->role,
                 ];
             }
         }

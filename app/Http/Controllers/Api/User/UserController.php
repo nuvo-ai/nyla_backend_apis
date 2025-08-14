@@ -11,6 +11,7 @@ use App\Services\User\ProfileService;
 use App\Constants\General\ApiConstants;
 use App\Http\Resources\Hospital\HospitalRegistrationResource;
 use App\Http\Resources\User\UserResource;
+use App\Models\User\User;
 use App\Services\Hospital\HospitalService;
 use Illuminate\Validation\ValidationException;
 
@@ -33,7 +34,8 @@ class UserController extends Controller
     public function me()
     {
         try {
-            $user = auth()->user()->with(['hospitalUser', 'doctor', 'frontdesk']);
+            $user = User::with(['hospitalUser.doctor', 
+            'hospitalUser.frontdesk'])->find(auth()->id());
             return ApiHelper::validResponse("User retrieved successfully", UserResource::make($user));
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
