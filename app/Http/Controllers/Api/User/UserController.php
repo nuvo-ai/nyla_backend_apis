@@ -33,7 +33,7 @@ class UserController extends Controller
     public function me()
     {
         try {
-            $user = auth()->user();
+            $user = auth()->user()->with(['hospitalUser', 'doctor', 'frontdesk']);
             return ApiHelper::validResponse("User retrieved successfully", UserResource::make($user));
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
