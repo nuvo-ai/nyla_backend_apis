@@ -40,7 +40,7 @@ class DoctorService
     public function save(array $data, ?int $id = null): Doctor
     {
         $validated = $this->validate($data);
-        $user = User::getAuthenticatedUser();
+        $user = User::find($validated['user_id']);
 
         if (!$user->hospitalUser) {
             throw new \Exception("Authenticated user is not associated with any hospital user.");
@@ -51,7 +51,7 @@ class DoctorService
         }
 
         $payload = [
-            'user_id' => $validated['user_id'] ?? $user->id,
+            'user_id' => $validated['user_id'],
             'hospital_id' => $user->hospitalUser->hospital->id,
             'hospital_user_id' => $user->hospitalUser->id,
             'medical_number' => $validated['medical_number'],

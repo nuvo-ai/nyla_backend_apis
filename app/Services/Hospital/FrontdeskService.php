@@ -43,7 +43,7 @@ class FrontdeskService
     public function save(array $data, ?int $id = null): FrontDesk
     {
         $validated = $this->validate(array_merge($data, ['id' => $id]), $id);
-        $user = User::getAuthenticatedUser();
+         $user = User::find($validated['user_id']);
 
         if ($id) {
             $staff = self::getById($id);
