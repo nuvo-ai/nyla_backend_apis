@@ -130,46 +130,46 @@ class PatientService
         });
     }
 
-   public function listPatients(array $filters = []): Collection
-{
-    $user = User::getAuthenticatedUser();
+    public function listPatients(array $filters = []): Collection
+    {
+        $user = User::getAuthenticatedUser();
 
-    $query = HospitalPatient::with(['user', 'hospital', 'doctor']);
+        $query = HospitalPatient::with(['user', 'hospital', 'doctor']);
 
-    if ($user?->hospitalUser?->hospital?->id) {
-        $query->where('hospital_id', $user->hospitalUser->hospital->id);
-    }
-
-    if ($user?->hospitalUser?->role && strcasecmp($user->hospitalUser->role, 'Doctor') === 0) {
-        $doctorId = $user->doctor->id ?? null;
-        if ($doctorId) {
-            $query->where('doctor_id', $doctorId);
+        if ($user?->hospitalUser?->hospital?->id) {
+            $query->where('hospital_id', $user->hospitalUser->hospital->id);
         }
-    } elseif (!empty($filters['doctor_id'])) {
-        $query->where('doctor_id', $filters['doctor_id']);
-    }
 
-    if (!empty($filters['status'])) {
-        $query->whereRaw('LOWER(status) = ?', [strtolower($filters['status'])]);
-    }
+        if ($user?->hospitalUser?->role && strcasecmp($user->hospitalUser->role, 'Doctor') === 0) {
+            $doctorId = $user->doctor->id ?? null;
+            if ($doctorId) {
+                $query->where('doctor_id', $doctorId);
+            }
+        } elseif (!empty($filters['doctor_id'])) {
+            $query->where('doctor_id', $filters['doctor_id']);
+        }
 
-    if (!empty($filters['search'])) {
-        $query->search($filters['search']);
-    }
+        if (!empty($filters['status'])) {
+            $query->whereRaw('LOWER(status) = ?', [strtolower($filters['status'])]);
+        }
 
-    return $query->get();
-}
+        if (!empty($filters['search'])) {
+            $query->search($filters['search']);
+        }
+
+        return $query->get();
+    }
 
     public function discharge(Request $request, $patient_id)
     {
         $status = $request->status;
-        if ($status !== StatusConstants::DISCHARGE) {
+        if ($status !== StatusConstants::DISCHARGED) {
             throw ValidationException::withMessages([
                 'status' => ['bad method provided.']
             ]);
         }
         $patient = HospitalPatient::findOrFail($patient_id);
-        if ($patient->status === StatusConstants::DISCHARGE) {
+        if ($patient->status === StatusConstants::DISCHARGED) {
             throw ValidationException::withMessages([
                 'status' => ['Patient has already been discharged.']
             ]);
@@ -181,6 +181,34 @@ class PatientService
             'status' => $patient->status,
         ];
     }
+
+    public function updateStatus(Request $request, $patient_id)
+    {
+        $status = $request->status;
+        if (!in_array($status, StatusConstants::HOSPITAL_PATIENT_STATUSES)) {
+            throw ValidationException::withMessages([
+                'status' => ['Invalid status provided.']
+            ]);
+        }
+
+        $patient = HospitalPatient::findOrFail($patient_id);
+
+        // Prevent changing status if already discharged
+        if ($patient->status === StatusConstants::DISCHARGED && $status !== StatusConstants::DISCHARGED) {
+            throw ValidationException::withMessages([
+                'status' => ['Cannot change status of a discharged patient.']
+            ]);
+        }
+
+        $patient->status = $status;
+        $patient->save();
+
+        return [
+            'id' => $patient->id,
+            'status' => $patient->status,
+        ];
+    }
+
 
 
     public function assign(Request $request, $patient)
@@ -203,7 +231,7 @@ class PatientService
             'total_patients' => HospitalPatient::where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->hospital?->id)->count(),
             'active_patients' => HospitalPatient::where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->hospital?->id)->where('status', StatusConstants::ACTIVE)->count(),
             'admitted_patients' => HospitalPatient::where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->hospital?->id)->where('status', StatusConstants::ADMITTED)->count(),
-            'discharged_patients' => HospitalPatient::where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->hospital?->id)->where('status', StatusConstants::DISCHARGE)->count()
+            'discharged_patients' => HospitalPatient::where('hospital_id', User::getAuthenticatedUser()?->hospitalUser?->hospital?->id)->where('status', StatusConstants::DISCHARGED)->count()
         ];
     }
 }

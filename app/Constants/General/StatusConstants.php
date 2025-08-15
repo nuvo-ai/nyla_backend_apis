@@ -43,7 +43,7 @@ class StatusConstants
     const SOLD = 'Sold';
 
     const BANNED = 'Banned';
-    
+
     const DISAPPROVED = "Disapproved";
 
     const YES = 'Yes';
@@ -54,15 +54,21 @@ class StatusConstants
 
     const CONFIRMED = 'Confirmed';
 
-    const DISCHARGE = 'Discharge';
-
-    const ADMITTED  = 'Admitted';
-
 
     const NO_SHOW = 'No Show';
 
+    // Hospital specific statuses
+    const DISCHARGED = 'Discharged';
+    const ADMITTED = 'Admitted';
+    const IN_PROGRESS = 'In_Progress';
+    const CRITICAL = 'Critical';
+    const DECEASED = 'Deceased';
+
     const ACTIVE_STATUSES = [
-        self::PENDING, self::PROCESSING, self::APPROVED, self::SCHEDULED
+        self::PENDING,
+        self::PROCESSING,
+        self::APPROVED,
+        self::SCHEDULED
     ];
 
     const STATUSES = [
@@ -91,12 +97,25 @@ class StatusConstants
         self::COMPLETED => self::COMPLETED,
     ];
 
-     const SCHEDULE_STATUSES = [
+    const SCHEDULE_STATUSES = [
         self::PENDING,
         self::CONFIRMED,
         self::CANCELLED,
         self::COMPLETED,
         self::SCHEDULED,
         self::NO_SHOW,
+    ];
+
+    // Array for all statuses you want to allow in hospital patients
+    public const HOSPITAL_PATIENT_STATUSES = [
+        self::ACTIVE,
+        self::PENDING,
+        self::COMPLETED,
+        self::ADMITTED,
+        self::DISCHARGED,
+        self::IN_PROGRESS,
+        self::CANCELLED,
+        self::CRITICAL,
+        self::DECEASED,
     ];
 }

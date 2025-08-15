@@ -132,6 +132,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::patch('patient/discharge/{patient}', [PatientController::class, 'discharge'])->name('patient.discharge');
         Route::patch('patient/assign-doctor/{patient}', [PatientController::class, 'assign'])->name('patient.assign-doctor');
         Route::get('patients-stat', [PatientController::class, 'stat'])->name('patients-stat');
+         Route::patch('patient/update-status/{patient}', [PatientController::class, 'updateStatus'])->name('patient.update-status');
 
         Route::get('analytics', [AnalyticController::class, 'getAnalytics'])->name('analytics');
     });

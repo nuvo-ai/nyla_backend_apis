@@ -179,4 +179,17 @@ class PatientController extends Controller
             return ['error_message' => 'An error occurred while sending login details to user.'];
         }
     }
+
+    public function updateStatus(Request $request, $patient_id)
+    {
+        $status = $request->status;
+        try {
+            $updatedPatient = $this->patient_service->updateStatus($patient_id, $status);
+            return ApiHelper::validResponse("Patient status updated successfully", PatientResource::make($updatedPatient));
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse("Patient not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
 }
