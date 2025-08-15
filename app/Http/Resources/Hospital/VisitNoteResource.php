@@ -18,7 +18,7 @@ class VisitNoteResource extends JsonResource
             'patient' => [
                 'id' => $this->patient->id,
                 'hospital_id' => $this->patient->hospital_id,
-                'user' => new UserResource($this->whenLoaded('patient.user')),
+                'user' => $this->patient->user ? new UserResource($this->patient->user) : null,
             ],
             
             'created_at' => formatDate($this->created_at),

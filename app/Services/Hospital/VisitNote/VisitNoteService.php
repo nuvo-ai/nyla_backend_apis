@@ -73,7 +73,7 @@ class VisitNoteService
 
     public function list(array $filters = [])
     {
-        $query = VisitNote::with(['patient.user', 'doctor']);
+        $query = VisitNote::with(['doctor', 'patient.user', 'hospital']);
 
         if (!empty($filters['hospital_id'])) {
             $query->where('hospital_id', $filters['hospital_id']);
