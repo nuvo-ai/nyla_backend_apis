@@ -182,10 +182,9 @@ class PatientController extends Controller
 
     public function updateStatus(Request $request, $patient_id)
     {
-        $status = $request->status;
         try {
-            $updatedPatient = $this->patient_service->updateStatus($patient_id, $status);
-            return ApiHelper::validResponse("Patient status updated successfully", PatientResource::make($updatedPatient));
+            $updatedPatient = $this->patient_service->updateStatus($request, $patient_id);
+            return ApiHelper::validResponse("Patient status updated successfully", $updatedPatient);
         } catch (ModelNotFoundException $e) {
             return ApiHelper::problemResponse("Patient not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
         } catch (Exception $e) {
