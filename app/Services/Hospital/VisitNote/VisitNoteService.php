@@ -33,7 +33,7 @@ class VisitNoteService
         return DB::transaction(function () use ($validated, $id) {
             // Prevent duplicate note for same patient, doctor, hospital, and date
             if (!$id) {
-               $user = User::getAuthenticatedUser();
+                $user = User::getAuthenticatedUser();
                 if (!$user->doctor) {
                     throw new \Exception("Authenticated user is not associated with any doctor.");
                 }
@@ -73,7 +73,7 @@ class VisitNoteService
 
     public function list(array $filters = [])
     {
-        $query = VisitNote::with(['patient', 'doctor']);
+        $query = VisitNote::with(['patient.user', 'doctor']);
 
         if (!empty($filters['hospital_id'])) {
             $query->where('hospital_id', $filters['hospital_id']);

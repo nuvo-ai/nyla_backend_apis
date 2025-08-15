@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Hospital;
 
+use App\Http\Resources\User\UserResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class VisitNoteResource extends JsonResource
@@ -14,10 +15,14 @@ class VisitNoteResource extends JsonResource
             'treatment_plan_and_recommendation' => $this->treatment_plan_and_recommendation,
             'visit_date' => $this->visit_date->toDateString(),
             'doctor' => DoctorResource::make($this->doctor),
-            'patient' => $this->patient,
-            'hospital' => HospitalRegistrationResource::make($this->hospital),
-            "created_at" => formatDate($this->created_at),
-            "updated_at" => formatDate($this->updated_at),
+            'patient' => [
+                'id' => $this->patient->id,
+                'hospital_id' => $this->patient->hospital_id,
+                'user' => new UserResource($this->whenLoaded('patient.user')),
+            ],
+            
+            'created_at' => formatDate($this->created_at),
+            'updated_at' => formatDate($this->updated_at),
         ];
     }
 }
