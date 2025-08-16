@@ -11,7 +11,10 @@ return [
         'http://192.168.1.192:3000',
         'http://localhost:8081',
         'http://localhost:8080',
+        'http://providers.nyla.africa',
+        'https://providers.nyla.africa',
     ],
+
 
     'allowed_origins_patterns' => [],
 
