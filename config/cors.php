@@ -13,7 +13,10 @@ return [
         'http://localhost:8080',
         'http://providers.nyla.africa',
         'https://providers.nyla.africa',
+        'http://www.providers.nyla.africa',
+        'https://www.providers.nyla.africa',
     ],
+
 
 
     'allowed_origins_patterns' => [],
