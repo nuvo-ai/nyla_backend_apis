@@ -28,7 +28,7 @@ class FoodAnalyzerAIAssistanceService
     public function validated(array $data)
     {
         $validator = Validator::make($data, [
-            'prompt' => 'nullable',
+            'prompt' => 'required|image|mimes:jpeg,png,jpg,gif,svg',
             'conversation_id' => 'nullable|integer|min:0',
             'ai_type' => 'nullable|string',
             'title' => 'nullable|string|max:255',
@@ -91,7 +91,7 @@ class FoodAnalyzerAIAssistanceService
             $uploadedFileSummary = '';
             $fileUrl = '';
             $promptText = '';
-            
+
             if ($hasFile) {
                 $path = $request->file('prompt')->store('uploads', 'public');
                 $fileUrl = asset('storage/' . $path);
