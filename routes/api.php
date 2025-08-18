@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AI\AssessmentAIAssistanceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -167,6 +168,9 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
 
         Route::prefix('mental-health')->as('mental-health.')->group(function () {
             Route::post('conversations/ask', [MentalHealthAIAssistanceController::class, 'ask'])->name('conversations.ask');
+        });
+         Route::prefix('assessment')->as('assessment.')->group(function () {
+            Route::post('conversations/ask', [AssessmentAIAssistanceController::class, 'ask'])->name('conversations.ask');
         });
 
 

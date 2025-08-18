@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
-class MentalHealthAIAssistanceService
+class AssessmentAIAssistanceService
 {
     protected $chatgpt_service;
 
