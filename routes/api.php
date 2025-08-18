@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\AI\DoctorAIAssistanceController;
 use App\Http\Controllers\Api\AI\FoodAnalyzerAIAssistanceController;
+use App\Http\Controllers\Api\AI\MentalHealthAIAssistanceController;
 use App\Http\Controllers\Api\AI\PatientAIAssistanceController;
 use App\Http\Controllers\Api\AI\PharmacyAIAssistanceController;
 use App\Http\Controllers\Api\Hospital\Appointment\AppointmentController;
@@ -162,6 +163,10 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
             Route::post('conversations/ask', [FoodAnalyzerAIAssistanceController::class, 'ask'])->name('conversations.ask');
             Route::get('conversations/get', [FoodAnalyzerAIAssistanceController::class, 'getPharmacyConversation'])->name('conversations.get');
             Route::get('/conversations/{uuid}/chats', [FoodAnalyzerAIAssistanceController::class, 'getConversationWithChats'])->name('conversations.chats');
+        });
+
+        Route::prefix('mental-health')->as('mental-health.')->group(function () {
+            Route::post('conversations/ask', [MentalHealthAIAssistanceController::class, 'ask'])->name('conversations.ask');
         });
 
 
