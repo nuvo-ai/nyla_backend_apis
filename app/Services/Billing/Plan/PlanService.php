@@ -172,4 +172,9 @@ class PlanService
     {
         return isset($data['name']) && isset($data['amount']);
     }
+
+    public function hospitalPlan(): ?Plan
+    {
+        return Plan::where('name', 'Hospital Plan')->first();
+    }
 }

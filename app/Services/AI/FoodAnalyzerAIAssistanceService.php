@@ -45,14 +45,25 @@ class FoodAnalyzerAIAssistanceService
     {
         return DB::transaction(function () use ($request) {
             $user = Auth::user();
-            $titleText = $request->prompt ?? $request->quick_action ?? '';
+
+            $hasFile = $request->hasFile('prompt');
+            $titleText = '';
+
+            if ($hasFile) {
+                $file = $request->file('prompt');
+                $originalName = $file->getClientOriginalName();
+                $titleText = 'Analysis of ' . pathinfo($originalName, PATHINFO_FILENAME);
+            } else {
+                $titleText = trim((string) $request->prompt ?? $request->quick_action ?? '');
+            }
+
             $title = $this->generateTitleFromPrompt($titleText);
+
             if (empty($title)) {
                 $aiTitlePrompt = "Generate a concise conversation title for this prompt: " . $titleText;
                 $title = $this->chatgpt_service->sendPrompt($aiTitlePrompt);
                 $title = Str::limit(trim($title), 255);
             }
-            $title = $this->generateTitleFromPrompt($titleText);
 
             $validated = $this->validated([
                 'prompt' => $request->prompt,
@@ -80,8 +91,7 @@ class FoodAnalyzerAIAssistanceService
             $uploadedFileSummary = '';
             $fileUrl = '';
             $promptText = '';
-            $hasFile = $request->hasFile('prompt');
-
+            
             if ($hasFile) {
                 $path = $request->file('prompt')->store('uploads', 'public');
                 $fileUrl = asset('storage/' . $path);
@@ -127,10 +137,6 @@ class FoodAnalyzerAIAssistanceService
         });
     }
 
-
-
-
-
     public function uploadedFile(Request $request)
     {
         $summary = "\n\nUser uploaded a food sample for analysis.";
@@ -143,7 +149,6 @@ class FoodAnalyzerAIAssistanceService
         $extension = strtolower($file->getClientOriginalExtension());
         $originalName = $file->getClientOriginalName();
 
-        // Validate file type before saving
         if (!in_array($extension, ['txt', 'csv', 'json', 'pdf', 'jpg', 'jpeg', 'png'])) {
             return "[Unsupported file type: $originalName. Please upload a .txt, .csv, .json, .pdf, .jpg, or .png file.]";
         }
@@ -173,8 +178,6 @@ class FoodAnalyzerAIAssistanceService
             . "\nExtracted Content (truncated):\n"
             . Str::limit(trim($contentSummary), 2000);
     }
-
-
 
     protected function generateTitleFromPrompt(string $prompt): ?string
     {

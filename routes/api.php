@@ -17,7 +17,6 @@ use App\Http\Controllers\Api\Auth\VerificationController;
 use App\Http\Controllers\Api\Settings\SettingsController;
 use App\Http\Controllers\Api\Hospital\Home\HomeController;
 use App\Http\Controllers\Api\Billing\Plan\PlanController;
-use App\Http\Controllers\Api\Billing\Plan\PlanFeatureController;
 use App\Http\Controllers\Api\Billing\Subscription\SubscriptionController;
 use App\Http\Controllers\Api\Billing\Webhook\WebhookController;
 use App\Http\Controllers\Api\Hospital\Analytic\AnalyticController;
@@ -30,9 +29,10 @@ use App\Http\Controllers\Api\Hospital\Prescription\PrescriptionController;
 use App\Http\Controllers\Api\Hospital\Tracker\PeriodCycleController;
 use App\Http\Controllers\Api\Hospital\VisitNote\VisitNoteController;
 use App\Http\Controllers\Api\Pharmacy\PharmacyRegistrationController;
+use App\Http\Controllers\Api\User\HealthRecord\HealthRecordController;
+use App\Http\Controllers\Api\User\HealthRecord\MedicationReminderController;
 use App\Http\Controllers\Api\User\ModulePreferenceController;
 use App\Http\Middleware\ApiEnsureFrontendRequestsAreStateful;
-use App\Models\Hospital\Prescription;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -87,6 +87,10 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::post('/save', [ModulePreferenceController::class, 'save'])->name('save');
         Route::delete('/{preference}/destroy', [ModulePreferenceController::class, 'destroy'])->name('destroy');
     });
+    Route::prefix('user')->as('user.')->group(function () {
+        Route::resource('health-records', HealthRecordController::class);
+        Route::resource('medication-reminders', MedicationReminderController::class);
+    });
     Route::get('/preferences', [ModulePreferenceController::class, 'index']);
 
     Route::prefix('hospital')->as('hospital.')->group(function () {
@@ -132,7 +136,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::patch('patient/discharge/{patient}', [PatientController::class, 'discharge'])->name('patient.discharge');
         Route::patch('patient/assign-doctor/{patient}', [PatientController::class, 'assign'])->name('patient.assign-doctor');
         Route::get('patients-stat', [PatientController::class, 'stat'])->name('patients-stat');
-         Route::patch('patient/update-status/{patient}', [PatientController::class, 'updateStatus'])->name('patient.update-status');
+        Route::patch('patient/update-status/{patient}', [PatientController::class, 'updateStatus'])->name('patient.update-status');
 
         Route::get('analytics', [AnalyticController::class, 'getAnalytics'])->name('analytics');
     });

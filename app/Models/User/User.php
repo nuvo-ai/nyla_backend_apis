@@ -138,4 +138,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(ModulePreference::class, 'user_module_preferences');
     }
+
+    public function medicationReminders()
+    {
+        return $this->hasMany(MedicationReminder::class);
+    }
 }

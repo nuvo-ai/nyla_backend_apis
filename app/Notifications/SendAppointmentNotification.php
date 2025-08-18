@@ -1,10 +1,8 @@
 <?php
 
-namespace App\Notifications;
+namespace App\Notifications\User;
 
-use App\Models\Hospital\Appointment;
-use App\Models\Hospital\Hospital;
-use App\Models\Hospital\HospitalAppointment;
+use App\Models\User\MedicationReminder;
 use App\Models\User\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -12,19 +10,17 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class SendAppointmentNotification extends Notification
+class MedicationDueNotification extends Notification
 {
     use Queueable;
 
-    protected HospitalAppointment $appointment;
+    protected MedicationReminder $reminder;
     protected User $recipient;
-    protected bool $isUpdate;
 
-    public function __construct(HospitalAppointment $appointment, User $recipient, bool $isUpdate = false)
+    public function __construct(MedicationReminder $reminder, User $recipient)
     {
-        $this->appointment = $appointment;
+        $this->reminder = $reminder;
         $this->recipient = $recipient;
-        $this->isUpdate = $isUpdate;
     }
 
     public function via(object $notifiable): array
@@ -48,63 +44,38 @@ class SendAppointmentNotification extends Notification
 
         $mail = (new MailMessage)
             ->subject($data['title'])
-            ->line($data['message'])
-            ->line('Patient Name: ' . $this->appointment->patient_name)
-            ->line('Appointment Date: ' . $this->appointment->appointment_date)
-            ->line('Appointment Time: ' . $this->appointment->appointment_time)
-            ->line('Status: ' . ucfirst($this->appointment->status));
+            ->greeting("Hello {$notifiable->full_name},")
+            ->line("⏰ It's time to take your medication!")
+            ->line("Here are the details of your reminder:")
+            ->line('💊 Medication: **' . $this->reminder->name . '**')
+            ->line('📦 Dosage: ' . (!empty($this->reminder->dosage) ? $this->reminder->dosage : 'Not specified'))
+            ->line('🕒 Time: ' . $this->reminder->time);
 
         if (!empty($data['link'])) {
-            $mail->action('View Appointment', url($data['link']));
+            $mail->action('View Reminder', url($data['link']));
         }
 
-        return $mail->line('Thank you for your attention.');
+        return $mail
+            ->line('✅ Please make sure to take your medication on time for best health results.')
+            ->salutation('— Your Health Reminder Assistant');
     }
 
 
     protected function buildData($notifiable): array
     {
-        $doctorId = optional($this->appointment->doctor)->id;
-        $schedulerId = $this->appointment->scheduler_id;
+        $title = "Medication Reminder: {$this->reminder->name}";
 
-        $isDoctor = $this->recipient->id === $doctorId;
-        $isScheduler = $this->recipient->id === $schedulerId;
-
-        $doctorName = optional(optional($this->appointment->doctor)->user)->full_name ?? 'Doctor';
-        $patientName = $this->appointment->patient_name;
-
-        if ($this->isUpdate) {
-            if ($isDoctor) {
-                $title = "Appointment Updated with Patient: $patientName";
-                $message = "The appointment with $patientName has been rescheduled to {$this->appointment->appointment_date} at {$this->appointment->appointment_time}.";
-            } elseif ($isScheduler) {
-                $title = "Your Appointment Has Been Updated";
-                $message = "Your appointment with Dr. $doctorName has been rescheduled to {$this->appointment->appointment_date} at {$this->appointment->appointment_time}.";
-            } else {
-                $title = "Appointment Updated";
-                $message = "An appointment has been updated.";
-            }
-        } else {
-            if ($isDoctor) {
-                $title = "New Appointment with Patient: $patientName";
-                $message = "You have a new appointment scheduled with $patientName.";
-            } elseif ($isScheduler) {
-                $title = "Appointment Scheduled Successfully";
-                $message = "Your appointment with Dr. $doctorName has been successfully scheduled.";
-            } else {
-                $title = "New Appointment Notification";
-                $message = "A new appointment has been scheduled.";
-            }
-        }
+        $message = "Hey {$notifiable->full_name}!" . PHP_EOL
+            . "It's time to take your medication '{$this->reminder->name}'"
+            . (!empty($this->reminder->dosage) ? " (Dosage: {$this->reminder->dosage})" : "")
+            . " at {$this->reminder->time}.";
 
         return [
             'title' => $title,
             'message' => $message,
-            'appointment_id' => $this->appointment->id,
-            'patient_name' => $this->appointment->patient_name,
-            'appointment_date' => $this->appointment->appointment_date,
-            'appointment_time' => $this->appointment->appointment_time,
-            'status' => $this->appointment->status,
+            'medication_name' => $this->reminder->name,
+            'dosage' => $this->reminder->dosage,
+            'time' => $this->reminder->time,
             'link' => null,
         ];
     }
