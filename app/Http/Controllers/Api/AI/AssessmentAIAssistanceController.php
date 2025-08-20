@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\AI;
 use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\AI\V1\AssessmentAIAssistanceeResource;
+use App\Http\Resources\AI\V1\AssessmentAIAssistanceResource;
 use App\Http\Resources\User\UserResource;
 use App\Models\General\Conversation;
 use App\Models\User\User;
@@ -33,7 +33,7 @@ class AssessmentAIAssistanceController extends Controller
 
             $conversation = $result['conversation'];
             $user = $conversation->user;
-            $chats = AssessmentAIAssistanceeResource::collection($conversation->chats()->get());
+            $chats = AssessmentAIAssistanceResource::collection($conversation->chats()->get());
 
             return ApiHelper::validResponse('Conversation created successfully', [
                 'user' => new UserResource($user),

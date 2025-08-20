@@ -20,6 +20,7 @@ class MedicationReminderService
             'frequency' => ['required', 'integer', 'min:1'], // e.g., 1 = once daily, 2 = twice daily
             'time'           => ['required', 'date_format:H:i:s'],
             'notes'          => ['nullable', 'string'],
+            'is_active' => ['sometimes', 'boolean'], 
         ]);
 
         if ($validator->fails()) {
@@ -32,6 +33,7 @@ class MedicationReminderService
     public function save(array $data, ?int $id = null): MedicationReminder
     {
         $validated = $this->validate($data);
+        $validated['is_active'] = $validated['is_active'] ?? true;
 
         return DB::transaction(function () use ($validated, $id) {
             if ($id) {

@@ -54,24 +54,38 @@ class FoodAnalyzerAIAssistanceService
                 $originalName = $file->getClientOriginalName();
                 $titleText = 'Analysis of ' . pathinfo($originalName, PATHINFO_FILENAME);
             } else {
-                $titleText = trim((string) $request->prompt ?? $request->quick_action ?? '');
+                $titleText = trim((string) ($request->prompt ?? $request->quick_action ?? ''));
             }
 
+            // ✅ Try to generate title locally first
             $title = $this->generateTitleFromPrompt($titleText);
 
+            // ✅ If no local title, ask GPT
             if (empty($title)) {
-                $aiTitlePrompt = "Generate a concise conversation title for this prompt: " . $titleText;
+                $aiTitlePrompt = [
+                    [
+                        'role'    => 'system',
+                        'content' => 'You are an AI that generates short, clear conversation titles.'
+                    ],
+                    [
+                        'role'    => 'user',
+                        'content' => "Generate a concise conversation title for this prompt: {$titleText}"
+                    ],
+                ];
+
                 $title = $this->chatgpt_service->sendPrompt($aiTitlePrompt);
                 $title = Str::limit(trim($title), 255);
             }
 
+            // ✅ Validate input
             $validated = $this->validated([
-                'prompt' => $request->prompt,
+                'prompt'          => $request->prompt,
                 'conversation_id' => $request->conversation_id ?? 0,
-                'ai_type' => $request->ai_type,
-                'title' => $title,
+                'ai_type'         => $request->ai_type,
+                'title'           => $title,
             ]);
 
+            // ✅ Conversation handling
             if (!empty($validated['conversation_id']) && $validated['conversation_id'] > 0) {
                 $conversation = Conversation::where('id', $validated['conversation_id'])
                     ->where('user_id', $user->id)
@@ -84,7 +98,7 @@ class FoodAnalyzerAIAssistanceService
                 $conversation = Conversation::create([
                     'user_id' => $user->id,
                     'ai_type' => $validated['ai_type'] ?? '',
-                    'title' => $validated['title'],
+                    'title'   => $validated['title'],
                 ]);
             }
 
@@ -96,6 +110,7 @@ class FoodAnalyzerAIAssistanceService
                 $path = $request->file('prompt')->store('uploads', 'public');
                 $fileUrl = asset('storage/' . $path);
                 $request->merge(['file' => $request->file('prompt')]);
+
                 $uploadedFileSummary = $this->uploadedFile($request);
                 $promptText = "File uploaded: " . $fileUrl;
             } else {
@@ -106,12 +121,14 @@ class FoodAnalyzerAIAssistanceService
                 throw new Exception('Prompt (text or file) is required.');
             }
 
+            // ✅ Save user prompt in chat
             $prompt = new Chat([
-                'sender' => 'user',
+                'sender'  => 'user',
                 'content' => $promptText,
             ]);
             $conversation->chats()->save($prompt);
 
+            // ✅ Load Nyla food analysis system instructions
             $instructionsJson = Storage::get('ai_contexts/food_analysis_instructions.json');
             $instructions = json_decode($instructionsJson, true);
 
@@ -121,21 +138,36 @@ class FoodAnalyzerAIAssistanceService
                 $systemPrompt .= "\n\n" . $uploadedFileSummary;
             }
 
-            $responseText = $this->chatgpt_service->sendPrompt($systemPrompt);
+            // ✅ Pass structured messages instead of string
+            $messages = [
+                [
+                    'role'    => 'system',
+                    'content' => $systemPrompt,
+                ],
+                [
+                    'role'    => 'user',
+                    'content' => $promptText,
+                ],
+            ];
 
+            // ✅ Call GPT
+            $responseText = $this->chatgpt_service->sendPrompt($messages);
+
+            // ✅ Save AI response
             $response = new Chat([
-                'sender' => 'ai',
+                'sender'  => 'ai',
                 'content' => $responseText,
             ]);
             $conversation->chats()->save($response);
 
             return [
                 'conversation' => $conversation,
-                'prompt' => $promptText,
-                'response' => $responseText,
+                'prompt'       => $promptText,
+                'response'     => $responseText,
             ];
         });
     }
+
 
     public function uploadedFile(Request $request)
     {

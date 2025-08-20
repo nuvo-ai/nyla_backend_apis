@@ -54,15 +54,26 @@ class MentalHealthAIAssistanceService
 
             $titleText = "Mental Health Assessment for User: " . $user->name;
 
+            // ✅ Generate title locally first
             $title = $this->generateTitleFromPrompt($titleText);
 
             if (empty($title)) {
-                $aiTitlePrompt = "Generate a concise title for a mental health assessment conversation: " . $titleText;
+                $aiTitlePrompt = [
+                    [
+                        'role'    => 'system',
+                        'content' => 'You are an AI that generates short, clear conversation titles.'
+                    ],
+                    [
+                        'role'    => 'user',
+                        'content' => "Generate a concise title for a mental health assessment conversation: {$titleText}"
+                    ],
+                ];
+
                 $title = $this->chatgpt_service->sendPrompt($aiTitlePrompt);
                 $title = Str::limit(trim($title), 255);
             }
 
-            // ✅ Validate request with question + answer
+            // ✅ Validate question/answer responses
             $validated = $this->validated($request->all());
 
             // ✅ Create or get conversation
@@ -82,7 +93,7 @@ class MentalHealthAIAssistanceService
                 ]);
             }
 
-            // ✅ Save user responses into chats (with question + answer)
+            // ✅ Save user responses into chats
             foreach ($validated['responses'] as $resp) {
                 $prompt = new Chat([
                     'sender'  => 'user',
@@ -91,17 +102,25 @@ class MentalHealthAIAssistanceService
                 $conversation->chats()->save($prompt);
             }
 
-            // ✅ Load structured AI instructions
+            // ✅ Load structured system instructions
             $systemInstructions = $this->getSystemPrompt();
 
-            // ✅ Build final prompt with responses
-            $systemPrompt = $systemInstructions . "\n\nUser responses:\n";
-            foreach ($validated['responses'] as $resp) {
-                $systemPrompt .= "Q: {$resp['question']}\nA: {$resp['answer']}\n";
-            }
+            // ✅ Build structured messages for GPT
+            $messages = [
+                [
+                    'role'    => 'system',
+                    'content' => $systemInstructions,
+                ],
+                [
+                    'role'    => 'user',
+                    'content' => "Here are my responses:\n" . collect($validated['responses'])
+                        ->map(fn($r) => "Q: {$r['question']}\nA: {$r['answer']}")
+                        ->implode("\n\n"),
+                ],
+            ];
 
-            // ✅ Send to AI
-            $responseText = $this->chatgpt_service->sendPrompt($systemPrompt);
+            // ✅ Call GPT with messages
+            $responseText = $this->chatgpt_service->sendPrompt($messages);
 
             // ✅ Save AI response
             $response = new Chat([
@@ -117,6 +136,7 @@ class MentalHealthAIAssistanceService
             ];
         });
     }
+
 
     /**
      * Generate a short title for conversation

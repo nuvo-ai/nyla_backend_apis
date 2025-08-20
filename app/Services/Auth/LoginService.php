@@ -66,7 +66,10 @@ class LoginService
                     throw new AuthException("Invalid role for Hospital user.");
                 }
             }
-
+            $hospital = $hospitalUser->hospital;
+            if (!$hospital || strtolower($hospital->status) !== 'approved') {
+                throw new AuthException("The hospital is not yet approved. Please wait for approval.");
+            }
             if (!empty($token = $data["fcm_token"] ?? null)) {
                 $user->update([
                     "fcm_token" => $token

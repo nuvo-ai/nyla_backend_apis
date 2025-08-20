@@ -113,10 +113,10 @@ class UserService
             }
 
             $user = User::create($validated);
-
+             
             if ($user->portal && $user->portal->name === 'Hospital') {
                 $authUser = auth()->user();
-                $hospitalId = $data['hospital_id'] ?? ($authUser && $authUser->hospitalUser->hospital ? $authUser->hospitalUser->hospital->id : null);
+                $hospitalId = $data['hospital_id'] ?? ($authUser && $authUser?->hospitalUser?->hospital ? $authUser?->hospitalUser?->hospital->id : null);
                 $userAccountId = $authUser ? $authUser->id : $user->id;
 
                 $user->hospitalUser()->create([

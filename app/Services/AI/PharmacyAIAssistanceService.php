@@ -47,9 +47,15 @@ class PharmacyAIAssistanceService
     {
         return DB::transaction(function () use ($request) {
             $user = Auth::user();
-            if (!$user->hospitalUser || strtolower(!$user->hospitalUser->role) === 'doctor') {
+
+            // ✅ Fix role check logic
+            if (
+                !$user->hospitalUser ||
+                !in_array(strtolower($user->hospitalUser->role), ['doctor', 'frontdesk', 'admin'])
+            ) {
                 throw new Exception('Please, these chats or conversations are only meant for doctors.');
             }
+
             $titleText = $request->prompt ?? $request->quick_action;
             $title = $this->generateTitleFromPrompt($titleText);
 
@@ -77,19 +83,24 @@ class PharmacyAIAssistanceService
                 ]);
             }
 
+            // Save user’s prompt
             $prompt = new Chat([
                 'sender' => 'user',
                 'content' => $request->prompt ?? $request->quick_action,
             ]);
             $conversation->chats()->save($prompt);
 
+            // Handle file uploads
             $uploadedFileSummary = '';
             if ($request->hasFile('file')) {
                 $uploadedFileSummary = $this->uploadedFile($request);
             }
+
+            // Handle order info if provided
             $orderSummary = "";
             if ($request->filled('order_id')) {
-                $order = Order::with(['orderItems.medication', 'pharmacy', 'creator.hospitalUser'])->find($request->order_id);
+                $order = Order::with(['orderItems.medication', 'pharmacy', 'creator.hospitalUser'])
+                    ->find($request->order_id);
 
                 if ($order) {
                     $createdByUser = optional($order->createdBy);
@@ -120,9 +131,11 @@ class PharmacyAIAssistanceService
                 }
             }
 
+            // Build prompt text
             $quickAction = $request->quick_action ? "\n\n[Action Requested]: " . $request->quick_action : '';
             $promptText = trim($request->prompt ?? '');
             $hasFile = $request->hasFile('file');
+
             if (empty($promptText) && empty($quickAction) && $hasFile) {
                 $promptText = "You have uploaded a file. Please specify what you want Nyla AI to do with this file.";
             }
@@ -130,18 +143,53 @@ class PharmacyAIAssistanceService
             if (empty($promptText) && empty($quickAction) && !$hasFile) {
                 throw new Exception('Prompt or quick action is required.');
             }
+
+            // ✅ Load pharmacy context from storage
             $instructionsJson = Storage::get('ai_contexts/pharmacy_instructions.json');
             $instructions = json_decode($instructionsJson, true);
 
-            $systemPrompt = "You are an assistant for the Nyla app. Here's the app context:\n\n"
-                . json_encode($instructions, JSON_PRETTY_PRINT)
-                . $orderSummary
-                . $uploadedFileSummary
-                . $quickAction
-                . "\n\nUser asked: " .  $promptText;
+            // ✅ Flatten into usable rules
+            $pharmacyGuidelines = "
+You are Nyla AI, an intelligent pharmacy assistant designed for Africa (starting with Nigeria).
 
-            $responseText = $this->chatgpt_service->sendPrompt($systemPrompt);
+### Core Responsibilities:
+- Recommend safe and affordable drug alternatives.
+- Prioritize: 1) Medication safety, 2) Affordability, 3) Local availability.
+- Consider Nigerian realities: NAFDAC-approved generics, common local brands (Amatem, Lonart, Exiplon, Emzor Paracetamol).
+- Warn immediately if a prescription looks dangerous (e.g., overdose or contraindication).
+- If user’s request is outside pharmacy scope (e.g., admin access), redirect them to support@nyla.africa.
 
+### Conversation Guidelines:
+- If Ibuprofen is out of stock → Suggest Diclofenac 50mg (Voltaren) or Paracetamol (Emzor).
+- If prescription is dangerous → Say: 'Warning: This prescription exceeds safe limits. Please confirm with the prescriber.'
+- If request is out of scope → Say: 'I specialize in pharmaceutical operations. Kindly contact support@nyla.africa for that request.'
+
+### Safety Clause:
+Always remind: 'All medication recommendations must be verified by a licensed pharmacist before dispensing. Nyla AI supports—but does not replace—pharmacist expertise.'
+";
+
+            // ✅ Build messages for GPT
+            $messages = [
+                [
+                    'role' => 'system',
+                    'content' => $pharmacyGuidelines
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $promptText . $orderSummary . $uploadedFileSummary . $quickAction
+                ]
+            ];
+
+            // ✅ Send prompt to ChatGPT
+            $responseText = $this->chatgpt_service->sendPrompt($messages);
+
+            // ✅ Ensure safety clause is always included
+            $safetyReminder = "All medication recommendations must be verified by a licensed pharmacist before dispensing. Nyla AI supports—but does not replace—pharmacist expertise.";
+            if (stripos($responseText, "pharmacist") === false) {
+                $responseText .= "\n\n" . $safetyReminder;
+            }
+
+            // Save AI response
             $response = new Chat([
                 'sender' => 'ai',
                 'content' => $responseText,
@@ -155,6 +203,7 @@ class PharmacyAIAssistanceService
             ];
         });
     }
+
 
     public function uploadedFile(Request $request)
     {

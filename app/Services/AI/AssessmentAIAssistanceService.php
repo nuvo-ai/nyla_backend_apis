@@ -56,8 +56,19 @@ class AssessmentAIAssistanceService
 
             $title = $this->generateTitleFromPrompt($titleText);
 
+            // ✅ Use array messages for GPT title generation
             if (empty($title)) {
-                $aiTitlePrompt = "Generate a concise title for a mental health assessment conversation: " . $titleText;
+                $aiTitlePrompt = [
+                    [
+                        'role'    => 'system',
+                        'content' => 'You are an AI that generates short, clear conversation titles.'
+                    ],
+                    [
+                        'role'    => 'user',
+                        'content' => "Generate a concise title for a mental health assessment conversation: {$titleText}"
+                    ],
+                ];
+
                 $title = $this->chatgpt_service->sendPrompt($aiTitlePrompt);
                 $title = Str::limit(trim($title), 255);
             }
@@ -94,14 +105,23 @@ class AssessmentAIAssistanceService
             // ✅ Load structured AI instructions
             $systemInstructions = $this->getSystemPrompt();
 
-            // ✅ Build final prompt with responses
-            $systemPrompt = $systemInstructions . "\n\nUser responses:\n";
-            foreach ($validated['responses'] as $resp) {
-                $systemPrompt .= "Q: {$resp['question']}\nA: {$resp['answer']}\n";
-            }
+            // ✅ Build GPT messages array
+            $messages = [
+                [
+                    'role'    => 'system',
+                    'content' => $systemInstructions,
+                ],
+                [
+                    'role'    => 'user',
+                    'content' => "Here are the user's mental health assessment responses:\n\n" .
+                        collect($validated['responses'])
+                        ->map(fn($resp) => "Q: {$resp['question']}\nA: {$resp['answer']}")
+                        ->implode("\n\n"),
+                ],
+            ];
 
             // ✅ Send to AI
-            $responseText = $this->chatgpt_service->sendPrompt($systemPrompt);
+            $responseText = $this->chatgpt_service->sendPrompt($messages);
 
             // ✅ Save AI response
             $response = new Chat([
@@ -117,6 +137,7 @@ class AssessmentAIAssistanceService
             ];
         });
     }
+
 
     /**
      * Generate a short title for conversation

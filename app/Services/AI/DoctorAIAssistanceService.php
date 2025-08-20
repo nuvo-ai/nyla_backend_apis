@@ -47,6 +47,8 @@ class DoctorAIAssistanceService
     {
         return DB::transaction(function () use ($request) {
             $user = Auth::user();
+
+            // ✅ Fix role check logic
             if (
                 !$user->hospitalUser ||
                 !in_array(strtolower($user->hospitalUser->role), ['doctor', 'admin', 'frontdesk'])
@@ -54,15 +56,33 @@ class DoctorAIAssistanceService
                 throw new Exception('Please, these chats or conversations are only meant for doctors or admins.');
             }
 
-
+            // ✅ Title generation
             $titleText = $request->prompt ?? $request->quick_action ?? '';
             $title = $this->generateTitleFromPrompt($titleText);
             if (empty($title)) {
-                $aiTitlePrompt = "Generate a concise conversation title for this prompt: " . $titleText;
-                $title = $this->chatgpt_service->sendPrompt($aiTitlePrompt);
-                $title = Str::limit(trim($title), 255);
+                $aiTitlePrompt = [
+                    [
+                        'role' => 'system',
+                        'content' => "You are an assistant that generates very short and clear conversation titles."
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => "Generate a concise conversation title for this prompt: " . $titleText
+                    ]
+                ];
+
+                $aiTitleResponse = $this->chatgpt_service->sendPrompt($aiTitlePrompt);
+
+                // If sendPrompt returns an array with content
+                if (is_array($aiTitleResponse) && isset($aiTitleResponse['content'])) {
+                    $title = Str::limit(trim($aiTitleResponse['content']), 255);
+                } elseif (is_string($aiTitleResponse)) {
+                    $title = Str::limit(trim($aiTitleResponse), 255);
+                }
             }
 
+
+            // ✅ Validation
             $validated = $this->validated([
                 'prompt' => $request->prompt,
                 'conversation_id' => $request->conversation_id ?? 0,
@@ -70,6 +90,7 @@ class DoctorAIAssistanceService
                 'title' => $title,
             ]);
 
+            // ✅ Existing vs new conversation
             if (!empty($validated['conversation_id']) && $validated['conversation_id'] > 0) {
                 $conversation = Conversation::where('id', $validated['conversation_id'])
                     ->where('user_id', $user->id)
@@ -87,11 +108,13 @@ class DoctorAIAssistanceService
                 ]);
             }
 
+            // ✅ File uploads
             $uploadedFileSummary = '';
             if ($request->hasFile('file')) {
                 $uploadedFileSummary = $this->uploadedFile($request);
             }
 
+            // ✅ Patient summary
             $patientSummary = "";
             if ($request->filled('patient_id')) {
                 $patient = HospitalPatient::find($request->patient_id);
@@ -126,23 +149,23 @@ class DoctorAIAssistanceService
                     if (!empty($patient->current_symptoms)) {
                         $details[] = "Current Symptoms: " . implode(', ', (array) $patient->current_symptoms);
                     }
-
                     if (!empty($patient->know_allergies)) {
                         $details[] = "Known Allergies: " . implode(', ', (array) $patient->know_allergies);
                     }
-
                     if (!empty($patient->current_medications)) {
                         $details[] = "Current Medications: " . implode(', ', (array) $patient->current_medications);
                     }
                     if ($patient->user && $patient->user->date_of_birth) {
                         $details[] = "Date of Birth (from User): " . $patient->user->date_of_birth;
                     }
+
                     $patientSummary = "\n\n" . implode("\n", $details);
                 } else {
                     $patientSummary = "\n\n[Patient EMR Tag]: No patient found with the provided ID.";
                 }
             }
 
+            // ✅ Prompt building
             $quickAction = $request->quick_action ? "\n\n[Action Requested]: " . $request->quick_action : '';
             $promptText = trim($request->prompt ?? '');
 
@@ -157,24 +180,67 @@ class DoctorAIAssistanceService
 
             $safeContent = $request->prompt ?? $request->quick_action ?? $promptText ?? "No input provided.";
 
+            // ✅ Save user’s prompt
             $prompt = new Chat([
                 'sender' => 'user',
                 'content' => $safeContent,
             ]);
             $conversation->chats()->save($prompt);
 
+            // ✅ Load doctor context
             $instructionsJson = Storage::get('ai_contexts/doctor_instructions.json');
             $instructions = json_decode($instructionsJson, true);
 
-            $systemPrompt = "You are an assistant for the Nyla app. Here's the app context:\n\n"
-                . json_encode($instructions, JSON_PRETTY_PRINT)
-                . $patientSummary
-                . $uploadedFileSummary
-                . $quickAction
-                . "\n\nUser asked: " .  $promptText;
+            // ✅ Flatten into structured guidelines
+            $doctorGuidelines = "
+You are Nyla AI, a medical intelligence assistant designed for doctors across Africa.
 
-            $responseText = $this->chatgpt_service->sendPrompt($systemPrompt);
+### Core Responsibilities:
+- Analyze patient data & vitals.
+- Provide AI-generated insights & possible diagnoses.
+- Suggest treatment options based on Nigerian/African standards & drug availability.
+- Support tagging patients: Critical, Needs Follow-Up, Stable, Chronic Case, Mental Health Risk.
+- Respect local realities (malaria, typhoid, hypertension, herbal medicine use).
 
+### Conversation Guidelines:
+- If insufficient data → Respond: 'Kindly provide more information or patient vitals to proceed with analysis.'
+- If out of medical scope (admin/tech requests) → Respond: 'I assist strictly with clinical insights. Please contact your admin panel for this request.'
+- Always structure responses as:
+  1. Summary
+  2. Possible Conditions
+  3. Recommended Actions
+  4. Tags to Apply
+
+### Example Recommendations:
+- Malaria → 'Start Artemether-Lumefantrine (e.g., Amatem or Lonart), confirm with thick blood smear.'
+- Hypertension → 'Consider Amlodipine or Lisinopril. Advise low-salt diet, follow-up in 2 weeks.'
+
+### Safety Clause:
+All recommendations are AI-generated and must be verified with clinical judgment. This tool supports—but does not replace—medical decision-making.
+";
+
+            // ✅ Build messages for GPT
+            $messages = [
+                [
+                    'role' => 'system',
+                    'content' => $doctorGuidelines
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $promptText . $patientSummary . $uploadedFileSummary . $quickAction
+                ]
+            ];
+
+            // ✅ Send to GPT
+            $responseText = $this->chatgpt_service->sendPrompt($messages);
+
+            // ✅ Ensure safety clause is always present
+            $safetyReminder = "All recommendations are AI-generated and must be verified with clinical judgment. This tool supports—but does not replace—medical decision-making.";
+            if (stripos($responseText, "clinical judgment") === false) {
+                $responseText .= "\n\n" . $safetyReminder;
+            }
+
+            // ✅ Save AI response
             $response = new Chat([
                 'sender' => 'ai',
                 'content' => $responseText ?? "No response generated.",
@@ -188,6 +254,7 @@ class DoctorAIAssistanceService
             ];
         });
     }
+
 
 
     public function uploadedFile(Request $request)
