@@ -198,7 +198,10 @@ class PatientController extends Controller
         try {
             $emrs = $this->patient_service->listEmrs();
             if ($emrs->isEmpty()) {
-                return ApiHelper::problemResponse("No EMRs found for this hospital.", ApiConstants::NOT_FOUND_ERR_CODE);
+                return [
+                    'message' => 'No EMRs found',
+                    'data' => [],
+                ];
             }
             return ApiHelper::validResponse(
                 "EMR list retrieved successfully",
