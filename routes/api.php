@@ -103,6 +103,8 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::put('/update/{id}', [HospitalRegistrationController::class, 'updateHospital'])->name('update');
         Route::get('list', [HospitalRegistrationController::class, 'list'])->name('list');
         Route::get('/details', [HospitalRegistrationController::class, 'getHospital'])->name('details');
+        Route::get('emrs', [PatientController::class, 'hospitalEmrs'])->name('emrs');
+
 
         Route::prefix('users')->as('users.')->group(function () {
             Route::post('/create', [HospitalUsersController::class, 'create'])->name('create');
@@ -169,7 +171,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::prefix('mental-health')->as('mental-health.')->group(function () {
             Route::post('conversations/ask', [MentalHealthAIAssistanceController::class, 'ask'])->name('conversations.ask');
         });
-         Route::prefix('assessment')->as('assessment.')->group(function () {
+        Route::prefix('assessment')->as('assessment.')->group(function () {
             Route::post('conversations/ask', [AssessmentAIAssistanceController::class, 'ask'])->name('conversations.ask');
         });
 

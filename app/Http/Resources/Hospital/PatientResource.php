@@ -41,6 +41,8 @@ class PatientResource extends JsonResource
             'visit_type'              => $this->visit_type,
             'referral_source'         => $this->referral_source,
             'status'                  => $this->status,
+            "created_at" => formatDate($this->created_at),
+            "updated_at" => formatDate($this->updated_at),
         ];
     }
 

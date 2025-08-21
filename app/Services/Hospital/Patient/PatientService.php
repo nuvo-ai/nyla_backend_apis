@@ -264,7 +264,14 @@ class PatientService
         ];
     }
 
-
+    public function listEmrs()
+    {
+        return HospitalEMR::with(['hospital', 'patient'])
+            ->whereHas('hospital', function ($query) {
+                $query->where('id', User::getAuthenticatedUser()?->hospitalUser?->hospital?->id);
+            })
+            ->get();
+    }
 
 
     public function assign(Request $request, $patient)

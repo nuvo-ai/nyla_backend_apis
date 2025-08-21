@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Hospital\Patient;
 use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Hospital\EMRResource;
 use App\Http\Resources\Hospital\PatientResource;
 use App\Mail\SendUserLoginDetailsMail;
 use App\Models\User\User;
@@ -187,6 +188,22 @@ class PatientController extends Controller
             return ApiHelper::validResponse("Patient status updated successfully", $updatedPatient);
         } catch (ModelNotFoundException $e) {
             return ApiHelper::problemResponse("Patient not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+
+     public function hospitalEmrs(Request $request)
+    {
+        try {
+            $emrs = $this->patient_service->listEmrs();
+            if ($emrs->isEmpty()) {
+                return ApiHelper::problemResponse("No EMRs found for this hospital.", ApiConstants::NOT_FOUND_CODE);
+            }
+            return ApiHelper::validResponse(
+                "EMR list retrieved successfully",
+                EMRResource::collection($emrs)
+            );
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
