@@ -156,7 +156,7 @@ class PatientService
     {
         $user = User::getAuthenticatedUser();
 
-        $query = HospitalPatient::with(['user', 'hospital', 'doctor']);
+        $query = HospitalPatient::with(['user', 'hospital', 'doctor'])->whereDoesntHave('emrs');
 
         if ($user?->hospitalUser?->hospital?->id) {
             $query->where('hospital_id', $user->hospitalUser->hospital->id);
