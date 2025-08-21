@@ -33,7 +33,7 @@ class HospitalPatient extends Model
 
     public function emrs()
     {
-        return $this->hasMany(HospitalEMR::class);
+        return $this->hasMany(HospitalEMR::class, 'patient_id', 'id'); 
     }
 
 
