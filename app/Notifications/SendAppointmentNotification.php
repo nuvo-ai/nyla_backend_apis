@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Notifications\User;
+namespace App\Notifications;
 
-use App\Models\User\MedicationReminder;
+use App\Models\Hospital\Appointment;
+use App\Models\Hospital\Hospital;
+use App\Models\Hospital\HospitalAppointment;
 use App\Models\User\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -10,16 +12,16 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class MedicationDueNotification extends Notification
+class SendAppointmentNotification extends Notification
 {
     use Queueable;
 
-    protected MedicationReminder $reminder;
+    protected HospitalAppointment $appointment;
     protected User $recipient;
 
-    public function __construct(MedicationReminder $reminder, User $recipient)
+    public function __construct(HospitalAppointment $appointment, User $recipient)
     {
-        $this->reminder = $reminder;
+        $this->appointment = $appointment;
         $this->recipient = $recipient;
     }
 
@@ -44,38 +46,50 @@ class MedicationDueNotification extends Notification
 
         $mail = (new MailMessage)
             ->subject($data['title'])
-            ->greeting("Hello {$notifiable->full_name},")
-            ->line("⏰ It's time to take your medication!")
-            ->line("Here are the details of your reminder:")
-            ->line('💊 Medication: **' . $this->reminder->name . '**')
-            ->line('📦 Dosage: ' . (!empty($this->reminder->dosage) ? $this->reminder->dosage : 'Not specified'))
-            ->line('🕒 Time: ' . $this->reminder->time);
+            ->line($data['message'])
+            ->line('Patient Name: ' . $this->appointment->patient_name)
+            ->line('Appointment Date: ' . $this->appointment->appointment_date)
+            ->line('Appointment Time: ' . $this->appointment->appointment_time)
+            ->line('Status: ' . ucfirst($this->appointment->status));
 
         if (!empty($data['link'])) {
-            $mail->action('View Reminder', url($data['link']));
+            $mail->action('View Appointment', url($data['link']));
         }
 
-        return $mail
-            ->line('✅ Please make sure to take your medication on time for best health results.')
-            ->salutation('— Your Health Reminder Assistant');
+        return $mail->line('Thank you for your attention.');
     }
 
 
     protected function buildData($notifiable): array
     {
-        $title = "Medication Reminder: {$this->reminder->name}";
+        $doctorId = optional($this->appointment->doctor)->id;
+        $schedulerId = $this->appointment->scheduler_id;
 
-        $message = "Hey {$notifiable->full_name}!" . PHP_EOL
-            . "It's time to take your medication '{$this->reminder->name}'"
-            . (!empty($this->reminder->dosage) ? " (Dosage: {$this->reminder->dosage})" : "")
-            . " at {$this->reminder->time}.";
+        $isDoctor = $this->recipient->id === $doctorId;
+        $isScheduler = $this->recipient->id === $schedulerId;
+
+        $doctorName = optional(optional($this->appointment->doctor)->user)->full_name ?? 'Doctor';
+        $patientName = $this->appointment->patient_name;
+
+        if ($isDoctor) {
+            $title = "New Appointment with Patient: $patientName";
+            $message = "You have a new appointment scheduled with $patientName.";
+        } elseif ($isScheduler) {
+            $title = "Appointment Scheduled Successfully";
+            $message = "Your appointment with Dr. $doctorName has been successfully scheduled.";
+        } else {
+            $title = "New Appointment Notification";
+            $message = "A new appointment has been scheduled.";
+        }
 
         return [
             'title' => $title,
             'message' => $message,
-            'medication_name' => $this->reminder->name,
-            'dosage' => $this->reminder->dosage,
-            'time' => $this->reminder->time,
+            'appointment_id' => $this->appointment->id,
+            'patient_name' => $this->appointment->patient_name,
+            'appointment_date' => $this->appointment->appointment_date,
+            'appointment_time' => $this->appointment->appointment_time,
+            'status' => $this->appointment->status,
             'link' => null,
         ];
     }
