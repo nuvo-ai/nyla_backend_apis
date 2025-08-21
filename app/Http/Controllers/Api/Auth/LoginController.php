@@ -43,13 +43,16 @@ class LoginController extends Controller
             LoginService::newLogin($user);
             return ApiHelper::validResponse("Logged in successfully", $data);
         } catch (ValidationException $e) {
+            dd($e);
             report_error($e);
             $message = $e->validator->errors()->first();
             return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (AuthException $e) {
+               dd($e);
             report_error($e);
             return ApiHelper::problemResponse($e->getMessage(), ApiConstants::BAD_REQ_ERR_CODE, null, $e);
         } catch (Exception $e) {
+               dd($e);
             report_error($e);
             return ApiHelper::throwableResponse($e, $request);
         }
