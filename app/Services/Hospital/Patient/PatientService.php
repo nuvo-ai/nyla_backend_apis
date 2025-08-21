@@ -7,6 +7,7 @@ use App\Constants\General\StatusConstants;
 use App\Constants\User\UserConstants;
 use App\Http\Resources\Hospital\DoctorResource;
 use App\Models\Hospital\Doctor;
+use App\Models\Hospital\HospitalEMR;
 use App\Models\Hospital\HospitalPatient;
 use App\Models\Hospital\HospitalUser;
 use App\Models\User\User;
@@ -126,6 +127,27 @@ class PatientService
                 $patient = HospitalPatient::create($payload);
             }
 
+            // ----- EMR Handling -----
+            $emrPayload = [
+                'hospital_id' => $user?->hospitalUser?->hospital->id,
+                'patient_id'  => $patient->id,
+                'status'      => $patient->status,
+            ];
+
+            $emr = HospitalEMR::firstWhere('patient_id', $patient->id);
+
+            // Only create EMR if vital medical info exists
+            $hasMedicalInfo = !empty($patient->temperature) ||
+                !empty($patient->blood_pressure) ||
+                !empty($patient->chief_complaints) ||
+                !empty($patient->medical_history);
+
+            if ($emr) {
+                $emr->update($emrPayload);
+            } elseif ($hasMedicalInfo) {
+                HospitalEMR::create($emrPayload);
+            }
+
             return $patient->load('hospital', 'doctor', 'user');
         });
     }
@@ -165,17 +187,40 @@ class PatientService
         $status = $request->status;
         if ($status !== StatusConstants::DISCHARGED) {
             throw ValidationException::withMessages([
-                'status' => ['bad method provided.']
+                'status' => ['Bad method provided.']
             ]);
         }
+
         $patient = HospitalPatient::findOrFail($patient_id);
+
         if ($patient->status === StatusConstants::DISCHARGED) {
             throw ValidationException::withMessages([
                 'status' => ['Patient has already been discharged.']
             ]);
         }
-        $patient->status = $status;
-        $patient->save();
+
+        DB::transaction(function () use ($patient, $status) {
+            $patient->status = $status;
+            $patient->save();
+
+            $hasMedicalInfo = !empty($patient->temperature) ||
+                !empty($patient->blood_pressure) ||
+                !empty($patient->chief_complaints) ||
+                !empty($patient->medical_history);
+            if (!$hasMedicalInfo) {
+                throw ValidationException::withMessages([
+                    'medical_info' => ['Cannot discharge patient without vital medical information.']
+                ]);
+            }
+
+            // Update EMR status if EMR exists
+            $emr = HospitalEMR::firstWhere('patient_id', $patient->id);
+            if ($emr) {
+                $emr->status = $status;
+                $emr->save();
+            }
+        });
+
         return [
             'id' => $patient->id,
             'status' => $patient->status,
@@ -185,6 +230,7 @@ class PatientService
     public function updateStatus(Request $request, $patient_id)
     {
         $status = $request->status;
+
         if (!in_array($status, StatusConstants::HOSPITAL_PATIENT_STATUSES)) {
             throw ValidationException::withMessages([
                 'status' => ['Invalid status provided.']
@@ -200,14 +246,24 @@ class PatientService
             ]);
         }
 
-        $patient->status = $status;
-        $patient->save();
+        DB::transaction(function () use ($patient, $status) {
+            $patient->status = $status;
+            $patient->save();
+
+            // Sync EMR status
+            $emr = HospitalEMR::firstWhere('patient_id', $patient->id);
+            if ($emr) {
+                $emr->status = $status;
+                $emr->save();
+            }
+        });
 
         return [
             'id' => $patient->id,
             'status' => $patient->status,
         ];
     }
+
 
 
 

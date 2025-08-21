@@ -5,13 +5,17 @@ namespace App\Services\Hospital;
 use App\Constants\General\AppConstants;
 use App\Constants\User\UserConstants;
 use App\Exceptions\General\ModelNotFoundException;
+use App\Mail\SendUserLoginDetailsMail;
 use App\Models\General\Service;
 use App\Models\Hospital\Hospital;
 use Illuminate\Http\UploadedFile;
 use App\Models\General\Department;
 use App\Models\User\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
@@ -143,7 +147,6 @@ class HospitalService
                 ]);
             }
         }
-
         return $hospital->load(['user', 'contacts', 'departments', 'services', 'operatingHours']);
     }
 
@@ -309,6 +312,7 @@ class HospitalService
     public function approveHospital(Hospital $hospital): Hospital
     {
         $hospital->update(['status' => 'approved']);
+        $this->sendLoginDetailsDuringhospitalRegistration($hospital->user->id);
         return $hospital;
     }
 
@@ -325,5 +329,19 @@ class HospitalService
         }
 
         return $file->store($directory, 'public');
+    }
+
+    private function sendLoginDetailsDuringhospitalRegistration($user_id)
+    {
+        try {
+            $user = User::findOrFail($user_id);
+            $random_password = Str::random(10);
+            $user->password = Hash::make($random_password);
+            $user->save();
+            Mail::to($user->email)->send(new SendUserLoginDetailsMail($user, $random_password));
+            return $user->toArray();
+        } catch (\Exception $e) {
+            return ['error_message' => 'An error occurred while sending login details to user.'];
+        }
     }
 }

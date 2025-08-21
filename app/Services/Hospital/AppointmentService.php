@@ -198,8 +198,32 @@ class AppointmentService
     }
     public function listAppointments(array $filters = []): Collection
     {
-        $query = HospitalAppointment::where('scheduler_id', auth()->id())->with(['hospital', 'doctor', 'scheduler']);
+        $user = auth()->user();
+        $query = HospitalAppointment::with(['hospital', 'doctor', 'scheduler']);
 
+        // Role-based filtering
+        if ($user->hospitalUser) {
+            $role = strtolower($user->hospitalUser->role);
+
+            switch ($role) {
+                case 'admin':
+                case 'frontdesk':
+                    $query->where('hospital_id', $user->hospitalUser->hospital_id);
+                    break;
+
+                case 'doctor':
+                    $query->where('doctor_id', $user->hospitalUser->id);
+                    break;
+
+                default:
+                    $query->where('scheduler_id', $user->id);
+                    break;
+            }
+        } else {
+            $query->where('scheduler_id', $user->id);
+        }
+
+        // Apply period filter
         if (!empty($filters['period'])) {
             switch ($filters['period']) {
                 case 'today':
@@ -221,8 +245,21 @@ class AppointmentService
             }
         }
 
+        // Optional: search filter
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('doctor.user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                })->orWhereHas('scheduler', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
+            });
+        }
+
         return $query->get();
     }
+
 
     public function getAppointment($id): HospitalAppointment
     {

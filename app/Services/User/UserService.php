@@ -126,11 +126,6 @@ class UserService
                     'user_account_id' => $userAccountId,
                 ]);
             }
-
-            if (isset($portal)) {
-                $this->sendLoginDetailsDuringhospitalRegistration($user->id, request());
-            }
-
             return $user;
         } catch (\Throwable $th) {
             throw $th;
@@ -193,17 +188,4 @@ class UserService
         }
     }
 
-    private function sendLoginDetailsDuringhospitalRegistration($user_id, Request $request)
-    {
-        try {
-            $user = User::findOrFail($user_id);
-            $random_password = $request->input('password', Str::random(10));
-            $user->password = Hash::make($random_password);
-            $user->save();
-            Mail::to($user->email)->send(new SendUserLoginDetailsMail($user, $random_password));
-            return $user->toArray();
-        } catch (\Exception $e) {
-            return ['error_message' => 'An error occurred while sending login details to user.'];
-        }
-    }
 }
