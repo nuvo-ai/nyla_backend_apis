@@ -3,15 +3,33 @@
 namespace App\Helpers;
 
 use App\Constants\AppConstants;
-use App\Models\User;
+use App\Mail\SendUserLoginDetailsMail;
+use App\Models\User\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Helper
 {
+     public static function sendLoginDetails(Request $request, $user_id)
+    {
+        try {
+            $user = User::findOrFail($user_id);
+            $password = $request->password ?? Str::random(8);
+            $user->password = Hash::make($password);
+            $user->save();
+            Mail::to($user->email)->send(new SendUserLoginDetailsMail($user, $password));
+            return $user->toArray();
+        } catch (\Exception $e) {
+            return ['error_message' => 'An error occurred while sending login details to user.'];
+        }
+    }
+
     // function to convert time to 12 hour format
     public static function time24hrs($time)
     {

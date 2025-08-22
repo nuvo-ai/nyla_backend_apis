@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Hospital\Frontdesk;
 
 use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
+use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Hospital\FrontdeskResource;
 use App\Services\Hospital\FrontdeskService;
@@ -18,6 +19,7 @@ class FrontdeskController extends Controller
 {
     protected $frontdesk_service;
     protected $user_service;
+
 
     public function __construct()
     {
@@ -65,6 +67,7 @@ class FrontdeskController extends Controller
             ]);
 
             $frontdesk = $this->frontdesk_service->save($frontdeskPayload);
+            (new Helper)->sendLoginDetails($request, $frontdesk->user->id);
             DB::commit();
             return ApiHelper::validResponse("Frontdesk created successfully", FrontdeskResource::make($frontdesk));
         } catch (ValidationException $e) {

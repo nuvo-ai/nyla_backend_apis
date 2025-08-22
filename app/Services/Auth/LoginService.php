@@ -37,6 +37,9 @@ class LoginService
             ];
 
             if (isset($data["portal"]) && $data["portal"] === "Hospital") {
+                if (isset($data['role'])) {
+                    $data['role'] = ucwords(str_replace(['_', '-'], ' ', strtolower($data['role'])));
+                }
                 $roles = implode(',', UserConstants::ROLES);
                 $rules["role"] = "required|string|in:$roles";
             }

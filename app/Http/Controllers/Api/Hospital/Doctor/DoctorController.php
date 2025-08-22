@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Hospital\Doctor;
 
 use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
+use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Hospital\DoctorResource;
 use App\Services\Hospital\Doctor\DashboardStatsService;
@@ -65,6 +66,7 @@ class DoctorController extends Controller
             'user_id' => $user->id,
         ]);
         $doctor = $this->doctor_service->save($doctorPayload);
+         (new Helper)->sendLoginDetails($request, $doctor->user->id);
         DB::commit();
         return ApiHelper::validResponse("Doctor created successfully", DoctorResource::make($doctor));
     } catch (ValidationException $e) {
