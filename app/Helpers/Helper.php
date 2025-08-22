@@ -17,13 +17,9 @@ use Illuminate\Support\Str;
 
 class Helper
 {
-    public static function sendLoginDetails(Request $request, $user_id)
+    public static function sendLoginDetails($user, $password)
     {
         try {
-            $user = User::findOrFail($user_id);
-            $password = $request->password;
-            $user->password = Hash::make($password);
-            $user->save();
             Mail::to($user->email)->send(new SendUserLoginDetailsMail($user, $password));
             Log::info("Login details sent to user: {$user->email}", [
                 'user_id' => $user->id,

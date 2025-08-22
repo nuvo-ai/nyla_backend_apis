@@ -67,7 +67,7 @@ class FrontdeskController extends Controller
             ]);
 
             $frontdesk = $this->frontdesk_service->save($frontdeskPayload);
-            (new Helper)->sendLoginDetails($request, $frontdesk->user->id);
+           (new Helper)->sendLoginDetails($frontdesk->user, $frontdesk->user->plain_password);
             DB::commit();
             return ApiHelper::validResponse("Frontdesk created successfully", FrontdeskResource::make($frontdesk));
         } catch (ValidationException $e) {

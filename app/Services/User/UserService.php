@@ -106,13 +106,17 @@ class UserService
             $validated['status'] = $validated['status'] ?? StatusConstants::ACTIVE;
             $validated['role'] = $validated['role'] ?? UserConstants::USER;
             $validated['gender'] = $validated['gender'] ?? null;
-            $validated['password'] = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make(Str::random(10));
+            $plainPassword = !empty($validated['password'])
+                ? $validated['password']
+                : Str::random(10);
+
+            $validated['password'] = Hash::make($plainPassword);
 
             if (isset($portal)) {
                 $validated['portal_id'] = $portal->id ?? null;
             }
             $user = User::create($validated);
-             
+            $user->plain_password = $plainPassword;
             if ($user->portal && $user->portal->name === 'Hospital') {
                 $authUser = auth()->user();
                 $hospitalId = $data['hospital_id'] ?? ($authUser && $authUser?->hospitalUser?->hospital ? $authUser?->hospitalUser?->hospital->id : null);
@@ -186,5 +190,4 @@ class UserService
             throw $th;
         }
     }
-
 }

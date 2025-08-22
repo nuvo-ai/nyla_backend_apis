@@ -65,7 +65,8 @@ class DoctorController extends Controller
             'user_id' => $user->id,
         ]);
         $doctor = $this->doctor_service->save($doctorPayload);
-         (new Helper)->sendLoginDetails($request, $doctor->user->id);
+         (new Helper)->sendLoginDetails($doctor->user, $doctor->user->plain_password);
+
         DB::commit();
         return ApiHelper::validResponse("Doctor created successfully", DoctorResource::make($doctor));
     } catch (ValidationException $e) {
