@@ -57,7 +57,6 @@ class DoctorController extends Controller
     try {
         $userData = $request->except($this->requestedDoctorDataDuringCreation());
         $userData['portal'] = 'Hospital';
-
         $user = $this->user_service->create($userData);
         $hospitalUser = $user->hospitalUser;
         $requestDoctorData = $request->only($this->requestedDoctorDataDuringCreation());

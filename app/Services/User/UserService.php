@@ -111,7 +111,6 @@ class UserService
             if (isset($portal)) {
                 $validated['portal_id'] = $portal->id ?? null;
             }
-
             $user = User::create($validated);
              
             if ($user->portal && $user->portal->name === 'Hospital') {

@@ -54,7 +54,7 @@ class FrontdeskController extends Controller
             // User creation data
             $userData = $request->only(['name', 'first_name', 'last_name', 'phone_number', 'email', 'password', 'hospital_id']);
             $userData['portal'] = 'Hospital';
-
+            // dd($request, $userData);
             $user = $this->user_service->create($userData);
             $hospitalUser = $user->hospitalUser;
 
@@ -71,11 +71,11 @@ class FrontdeskController extends Controller
             DB::commit();
             return ApiHelper::validResponse("Frontdesk created successfully", FrontdeskResource::make($frontdesk));
         } catch (ValidationException $e) {
-             DB::rollBack();
+            DB::rollBack();
             $message = $e->getMessage() ?: $this->serverErrorMessage;
             return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
-             DB::rollBack();
+            DB::rollBack();
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
     }
@@ -88,14 +88,14 @@ class FrontdeskController extends Controller
             return ApiHelper::validResponse("Frontdesk updated successfully", FrontdeskResource::make($frontdesk));
             DB::commit();
         } catch (ValidationException $e) {
-             DB::rollBack();
+            DB::rollBack();
             $message = $e->getMessage() ?: $this->serverErrorMessage;
             return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (ModelNotFoundException $e) {
-             DB::rollBack();
+            DB::rollBack();
             return ApiHelper::problemResponse("Frontdesk not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
         } catch (Exception $e) {
-             DB::rollBack();
+            DB::rollBack();
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
     }
