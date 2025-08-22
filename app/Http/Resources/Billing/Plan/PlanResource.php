@@ -31,11 +31,10 @@ class PlanResource extends JsonResource
     }
 
     protected function formatAmountWithSymbol(): string
-{
-    $symbol = CurrencyConstants::CURRENCY_SYMBOLS[$this->currency->name] ?? '';
-    $amountInMajorUnits = $this->amount;
+    {
+        $symbol = CurrencyConstants::CURRENCY_SYMBOLS[$this->currency->name] ?? '';
+        $amountInMajorUnits = $this->amount;
 
-    return $symbol . number_format($amountInMajorUnits, 2);
-}
-
+        return $symbol . number_format($amountInMajorUnits, 2);
+    }
 }

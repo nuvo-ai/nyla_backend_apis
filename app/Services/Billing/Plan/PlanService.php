@@ -51,21 +51,25 @@ class PlanService
             $planCode = null;
 
             if ($data['amount'] > 0) {
-                $response = Http::withToken(config('services.paystack.secret_key'))
-                    ->post('https://api.paystack.co/plan', [
-                        'name' => $data['name'],
-                        'amount' => $data['amount'] * 100, // Paystack expects amount in kobo
-                        'interval' => $data['interval'],
-                        'currency' => strtoupper($currency->short_name) ?? 'NGN',
-                    ]);
+                if (!app()->environment('local')) {   // 👈 prevent Paystack call in local
+                    $response = Http::withToken(config('services.paystack.secret_key'))
+                        ->post('https://api.paystack.co/plan', [
+                            'name' => $data['name'],
+                            'amount' => $data['amount'] * 100, // Paystack expects amount in kobo
+                            'interval' => $data['interval'],
+                            'currency' => strtoupper($currency->short_name) ?? 'NGN',
+                        ]);
 
-                $res = $response->json();
-                if (!$res['status']) {
-                    throw new Exception($res['message'] ?? 'Paystack error');
+                    $res = $response->json();
+                    if (!$res['status']) {
+                        throw new Exception($res['message'] ?? 'Paystack error');
+                    }
+
+                    $planCode = $res['data']['plan_code'];
+                } else {
+                    // fallback dummy plan code in local
+                    $planCode = 'LOCAL_PLAN_' . uniqid();
                 }
-
-                $planCode = $res['data']['plan_code'];
-                // dd($planCode);
             }
 
             $plan = Plan::create([
@@ -76,6 +80,8 @@ class PlanService
                 'currency_id' => $currency->id,
                 'description' => $data['description'] ?? null,
                 'is_active' => $data['is_active'] ?? true,
+                'portal' => $data['portal'] ?? 'Hospital',
+                'plan_type' => $data['plan_type'] ?? 'Standard',
             ]);
 
             if (!empty($data['features'])) {
@@ -85,6 +91,7 @@ class PlanService
             return $plan;
         });
     }
+
 
 
     public function update(array $data, $planCode)
@@ -103,20 +110,21 @@ class PlanService
             }
 
             if ($data['amount'] > 0) {
-                $response = Http::withToken(config('services.paystack.secret_key'))
-                    ->put("https://api.paystack.co/plan/{$planCode}", [
-                        'name' => $data['name'],
-                        'description' => $data['description'] ?? null,
-                    ]);
+                if (!app()->environment('local')) { // 👈 Skip Paystack in local
+                    $response = Http::withToken(config('services.paystack.secret_key'))
+                        ->put("https://api.paystack.co/plan/{$planCode}", [
+                            'name' => $data['name'],
+                            'description' => $data['description'] ?? null,
+                        ]);
 
-                if (!$response->ok()) {
-                    throw new Exception("Paystack API error: " . $response->body());
-                }
+                    if (!$response->ok()) {
+                        throw new Exception("Paystack API error: " . $response->body());
+                    }
 
-                $res = $response->json();
-
-                if (!isset($res['status']) || !$res['status']) {
-                    throw new Exception($res['message'] ?? 'Paystack error');
+                    $res = $response->json();
+                    if (!isset($res['status']) || !$res['status']) {
+                        throw new Exception($res['message'] ?? 'Paystack error');
+                    }
                 }
             }
 
@@ -133,6 +141,7 @@ class PlanService
             return $plan;
         });
     }
+
 
     public function getPlan($planCode)
     {
@@ -173,8 +182,13 @@ class PlanService
         return isset($data['name']) && isset($data['amount']);
     }
 
-    public function hospitalPlan(): ?Plan
+    public function hospitalPlans(): ?Plan
     {
-        return Plan::where('name', 'Hospital Plan')->first();
+        return Plan::where('portal', 'Hospital')->get();
+    }
+
+    public function phamacyPlans(): ?Plan
+    {
+        return Plan::where('portal', 'Pharmacy')->get();
     }
 }

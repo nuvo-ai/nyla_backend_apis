@@ -24,6 +24,8 @@ class Plan extends Model
         'currency_id',
         'description',
         'is_active',
+        'portal',
+        'plan_type',
     ];
 
     public function currency()

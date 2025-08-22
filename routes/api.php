@@ -242,6 +242,8 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::put('plans/{plan_code}/update', [PlanController::class, 'update'])->name('plans.update');
         Route::get('plans/list', [PlanController::class, 'list'])->name('plans.list');
         Route::delete('plans/{plan_code}/delete', [PlanController::class, 'delete'])->name('plans.delete');
+        Route::get('plans/hospital', [PlanController::class, 'hospitalPlans'])->name('plans.hospital');
+        Route::get('plans/pharmacy', [PlanController::class, 'pharmacyPlans'])->name('plans.pharmacy');
 
         Route::prefix('subscriptions')->as('subscriptions.')->group(function () {
             Route::post('/initialize', [SubscriptionController::class, 'initialize'])->name('initialize');

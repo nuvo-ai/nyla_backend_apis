@@ -67,15 +67,26 @@ class HospitalUserService
     {
         DB::beginTransaction();
         try {
-            $hospitalUser = HospitalUser::findOrFail($id);
+            $hospitalUser = HospitalUser::with(['doctor', 'frontDesk', 'user'])->findOrFail($id);
+            if ($hospitalUser->doctor) {
+                $hospitalUser->doctor->delete();
+            }
+            if ($hospitalUser->frontDesk) {
+                $hospitalUser->frontDesk->delete();
+            }
+            if ($hospitalUser->user) {
+                $hospitalUser->user->delete();
+            }
             $hospitalUser->delete();
+
             DB::commit();
-            return $hospitalUser;
+            return true;
         } catch (\Throwable $th) {
             DB::rollBack();
             throw $th;
         }
     }
+
 
     public function assignRoleToUser(array $data, $userId)
     {

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Billing\Plan;
 use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Billing\PlanResource;
+use App\Http\Resources\Billing\Plan\PlanResource;
 use App\Services\Billing\Plan\PlanService;
 use Exception;
 use Illuminate\Http\Request;
@@ -102,6 +102,26 @@ class PlanController extends Controller
             return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse("Unable to delete plan", 500, null, $e);
+        }
+    }
+
+    public function hospitalPlans()
+    {
+        try {
+            $plans = $this->plan_service->hospitalPlans();
+            return ApiHelper::validResponse("Hospital plans retrieved successfully", PlanResource::collection($plans));
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse("Unable to retrieve hospital plans", 500, null, $e);
+        }
+    }
+
+    public function pharmacyPlans()
+    {
+        try {
+            $plans = $this->plan_service->phamacyPlans();
+            return ApiHelper::validResponse("Pharmacy plans retrieved successfully", PlanResource::collection($plans));
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse("Unable to retrieve pharmacy plans", 500, null, $e);
         }
     }
 }
