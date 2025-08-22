@@ -62,9 +62,10 @@ class LoginService
                     throw new AuthException("User is not associated with any hospital.");
                 }
 
-                if (strtolower($hospitalUser->role) !== strtolower($data["role"])) {
+                if (str_replace(' ', '', strtolower($hospitalUser->role)) !== str_replace(' ', '', strtolower($data["role"]))) {
                     throw new AuthException("Invalid role for Hospital user.");
                 }
+
                 $hospital = $hospitalUser->hospital;
                 if (!$hospital || strtolower($hospital->status) !== 'approved') {
                     throw new AuthException("The hospital is not yet approved. Please wait for approval.");
