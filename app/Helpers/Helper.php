@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
@@ -16,14 +17,19 @@ use Illuminate\Support\Str;
 
 class Helper
 {
-     public static function sendLoginDetails(Request $request, $user_id)
+    public static function sendLoginDetails(Request $request, $user_id)
     {
         try {
             $user = User::findOrFail($user_id);
-            $password = $request->password ?? Str::random(8);
+            $password = $request->password;
             $user->password = Hash::make($password);
             $user->save();
             Mail::to($user->email)->send(new SendUserLoginDetailsMail($user, $password));
+            Log::info("Login details sent to user: {$user->email}", [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'password' => $password,
+            ]);
             return $user->toArray();
         } catch (\Exception $e) {
             return ['error_message' => 'An error occurred while sending login details to user.'];
@@ -241,7 +247,7 @@ class Helper
      */
     public static function formatMoney($amount, $places = 2, $symbol = '₦')
     {
-        return $symbol.''.self::intFormat((float) $amount, $places);
+        return $symbol . '' . self::intFormat((float) $amount, $places);
     }
 
     public static function intFormat($number, $decimals = 0, $decPoint = '.', $thousandsSep = ',')
