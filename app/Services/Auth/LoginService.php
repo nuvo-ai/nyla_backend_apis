@@ -38,7 +38,7 @@ class LoginService
 
             if (isset($data["portal"]) && $data["portal"] === "Hospital") {
                 if (isset($data['role'])) {
-                    $data['role'] = ucwords(str_replace(['_', '-'], ' ', strtolower($data['role'])));
+                    $data['role'] = $data['role'];
                 }
                 $roles = implode(',', UserConstants::ROLES);
                 $rules["role"] = "required|string|in:$roles";
@@ -65,7 +65,7 @@ class LoginService
                     throw new AuthException("User is not associated with any hospital.");
                 }
 
-                if (str_replace(' ', '', strtolower($hospitalUser->role)) !== str_replace(' ', '', strtolower($data["role"]))) {
+                if ($hospitalUser->role !== $data["role"]) {
                     throw new AuthException("Invalid role for Hospital user.");
                 }
 

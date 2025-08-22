@@ -9,7 +9,7 @@ class UserConstants
     const SUDO = "Sudo";
     const DOCTOR = "Doctor";
     const LAB = "Lab";
-    const FRONT_DESK = "Front Desk";
+    const FRONT_DESK = "Frontdesk";
     const USER = "User";
     const ADMIN = "Admin";
     const SUPER_ADMIN = "Super Admin";
