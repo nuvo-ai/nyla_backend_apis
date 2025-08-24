@@ -105,13 +105,29 @@ class DoctorService
 
     public function listDoctors(array $filters = [])
     {
-        $query = Doctor::with(['user', 'hospitalUser', 'hospital'])
-            ->where('hospital_id', User::getAuthenticatedUser()->hospitalUser?->hospital?->id);
+        $user = User::getAuthenticatedUser();
 
+        $query = Doctor::with(['user', 'hospitalUser', 'hospital']);
+
+        // Restrict to hospital of authenticated user
+        if ($user?->hospitalUser?->hospital?->id) {
+            $query->where('hospital_id', $user->hospitalUser->hospital->id);
+        }
+
+        // If filtering by hospital_id explicitly
         if (!empty($filters['hospital_id'])) {
             $query->where('hospital_id', $filters['hospital_id']);
         }
 
+        // If authenticated user is a Doctor, only return their own record
+        if ($user?->hospitalUser?->role && strcasecmp($user->hospitalUser->role, 'Doctor') === 0) {
+            $doctorId = $user->doctor->id ?? null;
+            if ($doctorId) {
+                $query->where('id', $doctorId);
+            }
+        }
+
+        // Search filter
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->whereHas('user', function ($q) use ($search) {
@@ -121,8 +137,14 @@ class DoctorService
             });
         }
 
+        // Optional: filter by status (Available, Busy, Off-duty, etc.)
+        if (!empty($filters['status'])) {
+            $query->whereRaw('LOWER(status) = ?', [strtolower($filters['status'])]);
+        }
+
         return $query->get();
     }
+
 
     public function assign($doctor)
     {
