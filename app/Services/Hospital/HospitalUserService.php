@@ -24,7 +24,7 @@ class HospitalUserService
 
         return $validator->validated();
     }
-    public function listHospitalUsers(array $filters = []): Collection
+    public function listHospitalUsers(array $filters = [])
     {
         $query = HospitalUser::with(['user', 'hospital', 'doctor', 'frontdesk'])
             ->where('hospital_id', User::getAuthenticatedUser()->hospitalUser?->hospital?->id);
@@ -59,7 +59,7 @@ class HospitalUserService
             $query->where('hospital_id', $filters['hospital_id']);
         }
 
-        return $query->get();
+        return $query->paginate(30);
     }
 
 

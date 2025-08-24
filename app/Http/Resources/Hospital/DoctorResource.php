@@ -21,8 +21,6 @@ class DoctorResource extends JsonResource
             'departments' => $this->departments,
             'medical_specialties' => $this->medical_specialties,
             'user'            => new UserResource($this->whenLoaded('user')),
-            'hospital_user' => new HospitalUsersResource($this->whenLoaded('hospitalUser')),
-            'hospital' => new HospitalRegistrationResource($this->whenLoaded('hospital')),
             'status' => $this->status,
             "created_at" => formatDate($this->created_at),
             "updated_at" => formatDate($this->updated_at),

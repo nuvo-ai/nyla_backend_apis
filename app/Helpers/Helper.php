@@ -8,6 +8,7 @@ use App\Models\User\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -31,6 +32,27 @@ class Helper
             return ['error_message' => 'An error occurred while sending login details to user.'];
         }
     }
+
+    /**
+     * Format a paginated response for API/frontend use.
+     *
+     * @param LengthAwarePaginator $paginator
+     * @return array
+     */
+    function formatPaginatedResponse(LengthAwarePaginator $paginator): array
+    {
+        return [
+            'data' => $paginator->items(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'per_page'     => $paginator->perPage(),
+                'total'        => $paginator->total(),
+                'last_page'    => $paginator->lastPage(),
+                'has_more'     => $paginator->hasMorePages(),
+            ],
+        ];
+    }
+
 
     // function to convert time to 12 hour format
     public static function time24hrs($time)

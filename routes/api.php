@@ -135,6 +135,8 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
             Route::get('/dashboard-data', [DoctorController::class, 'getDashboardData'])->name('dashboard-data');
         });
 
+        Route::get('frontdesk/dashboard-stats', [FrontdeskController::class, 'dashboardStats'])->name('frontdesk.dashboard-stats');
+
         Route::post('prescription/send-to-frontdesk/{prescription}', [PrescriptionController::class, 'sendToFrontdesk'])->name('prescription.send-to-frontdesk');
 
         Route::patch('patient/discharge/{patient}', [PatientController::class, 'discharge'])->name('patient.discharge');

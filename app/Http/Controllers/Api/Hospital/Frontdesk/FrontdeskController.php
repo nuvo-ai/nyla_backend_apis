@@ -7,6 +7,7 @@ use App\Helpers\ApiHelper;
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Hospital\FrontdeskResource;
+use App\Services\Hospital\Frontdesk\FrontdeskDashboardStatsService;
 use App\Services\Hospital\FrontdeskService;
 use App\Services\User\UserService;
 use Illuminate\Http\Request;
@@ -19,12 +20,14 @@ class FrontdeskController extends Controller
 {
     protected $frontdesk_service;
     protected $user_service;
+    protected $frontdesk_dashboard_service;
 
 
     public function __construct()
     {
         $this->frontdesk_service = new FrontDeskService;
         $this->user_service = new UserService;
+        $this->frontdesk_dashboard_service = new FrontdeskDashboardStatsService;
     }
 
     public function index(Request $request)
@@ -96,6 +99,16 @@ class FrontdeskController extends Controller
             return ApiHelper::problemResponse("Frontdesk not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
         } catch (Exception $e) {
             DB::rollBack();
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+
+    public function dashboardStats()
+    {
+        try {
+            $stats = $this->frontdesk_dashboard_service->getStats();
+            return ApiHelper::validResponse("Frontdesk dashboard stats retrieved successfully", $stats);
+        } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
     }

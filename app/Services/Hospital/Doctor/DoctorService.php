@@ -28,6 +28,8 @@ class DoctorService
             'departments.*' => ['string'],
             'medical_specialties' => ['nullable', 'array', 'min:1'],
             'medical_specialties.*' => ['string'],
+            'status' => ['nullable', 'string'],
+            'next_available' => ['nullable', 'date'],
         ]);
 
         if ($validator->fails()) {
@@ -57,6 +59,7 @@ class DoctorService
             'medical_number' => $validated['medical_number'],
             'departments' => $validated['departments'] ?? null,
             'status' => $validated['status'] ?? StatusConstants::AVAILABLE,
+            'next_available' => $validated['next_available'] ?? null,
         ];
 
         if (isset($data['medical_specialties'])) {
