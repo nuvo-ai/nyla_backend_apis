@@ -22,6 +22,7 @@ class DoctorResource extends JsonResource
             'medical_specialties' => $this->medical_specialties,
             'user'            => new UserResource($this->whenLoaded('user')),
             'status' => $this->status,
+            'next_available' => $this->next_available ?? null,
             "created_at" => formatDate($this->created_at),
             "updated_at" => formatDate($this->updated_at),
         ];
