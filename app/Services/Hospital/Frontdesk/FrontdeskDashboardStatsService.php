@@ -4,7 +4,7 @@ namespace App\Services\Hospital\Frontdesk;
 
 use App\Models\Hospital\HospitalAppointment;
 use App\Models\Hospital\HospitalPatient;
-use App\Models\Hospital\HospitalEmr;
+use App\Models\Hospital\HospitalEMR;
 use App\Models\User\User;
 use Carbon\Carbon;
 
@@ -38,7 +38,7 @@ class FrontdeskDashboardStatsService
             ->count();
 
         // Total EMR records in hospital
-        $totalEmrRecords = HospitalEmr::where('hospital_id', $this->hospital?->id)->count();
+        $totalEmrRecords = HospitalEMR::where('hospital_id', $this->hospital?->id)->count();
 
         // Discharged patients
         $dischargedPatients = HospitalPatient::where('hospital_id', $this->hospital?->id)
