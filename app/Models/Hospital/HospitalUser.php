@@ -15,15 +15,16 @@ class HospitalUser extends Model
         'user_account_id',
     ];
 
+    public function hospital()
+    {
+        return $this->belongsTo(Hospital::class);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function hospital()
-    {
-        return $this->belongsTo(Hospital::class, 'hospital_id');
-    }
 
     public function scopeSearch($query, $search)
     {
@@ -34,7 +35,7 @@ class HospitalUser extends Model
         })->orWhere('role', 'like', "%{$search}%");
     }
 
- public function labTechnician()
+    public function labTechnician()
     {
         return $this->hasOne(LabTechnician::class);
     }
@@ -48,5 +49,4 @@ class HospitalUser extends Model
     {
         return $this->hasOne(FrontDesk::class);
     }
-
 }

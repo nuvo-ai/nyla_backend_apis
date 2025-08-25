@@ -10,6 +10,7 @@ use App\Models\General\Service;
 use App\Models\Hospital\Hospital;
 use Illuminate\Http\UploadedFile;
 use App\Models\General\Department;
+use App\Models\Hospital\HospitalUser;
 use App\Models\User\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -305,8 +306,23 @@ class HospitalService
 
     public function getUserHospital(): ?Hospital
     {
-        return Hospital::where('user_id', User::getAuthenticatedUser()->id)->first();
+        $user = User::getAuthenticatedUser();
+
+        // User is hospital owner (admin)
+        $hospital = Hospital::where('user_id', $user->id)->first();
+        if ($hospital) {
+            return $hospital;
+        }
+
+        // User is hospital staff (frontdesk/doctor/etc.)
+        $hospitalUser = HospitalUser::where('user_id', $user->id)->with('hospital')->first();
+        if ($hospitalUser && $hospitalUser->hospital) {
+            return $hospitalUser->hospital;
+        }
+
+        return null;
     }
+
 
 
     public function approveHospital(Hospital $hospital): Hospital
