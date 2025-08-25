@@ -106,6 +106,8 @@ class UserService
             $validated['status'] = $validated['status'] ?? StatusConstants::ACTIVE;
             $validated['role'] = $validated['role'] ?? UserConstants::USER;
             $validated['gender'] = $validated['gender'] ?? null;
+            $validated['date_of_birth'] = $validated['date_of_birth'] ?? null;
+            $validated['phone'] = $validated['phone'] ?? null;
             $plainPassword = !empty($validated['password'])
                 ? $validated['password']
                 : Str::random(10);
