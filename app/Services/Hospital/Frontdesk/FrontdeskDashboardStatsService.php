@@ -2,6 +2,8 @@
 
 namespace App\Services\Hospital\Frontdesk;
 
+use App\Http\Resources\Hospital\AppointmentResource;
+use App\Http\Resources\Hospital\EMRResource;
 use App\Models\Hospital\HospitalAppointment;
 use App\Models\Hospital\HospitalPatient;
 use App\Models\Hospital\HospitalEMR;
@@ -65,12 +67,15 @@ class FrontdeskDashboardStatsService
             return [];
         }
 
-        return HospitalAppointment::with(['hospital', 'doctor', 'scheduler'])
+        $appointments = HospitalAppointment::with(['hospital', 'doctor', 'scheduler'])
             ->where('hospital_id', $this->hospital->id)
             ->whereBetween('appointment_date', $this->dateRange)
             ->latest()
             ->get();
+
+        return AppointmentResource::collection($appointments);
     }
+
 
     public function getRecentEmrRecords($limit = 5)
     {
@@ -78,10 +83,12 @@ class FrontdeskDashboardStatsService
             return [];
         }
 
-        return HospitalEmr::with(['patient', 'hospital'])
+        $emrs = HospitalEmr::with(['patient.user', 'hospital'])
             ->where('hospital_id', $this->hospital->id)
             ->latest()
             ->take($limit)
             ->get();
+
+        return EMRResource::collection($emrs);
     }
 }
