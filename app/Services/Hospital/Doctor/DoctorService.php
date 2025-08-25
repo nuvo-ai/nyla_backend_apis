@@ -106,8 +106,15 @@ class DoctorService
     public function listDoctors(array $filters = [])
     {
         $user = User::getAuthenticatedUser();
-
-        $query = Doctor::with(['user', 'hospitalUser', 'hospital']);
+        $dateRange = [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()];
+        $query = Doctor::with([
+            'user',
+            'hospitalUser',
+            'hospital',
+            'appointments' => function ($q) use ($dateRange) {
+                $q->whereBetween('appointment_date', $dateRange); // only today's appointments
+            }
+        ]);
 
         $hospitalId = null;
 
@@ -117,17 +124,14 @@ class DoctorService
             $hospitalId = $user->hospitalUser->hospital->id;
         }
 
-        // Restrict to hospital of authenticated user
         if ($hospitalId) {
             $query->where('hospital_id', $hospitalId);
         }
 
-        // If filtering by hospital_id explicitly (overrides above)
         if (!empty($filters['hospital_id'])) {
             $query->where('hospital_id', $filters['hospital_id']);
         }
 
-        // If authenticated user is a Doctor, only return their own record
         if ($user?->hospitalUser?->role && strcasecmp($user->hospitalUser->role, 'Doctor') === 0) {
             $doctorId = $user->doctor->id ?? null;
             if ($doctorId) {
@@ -148,12 +152,14 @@ class DoctorService
             $query->whereRaw('LOWER(status) = ?', [strtolower($filters['status'])]);
         }
 
+        // Ensure only doctors (hospital_user role)
         $query->whereHas('hospitalUser', function ($q) {
             $q->whereRaw('LOWER(role) = ?', ['doctor']);
         });
 
         return $query->get();
     }
+
 
 
 

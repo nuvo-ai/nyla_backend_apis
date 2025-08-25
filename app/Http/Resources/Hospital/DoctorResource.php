@@ -23,6 +23,8 @@ class DoctorResource extends JsonResource
             'user'            => new UserResource($this->whenLoaded('user')),
             'status' => $this->status,
             'next_available' => $this->next_available ?? null,
+            "can_login"         => $this->hospitalUser?->role  && strcasecmp($this->hospitalUser->role, 'Doctor') === 0,
+            "patients_today"    => $this->appointments ? $this->appointments->count() : 0,
             "created_at" => formatDate($this->created_at),
             "updated_at" => formatDate($this->updated_at),
         ];
