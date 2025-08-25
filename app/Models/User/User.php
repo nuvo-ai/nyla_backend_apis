@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Models\General\ModulePreference;
 use App\Models\Hospital\Doctor;
 use App\Models\Hospital\FrontDesk;
+use App\Models\Hospital\Hospital;
 use App\Models\Hospital\HospitalContact;
 use App\Models\Hospital\HospitalPatient;
 use App\Models\Hospital\HospitalUser;
@@ -81,6 +82,10 @@ class User extends Authenticatable
     public function portal()
     {
         return $this->belongsTo(Portal::class, 'portal_id');
+    }
+    public function hospitals()
+    {
+        return $this->hasMany(Hospital::class, 'user_id');
     }
 
     public function hospitalUser()
