@@ -112,7 +112,7 @@ class DoctorService
             'hospitalUser',
             'hospital',
             'appointments' => function ($q) use ($dateRange) {
-                $q->whereBetween('appointment_date', $dateRange); // only today's appointments
+                $q->whereDate('appointment_date', Carbon::today());
             }
         ]);
 

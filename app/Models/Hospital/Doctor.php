@@ -5,6 +5,7 @@ namespace App\Models\Hospital;
 use App\Models\User\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Doctor extends Model
 {
@@ -28,5 +29,10 @@ class Doctor extends Model
     public function hospitalUser(): BelongsTo
     {
         return $this->belongsTo(HospitalUser::class);
+    }
+
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(HospitalAppointment::class, 'doctor_id');
     }
 }
