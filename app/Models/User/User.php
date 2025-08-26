@@ -153,12 +153,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Subscription::class);
     }
-
     public function currentSubscription()
     {
-        if (!$this->subscriptions()->exists()) {
-            return null;
-        }
-        return $this->hasOne(Subscription::class)->where('status', 'active');
+        return $this->hasOne(Subscription::class)
+            ->where('status', strtolower('active'));
     }
 }
