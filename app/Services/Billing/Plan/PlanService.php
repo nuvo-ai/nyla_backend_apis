@@ -51,26 +51,25 @@ class PlanService
             $planCode = null;
 
             if ($data['amount'] > 0) {
-                if (!app()->environment('local')) {   // 👈 prevent Paystack call in local
-                    $response = Http::withToken(config('services.paystack.secret_key'))
-                        ->post('https://api.paystack.co/plan', [
-                            'name' => $data['name'],
-                            'amount' => $data['amount'] * 100, // Paystack expects amount in kobo
-                            'interval' => $data['interval'],
-                            'currency' => strtoupper($currency->short_name) ?? 'NGN',
-                        ]);
+                $response = Http::withToken(config('services.paystack.secret_key'))
+                    ->post('https://api.paystack.co/plan', [
+                        'name' => $data['name'],
+                        'amount' => $data['amount'] * 100, // Paystack expects amount in kobo
+                        'interval' => $data['interval'],
+                        'currency' => strtoupper($currency->short_name) ?? 'NGN',
+                    ]);
 
-                    $res = $response->json();
-                    if (!$res['status']) {
-                        throw new Exception($res['message'] ?? 'Paystack error');
-                    }
-
-                    $planCode = $res['data']['plan_code'];
-                } else {
-                    // fallback dummy plan code in local
-                    $planCode = 'LOCAL_PLAN_' . uniqid();
+                $res = $response->json();
+                if (!$res['status']) {
+                    throw new Exception($res['message'] ?? 'Paystack error');
                 }
+
+                $planCode = $res['data']['plan_code'];
+            } else {
+                // fallback dummy plan code in local
+                $planCode = 'LOCAL_PLAN_' . uniqid();
             }
+
 
             $plan = Plan::create([
                 'name' => $data['name'],
@@ -110,21 +109,19 @@ class PlanService
             }
 
             if ($data['amount'] > 0) {
-                if (!app()->environment('local')) { // 👈 Skip Paystack in local
-                    $response = Http::withToken(config('services.paystack.secret_key'))
-                        ->put("https://api.paystack.co/plan/{$planCode}", [
-                            'name' => $data['name'],
-                            'description' => $data['description'] ?? null,
-                        ]);
+                $response = Http::withToken(config('services.paystack.secret_key'))
+                    ->put("https://api.paystack.co/plan/{$planCode}", [
+                        'name' => $data['name'],
+                        'description' => $data['description'] ?? null,
+                    ]);
 
-                    if (!$response->ok()) {
-                        throw new Exception("Paystack API error: " . $response->body());
-                    }
+                if (!$response->ok()) {
+                    throw new Exception("Paystack API error: " . $response->body());
+                }
 
-                    $res = $response->json();
-                    if (!isset($res['status']) || !$res['status']) {
-                        throw new Exception($res['message'] ?? 'Paystack error');
-                    }
+                $res = $response->json();
+                if (!isset($res['status']) || !$res['status']) {
+                    throw new Exception($res['message'] ?? 'Paystack error');
                 }
             }
 
