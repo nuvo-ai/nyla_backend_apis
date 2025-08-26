@@ -262,6 +262,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
             Route::put('/{subscription_code}/update', [SubscriptionController::class, 'update'])->name('update');
             Route::delete('/{subscription_code}/delete', [SubscriptionController::class, 'delete'])->name('delete');
             Route::get('/list', [SubscriptionController::class, 'list'])->name('list');
+            Route::get('/current', [SubscriptionController::class, 'current'])->name('current');
         });
         Route::get('/callback', [SubscriptionController::class, 'handleCallback'])->name('callback');
         Route::post('/webhook/paystack', [WebhookController::class, 'handle'])->name('webhook.paystack');

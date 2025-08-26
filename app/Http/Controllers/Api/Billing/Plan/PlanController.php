@@ -6,6 +6,7 @@ use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Billing\Plan\PlanResource;
+use App\Models\User\User;
 use App\Services\Billing\Plan\PlanService;
 use Exception;
 use Illuminate\Http\Request;

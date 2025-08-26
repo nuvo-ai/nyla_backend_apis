@@ -6,6 +6,7 @@ namespace App\Models\User;
 use Laravel\Sanctum\HasApiTokens;
 use ApiPlatform\Metadata\ApiResource;
 use App\Models\General\ModulePreference;
+use App\Models\General\Subscription;
 use App\Models\Hospital\Doctor;
 use App\Models\Hospital\FrontDesk;
 use App\Models\Hospital\Hospital;
@@ -146,5 +147,18 @@ class User extends Authenticatable
     public function medicationReminders()
     {
         return $this->hasMany(MedicationReminder::class);
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function currentSubscription()
+    {
+        if (!$this->subscriptions()->exists()) {
+            return null;
+        }
+        return $this->hasOne(Subscription::class)->where('status', 'active');
     }
 }

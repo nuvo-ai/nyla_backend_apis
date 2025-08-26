@@ -129,4 +129,13 @@ class SubscriptionController extends Controller
             return ApiHelper::problemResponse("Unable to delete subscription", 500, null, $e);
         }
     }
+
+    public function current()
+    {
+        $auth_user = User::getAuthenticatedUser();
+        $user = $auth_user;
+        $subscription = $user->currentSubscription()->with('plan.features')->first();
+
+        return ApiHelper::validResponse("Current subscription", $subscription);
+    }
 }
