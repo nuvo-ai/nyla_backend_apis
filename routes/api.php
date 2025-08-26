@@ -59,7 +59,7 @@ Route::post('/webhook/deploy', function () {
 });
 
 Route::prefix('billings')->group(function () {
-    Route::get('/callback', [SubscriptionController::class, 'callback'])->name('billings.callback');
+    Route::get('/callback', [SubscriptionController::class, 'handleCallback'])->name('billings.callback');
 });
 
 Route::prefix("password")->as("password.")->group(function () {
