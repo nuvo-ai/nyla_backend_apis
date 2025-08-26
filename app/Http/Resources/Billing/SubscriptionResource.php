@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Billing;
 
+use App\Http\Resources\Billing\Plan\PlanResource;
 use App\Http\Resources\User\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;

@@ -182,13 +182,13 @@ class PlanService
         return isset($data['name']) && isset($data['amount']);
     }
 
-    public function hospitalPlans(): ?Plan
+    public function hospitalPlan(): ?Plan
     {
-        return Plan::where('portal', 'Hospital')->get();
+        return Plan::with('features')->where('portal', 'Hospital')->first();
     }
 
     public function phamacyPlans(): ?Plan
     {
-        return Plan::where('portal', 'Pharmacy')->get();
+        return Plan::with('features')->where('portal', 'Pharmacy')->first();
     }
 }

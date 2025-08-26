@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Api\Billing\Plan;
 use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Billing\PlanFeatureResource;
+use App\Http\Resources\Billing\Plan\PlanFeatureResource;
 use App\Models\General\Plan;
 use App\Services\Billing\Plan\PlanFeatureService;
-use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Exception;
 
 class PlanFeatureController extends Controller
 {
@@ -21,55 +21,89 @@ class PlanFeatureController extends Controller
         $this->plan_feature_service = new PlanFeatureService;
     }
 
+    // List all features for a plan
     public function list($plan_id)
     {
         try {
             $features = $this->plan_feature_service->list($plan_id);
-            return ApiHelper::validResponse("Plan features retrieved successfully", PlanFeatureResource::collection($features));
+            return ApiHelper::validResponse(
+                "Plan features retrieved successfully",
+                PlanFeatureResource::collection($features)
+            );
         } catch (Exception $e) {
             return ApiHelper::problemResponse("Unable to retrieve plan features", 500, null, $e);
         }
     }
 
-    public function getFeature($id)
+    // Get details of a single feature
+    public function getFeature($plan_id, $feature_id)
     {
         try {
-            $feature = $this->plan_feature_service->getFeature($id);
-            return ApiHelper::validResponse("Plan feature retrieved successfully", PlanFeatureResource::make($feature));
+            $feature = $this->plan_feature_service->getFeature($feature_id);
+            return ApiHelper::validResponse(
+                "Plan feature retrieved successfully",
+                new PlanFeatureResource($feature)
+            );
         } catch (Exception $e) {
             return ApiHelper::problemResponse("Unable to retrieve plan feature", 500, null, $e);
         }
     }
 
-    public function create(Request $request)
+    public function create(Request $request, $plan_id)
     {
         try {
-            $feature = $this->plan_feature_service->createMany($request->all());
-            return ApiHelper::validResponse("Plan feature created successfully", new PlanFeatureResource($feature));
+            $plan = Plan::findOrFail($plan_id);
+
+            $features = $request->input('features', []);
+            $created = $this->plan_feature_service->createMany($features, $plan);
+
+            return ApiHelper::validResponse(
+                "Plan features created successfully",
+                PlanFeatureResource::collection($created)
+            );
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            return ApiHelper::inputErrorResponse(
+                "Validation failed",
+                ApiConstants::VALIDATION_ERR_CODE,
+                null,
+                $e
+            );
         } catch (Exception $e) {
-            return ApiHelper::problemResponse("Unable to create plan feature", 500, null, $e);
+            return ApiHelper::problemResponse("Unable to create plan features", 500, null, $e);
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $plan_id)
     {
         try {
-            $feature = $this->plan_feature_service->updateMany($request->all(), $id);
-            return ApiHelper::validResponse("Plan feature updated successfully", new PlanFeatureResource($feature));
+            $plan = Plan::findOrFail($plan_id);
+
+            $features = $request->input('features', []);
+            $updated = $this->plan_feature_service->updateMany($features, $plan);
+
+            return ApiHelper::validResponse(
+                "Plan features updated successfully",
+                PlanFeatureResource::collection($updated)
+            );
         } catch (ValidationException $e) {
-            return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            return ApiHelper::inputErrorResponse(
+                "Validation failed",
+                ApiConstants::VALIDATION_ERR_CODE,
+                null,
+                $e
+            );
         } catch (Exception $e) {
-            return ApiHelper::problemResponse("Unable to update plan feature", 500, null, $e);
+            return ApiHelper::problemResponse("Unable to update plan features", 500, null, $e);
         }
     }
 
-    public function delete($id)
+
+    // Delete a feature
+    public function delete($plan_id, $feature_id)
     {
         try {
-            $feature = $this->plan_feature_service->delete($id);
-            return ApiHelper::validResponse("Plan feature deleted successfully", new PlanFeatureResource($feature));
+            $this->plan_feature_service->delete($feature_id);
+            return ApiHelper::validResponse("Plan feature deleted successfully", null);
         } catch (Exception $e) {
             return ApiHelper::problemResponse("Unable to delete plan feature", 500, null, $e);
         }

@@ -38,12 +38,14 @@ class PlanFeatureService
             ]);
         }
         $plan->features()->saveMany($planFeatures);
+        return $planFeatures;
     }
 
     public function updateMany(array $features, Plan $plan)
     {
         $plan->features()->delete();
         $this->createMany($features, $plan);
+        return $plan->features;
     }
 
     public function getFeature($id)

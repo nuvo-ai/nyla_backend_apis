@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\Auth\VerificationController;
 use App\Http\Controllers\Api\Settings\SettingsController;
 use App\Http\Controllers\Api\Hospital\Home\HomeController;
 use App\Http\Controllers\Api\Billing\Plan\PlanController;
+use App\Http\Controllers\Api\Billing\Plan\PlanFeatureController;
 use App\Http\Controllers\Api\Billing\Subscription\SubscriptionController;
 use App\Http\Controllers\Api\Billing\Webhook\WebhookController;
 use App\Http\Controllers\Api\Hospital\Analytic\AnalyticController;
@@ -244,8 +245,15 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::put('plans/{plan_code}/update', [PlanController::class, 'update'])->name('plans.update');
         Route::get('plans/list', [PlanController::class, 'list'])->name('plans.list');
         Route::delete('plans/{plan_code}/delete', [PlanController::class, 'delete'])->name('plans.delete');
-        Route::get('plans/hospital', [PlanController::class, 'hospitalPlans'])->name('plans.hospital');
-        Route::get('plans/pharmacy', [PlanController::class, 'pharmacyPlans'])->name('plans.pharmacy');
+        Route::get('plans/hospital', [PlanController::class, 'hospitalPlan'])->name('plans.hospital');
+        Route::get('plans/pharmacy', [PlanController::class, 'pharmacyPlan'])->name('plans.pharmacy');
+
+        Route::prefix('plan/{plan_id}/features')->as('plan.features.')->group(function () {
+            Route::post('/create', [PlanFeatureController::class, 'create'])->name('create');
+            Route::put('/update', [PlanFeatureController::class, 'update'])->name('update');
+            Route::get('/list', [PlanFeatureController::class, 'list'])->name('list');
+            Route::get('/{feature_id}/details', [PlanFeatureController::class, 'getFeature'])->name('details');
+        });
 
         Route::prefix('subscriptions')->as('subscriptions.')->group(function () {
             Route::post('/initialize', [SubscriptionController::class, 'initialize'])->name('initialize');
