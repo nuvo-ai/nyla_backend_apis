@@ -58,6 +58,9 @@ Route::post('/webhook/deploy', function () {
     include base_path('deploy.php');
 });
 
+Route::prefix('billings')->group(function () {
+    Route::get('/callback', [SubscriptionController::class, 'callback'])->name('billings.callback');
+});
 
 Route::prefix("password")->as("password.")->group(function () {
     Route::post('/forgot', [PasswordController::class, 'forgotPassword'])->name("forgot");
@@ -264,7 +267,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
             Route::get('/list', [SubscriptionController::class, 'list'])->name('list');
             Route::get('/current', [SubscriptionController::class, 'current'])->name('current');
         });
-        Route::get('/callback', [SubscriptionController::class, 'handleCallback'])->name('callback');
+        // Route::get('/callback', [SubscriptionController::class, 'handleCallback'])->name('callback');
         Route::post('/webhook/paystack', [WebhookController::class, 'handle'])->name('webhook.paystack');
     });
 });

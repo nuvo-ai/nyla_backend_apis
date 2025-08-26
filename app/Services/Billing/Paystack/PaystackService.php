@@ -31,8 +31,10 @@ class PaystackService
         $payload = [
             'email' => $user->email,
             'amount' => $amount,
-            // 'callback_url' => route('billings.callback'),
-            'metadata' => $metadata,
+            'callback_url' => route('billings.callback'),
+            'metadata' => array_merge($metadata, [
+                'user_id' => $user->id,   // ✅ inject user_id
+            ]),
         ];
 
         if ($planCode) {
@@ -50,6 +52,7 @@ class PaystackService
 
         return $json['data'];
     }
+
 
     public function verifyTransaction(string $reference)
     {
