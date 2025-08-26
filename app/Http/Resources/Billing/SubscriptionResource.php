@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Billing;
 
+use App\Http\Resources\Billing\Plan\PlanFeatureResource;
 use App\Http\Resources\Billing\Plan\PlanResource;
 use App\Http\Resources\User\UserResource;
 use Illuminate\Http\Request;
@@ -37,7 +38,6 @@ class SubscriptionResource extends JsonResource
             "updated_at" => formatDate($this->updated_at),
             'plan' => new PlanResource($this->whenLoaded('plan')),
             'user' => new UserResource($this->whenLoaded('user')),
-            // 'features' => PlanFeatureResource::collection($this->whenLoaded('planFeatures')),
         ];
     }
 }

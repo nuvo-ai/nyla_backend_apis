@@ -135,7 +135,6 @@ class SubscriptionController extends Controller
         $auth_user = User::getAuthenticatedUser();
         $user = $auth_user;
         $subscription = $user->currentSubscription()->with('plan.features')->first();
-
-        return ApiHelper::validResponse("Current subscription", $subscription);
+        return ApiHelper::validResponse("Current subscription", SubscriptionResource::make($subscription));
     }
 }
