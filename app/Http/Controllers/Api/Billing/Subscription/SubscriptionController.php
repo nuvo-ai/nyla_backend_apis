@@ -75,9 +75,9 @@ class SubscriptionController extends Controller
             }
             // if (!app()->environment('production')) {
                 $subscription = $this->subscription_service->createSubscription($user, $plan_id, $paymentData);
-                return ApiHelper::validResponse("Subscription created (local)", SubscriptionResource::make($subscription));
+                return ApiHelper::validResponse("Subscription created", SubscriptionResource::make($subscription));
             // }
-            return ApiHelper::validResponse("Payment verified. Subscription will be created via webhook.");
+            // return ApiHelper::validResponse("Payment verified. Subscription will be created via webhook.");
         } catch (Exception $e) {
             return ApiHelper::problemResponse("Failed to verify payment or create subscription", 500, null, $e);
         }

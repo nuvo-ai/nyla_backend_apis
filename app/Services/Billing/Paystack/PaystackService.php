@@ -31,7 +31,7 @@ class PaystackService
         $payload = [
             'email' => $user->email,
             'amount' => $amount,
-            'callback_url' => route('billings.callback'),
+            // 'callback_url' => route('billings.callback'),
             'metadata' => $metadata,
         ];
 
