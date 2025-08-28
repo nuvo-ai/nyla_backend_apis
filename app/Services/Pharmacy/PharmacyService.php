@@ -19,6 +19,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use App\Services\Pharmacy\PharmacyActivityService;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class PharmacyService
@@ -341,6 +342,11 @@ class PharmacyService
             $random_password = Str::random(10);
             $user->password = Hash::make($random_password);
             $user->save();
+            Log::info("Login details sent to user: {$user->email}", [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'password' => $user->password,
+            ]);
             Mail::to($user->email)->send(new SendUserLoginDetailsMail($user, $random_password));
             return $user->toArray();
         } catch (\Exception $e) {
