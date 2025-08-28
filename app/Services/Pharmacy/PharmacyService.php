@@ -72,75 +72,73 @@ class PharmacyService
 
     public function createPharmacy(array $data): Pharmacy
     {
-        return DB::transaction(function () use ($data) {
-            $this->validate($data);
-            // Create Pharmacy
-            $pharmacy = Pharmacy::create([
-                'uuid' => Str::uuid(),
-                'user_id' => $data['user_id'] ?? null,
-                'name' => $data['pharmacy_name'],
-                'phone' => $data['pharmacy_phone'],
-                'email' => $data['pharmacy_email'],
-                'license_number' => $data['pharmacy_license_number'],
-                'pharmacist_in_charge_name' => $data['pharmacist_in_charge_name'],
-                'logo_path' => $this->handleFileUpload($data['logo_path'] ?? null, 'pharmacy-logos'),
-                'street_address' => $data['street_address'],
-                'city' => $data['city'],
-                'state' => $data['state'],
-                'country' => $data['country'],
-                'google_maps_location' => $data['google_maps_location'] ?? null,
-                'request_onsite_setup' => $data['request_onsite_setup'] ?? false,
-                'terms_accepted' => $data['accept_terms'] ?? false,
-                'nafdac_certificate' => $this->handleFileUpload($data['nafdac_certificate'] ?? null, 'pharmacy-nafdac-certificates'),
-                'delivery_available' => $data['delivery_available'] ?? false,
-                'status' => $data['status'] ?? 'pending',
-            ]);
+        $this->validate($data);
+        // Create Pharmacy
+        $pharmacy = Pharmacy::create([
+            'uuid' => Str::uuid(),
+            'user_id' => $data['user_id'] ?? null,
+            'name' => $data['pharmacy_name'],
+            'phone' => $data['pharmacy_phone'],
+            'email' => $data['pharmacy_email'],
+            'license_number' => $data['pharmacy_license_number'],
+            'pharmacist_in_charge_name' => $data['pharmacist_in_charge_name'],
+            'logo_path' => $this->handleFileUpload($data['logo_path'] ?? null, 'pharmacy-logos'),
+            'street_address' => $data['street_address'],
+            'city' => $data['city'],
+            'state' => $data['state'],
+            'country' => $data['country'],
+            'google_maps_location' => $data['google_maps_location'] ?? null,
+            'request_onsite_setup' => $data['request_onsite_setup'] ?? false,
+            'terms_accepted' => $data['accept_terms'] ?? false,
+            'nafdac_certificate' => $this->handleFileUpload($data['nafdac_certificate'] ?? null, 'pharmacy-nafdac-certificates'),
+            'delivery_available' => $data['delivery_available'] ?? false,
+            'status' => $data['status'] ?? 'pending',
+        ]);
 
-            // Create primary contact
-            $pharmacy_contact = $pharmacy->contacts()->create([
-                'uuid' => Str::uuid(),
-                'name' => $data['primary_contact_name'],
-                'email' => $data['primary_contact_email'],
-                'phone' => $data['primary_contact_phone'],
-                'role' => $data['primary_contact_role'],
-                'type' => 'primary'
-            ]);
+        // Create primary contact
+        $pharmacy_contact = $pharmacy->contacts()->create([
+            'uuid' => Str::uuid(),
+            'name' => $data['primary_contact_name'],
+            'email' => $data['primary_contact_email'],
+            'phone' => $data['primary_contact_phone'],
+            'role' => $data['primary_contact_role'],
+            'type' => 'primary'
+        ]);
 
-            if (!empty($data['user_id'])) {
-                $user = User::find($data['user_id']);
-                if ($user) {
-                    $user->pharmacy_contact_id = $pharmacy_contact->id;
-                    $user->save();
-                }
+        if (!empty($data['user_id'])) {
+            $user = User::find($data['user_id']);
+            if ($user) {
+                $user->pharmacy_contact_id = $pharmacy_contact->id;
+                $user->save();
             }
+        }
 
-            $data['pharmacy_contact_id'] = $pharmacy_contact->where('type', 'primary')->first()->id;
-            $pharmacy->save();
+        $data['pharmacy_contact_id'] = $pharmacy_contact->where('type', 'primary')->first()->id;
+        $pharmacy->save();
 
-            // Attach services
-            if (isset($data['services']) && is_array($data['services'])) {
-                $serviceIds = [];
-                foreach ($data['services'] as $serviceName) {
-                    $service = Service::firstOrCreate(['name' => $serviceName]);
-                    $serviceIds[] = $service->id;
-                }
-                $pharmacy->services()->attach($serviceIds);
+        // Attach services
+        if (isset($data['services']) && is_array($data['services'])) {
+            $serviceIds = [];
+            foreach ($data['services'] as $serviceName) {
+                $service = Service::firstOrCreate(['name' => $serviceName]);
+                $serviceIds[] = $service->id;
             }
+            $pharmacy->services()->attach($serviceIds);
+        }
 
-            // Create operating hours
-            if (isset($data['operating_hours']) && is_array($data['operating_hours'])) {
-                foreach ($data['operating_hours'] as $day => $hours) {
-                    $pharmacy->operatingHours()->create([
-                        'day_of_week' => $day,
-                        'start_time' => $hours['start'] ?? null,
-                        'end_time' => $hours['end'] ?? null,
-                        'is_closed' => empty($hours['start']) && empty($hours['end'])
-                    ]);
-                }
+        // Create operating hours
+        if (isset($data['operating_hours']) && is_array($data['operating_hours'])) {
+            foreach ($data['operating_hours'] as $day => $hours) {
+                $pharmacy->operatingHours()->create([
+                    'day_of_week' => $day,
+                    'start_time' => $hours['start'] ?? null,
+                    'end_time' => $hours['end'] ?? null,
+                    'is_closed' => empty($hours['start']) && empty($hours['end'])
+                ]);
             }
+        }
 
-            return $pharmacy->load(['user', 'contacts', 'services', 'operatingHours']);
-        });
+        return $pharmacy->load(['user', 'contacts', 'services', 'operatingHours']);
     }
 
     public function updatePharmacy(array $data, $pharmacy_id): Pharmacy

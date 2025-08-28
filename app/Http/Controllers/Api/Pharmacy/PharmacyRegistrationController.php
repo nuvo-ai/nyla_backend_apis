@@ -12,6 +12,7 @@ use App\Services\User\UserService;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
@@ -49,6 +50,7 @@ class PharmacyRegistrationController extends Controller
 
     public function registerpharmacy(Request $request)
     {
+        DB::beginTransaction();
         try {
             $user = $this->user->create($this->requestedUserDataduringpharmacyRegistration($request));
             $pharmacy_data = $request->except(['user_name', 'user_email', 'user_phone', 'portal', 'password', 'generated_password']);
@@ -56,9 +58,12 @@ class PharmacyRegistrationController extends Controller
             $pharmacy = $this->pharmacy_service->createPharmacy($pharmacy_data);
 
             return ApiHelper::validResponse("Pharmacy created successfully", PharmacyRegistrationResource::make($pharmacy));
+            DB::commit();
         } catch (ValidationException $e) {
+            DB::rollBack();
             return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
+            DB::rollBack();
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
     }
