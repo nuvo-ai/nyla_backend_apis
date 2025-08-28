@@ -74,6 +74,9 @@ class LoginService
                     throw new AuthException("The hospital is not yet approved. Please wait for approval.");
                 }
             }
+            if($portal === "Pharmacy"){
+                
+            }
 
             if (!empty($token = $data["fcm_token"] ?? null)) {
                 $user->update([

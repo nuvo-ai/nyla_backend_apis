@@ -4,6 +4,7 @@ namespace App\Services\Pharmacy;
 
 use App\Constants\General\AppConstants;
 use App\Exceptions\General\ModelNotFoundException;
+use App\Mail\SendUserLoginDetailsMail;
 use App\Models\General\Service;
 use App\Models\Pharmacy\Pharmacy;
 use App\Models\User\User;
@@ -16,7 +17,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use App\Services\Pharmacy\PharmacyActivityService;
-
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class PharmacyService
 {
@@ -291,6 +293,7 @@ class PharmacyService
     public function approvePharmacy(Pharmacy $pharmacy): Pharmacy
     {
         $pharmacy->update(['status' => 'approved']);
+        $this->sendLoginDetailsDuringPharmacyRegistration($pharmacy->user->id);
         return $pharmacy;
     }
 
@@ -324,5 +327,19 @@ class PharmacyService
         }
 
         return $file->store($directory, 'public');
+    }
+
+    private function sendLoginDetailsDuringPharmacyRegistration($user_id)
+    {
+        try {
+            $user = User::findOrFail($user_id);
+            $random_password = Str::random(10);
+            $user->password = Hash::make($random_password);
+            $user->save();
+            Mail::to($user->email)->send(new SendUserLoginDetailsMail($user, $random_password));
+            return $user->toArray();
+        } catch (\Exception $e) {
+            return ['error_message' => 'An error occurred while sending login details to user.'];
+        }
     }
 }

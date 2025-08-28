@@ -56,9 +56,8 @@ class PharmacyRegistrationController extends Controller
             $pharmacy_data = $request->except(['user_name', 'user_email', 'user_phone', 'portal', 'password', 'generated_password']);
             $pharmacy_data['user_id'] = $user->id;
             $pharmacy = $this->pharmacy_service->createPharmacy($pharmacy_data);
-
-            return ApiHelper::validResponse("Pharmacy created successfully", PharmacyRegistrationResource::make($pharmacy));
             DB::commit();
+            return ApiHelper::validResponse("Pharmacy created successfully", PharmacyRegistrationResource::make($pharmacy));
         } catch (ValidationException $e) {
             DB::rollBack();
             return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
