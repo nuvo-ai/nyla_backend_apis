@@ -3,6 +3,7 @@
 namespace App\Services\Pharmacy;
 
 use App\Constants\General\AppConstants;
+use App\Constants\User\UserConstants;
 use App\Exceptions\General\ModelNotFoundException;
 use App\Mail\SendUserLoginDetailsMail;
 use App\Models\General\Service;
@@ -265,6 +266,10 @@ class PharmacyService
                 'Pharmacy profile updated',
                 ['pharmacy_id' => $pharmacy->id]
             );
+
+            $pharmacy->user->update([
+             'role' => UserConstants::PHARMACY_ADMIN,
+            ]);
 
             return $pharmacy->load(['user', 'contacts', 'services', 'operatingHours']);
         });

@@ -74,9 +74,21 @@ class LoginService
                     throw new AuthException("The hospital is not yet approved. Please wait for approval.");
                 }
             }
-            if($portal === "Pharmacy"){
-                
+            if ($portal === "Pharmacy") {
+                $pharmacy = $user->pharmacy;
+
+                if (!$pharmacy) {
+                    throw new AuthException("User is not associated with any pharmacy.");
+                }
+                if ($user->role !== UserConstants::PHARMACY_ADMIN) {
+                    throw new AuthException("Only Pharmacy Admin can login to the Pharmacy portal.");
+                }
+
+                if (strtolower($pharmacy->status) !== 'approved') {
+                    throw new AuthException("The pharmacy is not yet approved. Please wait for approval.");
+                }
             }
+
 
             if (!empty($token = $data["fcm_token"] ?? null)) {
                 $user->update([
