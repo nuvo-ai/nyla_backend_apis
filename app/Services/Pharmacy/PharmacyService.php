@@ -345,7 +345,7 @@ class PharmacyService
             Log::info("Login details sent to user: {$user->email}", [
                 'user_id' => $user->id,
                 'email' => $user->email,
-                'password' => $user->password,
+                'password' => $random_password,
             ]);
             Mail::to($user->email)->send(new SendUserLoginDetailsMail($user, $random_password));
             return $user->toArray();
