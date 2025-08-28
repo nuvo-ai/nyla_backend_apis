@@ -6,6 +6,7 @@ use App\Constants\General\ApiConstants;
 use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Hospital\HospitalRegistrationResource;
+use App\Models\Hospital\Hospital;
 use App\Services\Hospital\HospitalService;
 use App\Services\User\UserService;
 use Exception;
@@ -117,5 +118,38 @@ class HospitalRegistrationController extends Controller
     private function generateRandomPasswordDuringHospitalRegistration(int $length = 10): string
     {
         return Str::random($length);
+    }
+
+      public function approve(string $uuid)
+    {
+        DB::beginTransaction();
+        try {
+            $hospital= Hospital::where('uuid', $uuid)->firstOrFail();
+
+            $approvedHospital = $this->hospital_service->approveHospital($hospital);
+
+            DB::commit();
+
+            return ApiHelper::validResponse(
+                "Hospital approved successfully",
+                new HospitalRegistrationResource($approvedHospital)
+            );
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return ApiHelper::problemResponse(
+                "Hospital not found",
+                ApiConstants::NOT_FOUND_ERR_CODE,
+                null,
+                $e
+            );
+        } catch (Exception $e) {
+            DB::rollBack();
+            return ApiHelper::problemResponse(
+                $this->serverErrorMessage,
+                ApiConstants::SERVER_ERR_CODE,
+                null,
+                $e
+            );
+        }
     }
 }

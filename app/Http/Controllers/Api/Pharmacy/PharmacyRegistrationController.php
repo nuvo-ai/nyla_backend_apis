@@ -114,4 +114,37 @@ class PharmacyRegistrationController extends Controller
     {
         return Str::random($length);
     }
+
+    public function approve(string $uuid)
+    {
+        DB::beginTransaction();
+        try {
+            $pharmacy = Pharmacy::where('uuid', $uuid)->firstOrFail();
+
+            $approvedPharmacy = $this->pharmacy_service->approvePharmacy($pharmacy);
+
+            DB::commit();
+
+            return ApiHelper::validResponse(
+                "Pharmacy approved successfully",
+                new PharmacyRegistrationResource($approvedPharmacy)
+            );
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return ApiHelper::problemResponse(
+                "Pharmacy not found",
+                ApiConstants::NOT_FOUND_ERR_CODE,
+                null,
+                $e
+            );
+        } catch (Exception $e) {
+            DB::rollBack();
+            return ApiHelper::problemResponse(
+                $this->serverErrorMessage,
+                ApiConstants::SERVER_ERR_CODE,
+                null,
+                $e
+            );
+        }
+    }
 }
