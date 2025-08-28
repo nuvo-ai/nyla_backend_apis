@@ -14,10 +14,6 @@ class Pharmacy extends Model
 {
     protected $guarded = [];
 
-    protected $fillable = [
-        'is_active',
-    ];
-
     protected $table = 'pharmacies';
 
     protected $casts = [
