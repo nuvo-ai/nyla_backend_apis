@@ -24,16 +24,15 @@ class UserResource extends JsonResource
                     "role"      => $this?->hospitalUser->role,
                     "frontdesk" => $this?->hospitalUser->frontdesk ?? null,
                 ];
-            } elseif (strcasecmp($this?->role, 'Pharmacy') === 0) {
-                $pharmacyData = [
-                    "role"     => $this?->role,
-                    "pharmacy" => $this?->pharmacy ?? null,
-                ];
             } else {
                 $hospitalUserData = [
                     "role" => $this?->hospitalUser->role,
                 ];
             }
+        }
+
+        if (strcasecmp($this?->role, 'Pharmacy') === 0) {
+            $pharmacyData = $this?->pharmacy ?? null;
         }
 
 
