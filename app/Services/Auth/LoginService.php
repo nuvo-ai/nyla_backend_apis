@@ -36,7 +36,7 @@ class LoginService
                 "portal" => "nullable|string|in:Hospital,Pharmacy",
             ];
 
-            if (isset($data["portal"]) && $data["portal"] === "Hospital") {
+            if (isset($data["portal"]) && in_array($data["portal"], ["Hospital", "Admin", "Support"])) {
                 if (isset($data['role'])) {
                     $data['role'] = $data['role'];
                 }
@@ -44,10 +44,9 @@ class LoginService
                 $rules["role"] = "required|string|in:$roles";
             }
 
-
             $messages = [
                 'role.in' => 'The role could not be matched or found in the app.',
-                'portal.in' => 'Portal must be either Hospital or Pharmacy.',
+                'portal.in' => 'Portal must be either Hospital, Pharmacy, Admin or Support',
             ];
             $portal = $data["portal"] ?? null;
             $data = Validator::make($data, $rules, $messages)->validate();
