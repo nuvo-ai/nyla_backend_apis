@@ -82,6 +82,10 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
 
     Route::post('auth/logout', [LoginController::class, 'logout'])->name('auth.logout');
 
+    Route::prefix('admin')->as('admin.')->group(function () {
+         Route::get('/app-users', [UserController::class, 'users'])->name('app-users');
+    });
+
     Route::prefix('profile')->as('profile.')->group(function () {
         Route::get('/me', [UserController::class, 'me'])->name('me');
         Route::put('/update', [UserController::class, 'update'])->name('update');

@@ -42,6 +42,16 @@ class UserController extends Controller
         }
     }
 
+    public function users()
+    {
+        try {
+            $user = User::latest()->get();
+            return ApiHelper::validResponse("Users retrieved successfully", UserResource::collection($user));
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
+    }
+
     public function update(Request $request)
     {
         try {
