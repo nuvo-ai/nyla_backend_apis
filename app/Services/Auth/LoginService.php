@@ -33,7 +33,7 @@ class LoginService
                 "email" => "required|string|email|exists:users,email",
                 "password" => "required|string",
                 "fcm_token" => "nullable|string",
-                "portal" => "nullable|string|in:Hospital,Pharmacy",
+                "portal" => "nullable|string|in:Hospital,Pharmacy,Admin,Support",
             ];
 
             if (isset($data["portal"]) && in_array($data["portal"], ["Hospital", "Admin", "Support"])) {

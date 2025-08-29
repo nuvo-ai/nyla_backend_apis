@@ -26,6 +26,7 @@ class UserConstants
         self::FRONT_DESK,
         self::SUPER_ADMIN,
         self::NURSE,
+        self::SUPPORT,
     ];
 
     const STATUSES = [
