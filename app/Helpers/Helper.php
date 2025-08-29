@@ -33,6 +33,19 @@ class Helper
         }
     }
 
+    public static function getCountry()
+    {
+        $ip = request()->ip();
+        if ($ip === '127.0.0.1' || $ip === '::1') {
+            return 'Nigeria';
+        }
+        $url = "http://ip-api.com/json/{$ip}";
+        $response = file_get_contents($url);
+        $location = json_decode($response, true);
+
+        return $location['status'] === 'success' ? $location['country'] : 'Unknown';
+    }
+
     /**
      * Format a paginated response for API/frontend use.
      *
