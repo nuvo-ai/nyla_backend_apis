@@ -52,7 +52,7 @@ class UserResource extends JsonResource
             "city"              => $this->city,
             "fcm_token"         => $this->fcm_token,
             "last_login_at"     => formatDate($this->last_login_at),
-            'country'           => (new Helper)->getCountry(),
+            'country'           => null,
             "email_verified_at" => formatDate($this->email_verified_at),
             "created_at"        => formatDate($this->created_at),
             "updated_at"        => formatDate($this->updated_at),
