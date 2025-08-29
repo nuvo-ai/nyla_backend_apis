@@ -83,9 +83,9 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
     Route::post('auth/logout', [LoginController::class, 'logout'])->name('auth.logout');
 
     Route::prefix('admin')->as('admin.')->group(function () {
-         Route::get('/app-users', [UserController::class, 'users'])->name('app-users');
-         Route::post('/restore', [UserController::class, 'restore'])->name('restore');
-          Route::delete('/delete', [UserController::class, 'delete'])->name('delete');
+        Route::get('/app-users', [UserController::class, 'users'])->name('app-users');
+        Route::post('/user/restore', [UserController::class, 'restore'])->name('user.restore');
+        Route::delete('/user/delete', [UserController::class, 'delete'])->name('user.delete');
     });
 
     Route::prefix('profile')->as('profile.')->group(function () {
