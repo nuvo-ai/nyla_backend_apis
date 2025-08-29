@@ -57,7 +57,7 @@ class UserResource extends JsonResource
             "email_verified_at" => formatDate($this->email_verified_at),
             "created_at"        => formatDate($this->created_at),
             "updated_at"        => formatDate($this->updated_at),
-            "deleted_at"        => formatDate($this->updated_at),
+            "deleted_at"        => formatDate($this->deleted_at),
             "hospital_user"     => $hospitalUserData,
             "pharmacy"          => $pharmacyData,
         ];
