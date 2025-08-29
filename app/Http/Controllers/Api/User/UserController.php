@@ -23,19 +23,22 @@ class UserController extends Controller
     public $blocked_user_service;
     public $avatar_service;
     public $social_auth_link_service;
-     public $hospital_service;
+    public $hospital_service;
 
     public function __construct()
     {
         $this->user_service = new UserService;
         $this->profile_service = new ProfileService;
-          $this->hospital_service = new HospitalService;
+        $this->hospital_service = new HospitalService;
     }
     public function me()
     {
         try {
-            $user = User::with(['hospitalUser.doctor', 
-            'hospitalUser.frontdesk', 'pharmacy'])->find(auth()->id());
+            $user = User::with([
+                'hospitalUser.doctor',
+                'hospitalUser.frontdesk',
+                'pharmacy'
+            ])->find(auth()->id());
             return ApiHelper::validResponse("User retrieved successfully", UserResource::make($user));
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
@@ -76,6 +79,30 @@ class UserController extends Controller
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
     }
+
+    // restore user
+    public function restore($id)
+    {
+        try {
+            $user = $this->user_service->restore($id);
+            return ApiHelper::validResponse("User restored successfully", UserResource::make($user));
+        } catch (ValidationException $e) {
+            return ApiHelper::inputErrorResponse(
+                $this->validationErrorMessage,
+                ApiConstants::VALIDATION_ERR_CODE,
+                null,
+                $e
+            );
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse(
+                $this->serverErrorMessage,
+                ApiConstants::SERVER_ERR_CODE,
+                null,
+                $e
+            );
+        }
+    }
+
 
     public function getUserHospital()
     {

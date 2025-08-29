@@ -90,6 +90,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::get('/me', [UserController::class, 'me'])->name('me');
         Route::put('/update', [UserController::class, 'update'])->name('update');
         Route::delete('/delete', [UserController::class, 'delete'])->name('delete');
+         Route::post('/restore', [UserController::class, 'restore'])->name('restore');
     });
 
     Route::prefix('users/{user}/preferences')->group(function () {

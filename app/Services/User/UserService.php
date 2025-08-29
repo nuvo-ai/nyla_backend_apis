@@ -178,6 +178,21 @@ class UserService
         }
     }
 
+    public function restore($id)
+    {
+        DB::beginTransaction();
+        try {
+            $user = User::withTrashed()->findOrFail($id);
+            $user->restore();
+            DB::commit();
+            return $user;
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
+    }
+
+
     public function logout($id = null)
     {
         DB::beginTransaction();
