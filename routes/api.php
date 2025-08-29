@@ -84,13 +84,14 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
 
     Route::prefix('admin')->as('admin.')->group(function () {
          Route::get('/app-users', [UserController::class, 'users'])->name('app-users');
+         Route::post('/restore', [UserController::class, 'restore'])->name('restore');
+          Route::delete('/delete', [UserController::class, 'delete'])->name('delete');
     });
 
     Route::prefix('profile')->as('profile.')->group(function () {
         Route::get('/me', [UserController::class, 'me'])->name('me');
         Route::put('/update', [UserController::class, 'update'])->name('update');
         Route::delete('/delete', [UserController::class, 'delete'])->name('delete');
-         Route::post('/restore', [UserController::class, 'restore'])->name('restore');
     });
 
     Route::prefix('users/{user}/preferences')->group(function () {
