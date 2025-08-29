@@ -11,6 +11,7 @@ class UserResource extends JsonResource
     public function toArray($request)
     {
         $hospitalUserData = null;
+        $pharmacyData = null;
 
         if ($this?->hospitalUser) {
             if (strcasecmp($this->hospitalUser->role, 'Doctor') === 0) {
@@ -18,10 +19,15 @@ class UserResource extends JsonResource
                     "role"   => $this?->hospitalUser->role,
                     "doctor" => $this?->hospitalUser->doctor ?? null,
                 ];
-            } elseif (strcasecmp($this?->hospitalUser->role, 'FrontDesk') === 0) {
+            } elseif (strcasecmp($this->hospitalUser->role, 'FrontDesk') === 0) {
                 $hospitalUserData = [
                     "role"      => $this?->hospitalUser->role,
                     "frontdesk" => $this?->hospitalUser->frontdesk ?? null,
+                ];
+            } elseif (strcasecmp($this?->role, 'Pharmacy') === 0) {
+                $pharmacyData = [
+                    "role"     => $this?->role,
+                    "pharmacy" => $this?->pharmacy ?? null,
                 ];
             } else {
                 $hospitalUserData = [
@@ -29,6 +35,7 @@ class UserResource extends JsonResource
                 ];
             }
         }
+
 
         return [
             "id"                => (int) $this->id,
@@ -48,7 +55,8 @@ class UserResource extends JsonResource
             "email_verified_at" => formatDate($this->email_verified_at),
             "created_at"        => formatDate($this->created_at),
             "updated_at"        => formatDate($this->updated_at),
-            "hospital_user"     => $hospitalUserData
+            "hospital_user"     => $hospitalUserData,
+            "pharmacy"          => $pharmacyData,
         ];
     }
 

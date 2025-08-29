@@ -35,7 +35,7 @@ class UserController extends Controller
     {
         try {
             $user = User::with(['hospitalUser.doctor', 
-            'hospitalUser.frontdesk'])->find(auth()->id());
+            'hospitalUser.frontdesk', 'pharmacy'])->find(auth()->id());
             return ApiHelper::validResponse("User retrieved successfully", UserResource::make($user));
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
