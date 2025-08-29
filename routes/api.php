@@ -86,6 +86,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::get('/app-users', [UserController::class, 'users'])->name('app-users');
         Route::post('/user/{id}/restore', [UserController::class, 'restore'])->name('user.restore');
         Route::delete('/user/{id}/delete', [UserController::class, 'deleteUser'])->name('user.delete');
+         Route::put('/user/{id}/suspend', [UserController::class, 'suspend'])->name('user.suspend');
     });
 
     Route::prefix('profile')->as('profile.')->group(function () {

@@ -45,11 +45,12 @@ class UserController extends Controller
         }
     }
 
-    public function users()
+    public function users(Request $request)
     {
         try {
-            $user = User::withTrashed()->latest()->get();;
-            return ApiHelper::validResponse("Users retrieved successfully", UserResource::collection($user));
+            $perPage = $request->get('per_page', 20);
+            $users = User::withTrashed()->latest()->paginate($perPage);
+            return ApiHelper::validResponse("Users retrieved successfully", UserResource::collection($users));
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
@@ -115,7 +116,27 @@ class UserController extends Controller
         }
     }
 
-
+    public function suspend($id)
+    {
+        try {
+            $user = $this->user_service->suspend($id);
+            return ApiHelper::validResponse("User Suspended successfully", UserResource::make($user));
+        } catch (ValidationException $e) {
+            return ApiHelper::inputErrorResponse(
+                $this->validationErrorMessage,
+                ApiConstants::VALIDATION_ERR_CODE,
+                null,
+                $e
+            );
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse(
+                $this->serverErrorMessage,
+                ApiConstants::SERVER_ERR_CODE,
+                null,
+                $e
+            );
+        }
+    }
     public function getUserHospital()
     {
         try {

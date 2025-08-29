@@ -192,6 +192,23 @@ class UserService
         }
     }
 
+    public function suspend($id)
+    {
+        DB::beginTransaction();
+        try {
+            $user = User::findOrFail($id);
+            $user->update([
+                "status" => "Suspended",
+            ]);
+            $user->save();
+            DB::commit();
+            return $user;
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
+    }
+
 
     public function logout($id = null)
     {
