@@ -15,6 +15,7 @@ class UserConstants
     const SUPER_ADMIN = "Super Admin";
     const NURSE = 'Nurse';
     const PHARMACY_ADMIN = "Pharmacy";
+    const SUPPORT = "Support";
 
     const ROLES = [
         self::ADMIN,
