@@ -152,4 +152,37 @@ class HospitalRegistrationController extends Controller
             );
         }
     }
+
+       public function reject(string $uuid)
+    {
+        DB::beginTransaction();
+        try {
+            $hospital= Hospital::where('uuid', $uuid)->firstOrFail();
+
+            $rejectedHospital = $this->hospital_service->approveHospital($hospital);
+
+            DB::commit();
+
+            return ApiHelper::validResponse(
+                "Hospital rejected successfully",
+                new HospitalRegistrationResource($rejectedHospital)
+            );
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return ApiHelper::problemResponse(
+                "Hospital not found",
+                ApiConstants::NOT_FOUND_ERR_CODE,
+                null,
+                $e
+            );
+        } catch (Exception $e) {
+            DB::rollBack();
+            return ApiHelper::problemResponse(
+                $this->serverErrorMessage,
+                ApiConstants::SERVER_ERR_CODE,
+                null,
+                $e
+            );
+        }
+    }
 }

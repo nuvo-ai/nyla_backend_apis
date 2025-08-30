@@ -115,7 +115,8 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::put('/update/{id}', [HospitalRegistrationController::class, 'updateHospital'])->name('update');
         Route::get('list', [HospitalRegistrationController::class, 'list'])->name('list');
         Route::get('/details', [HospitalRegistrationController::class, 'getHospital'])->name('details');
-        Route::patch('{uuid}/aprove', [HospitalRegistrationController::class, 'approve'])->name('approve');
+        Route::put('{uuid}/aprove', [HospitalRegistrationController::class, 'approve'])->name('approve');
+         Route::put('{uuid}/reject', [HospitalRegistrationController::class, 'reject'])->name('reject');
         Route::get('emrs', [PatientController::class, 'hospitalEmrs'])->name('emrs');
 
 
