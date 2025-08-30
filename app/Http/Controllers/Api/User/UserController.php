@@ -9,6 +9,7 @@ use App\Services\User\UserService;
 use App\Http\Controllers\Controller;
 use App\Services\User\ProfileService;
 use App\Constants\General\ApiConstants;
+use App\Helpers\Helper;
 use App\Http\Resources\Hospital\HospitalRegistrationResource;
 use App\Http\Resources\User\UserResource;
 use App\Models\User\User;
@@ -50,7 +51,8 @@ class UserController extends Controller
         try {
             $perPage = $request->get('per_page', 20);
             $users = User::withTrashed()->latest()->paginate($perPage);
-            return ApiHelper::validResponse("Users retrieved successfully", UserResource::collection($users));
+            $formatted = (new Helper)->formatPaginatedResponse($users, UserResource::class);
+            return ApiHelper::validResponse("Users retrieved successfully", UserResource::collection($formatted),);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }

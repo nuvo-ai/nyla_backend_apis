@@ -52,10 +52,10 @@ class Helper
      * @param LengthAwarePaginator $paginator
      * @return array
      */
-    function formatPaginatedResponse(LengthAwarePaginator $paginator): array
+    public function formatPaginatedResponse(LengthAwarePaginator $paginator, string $resourceClass): array
     {
         return [
-            'data' => $paginator->items(),
+            'data' => $resourceClass::collection($paginator->items()),
             'meta' => [
                 'current_page' => $paginator->currentPage(),
                 'per_page'     => $paginator->perPage(),
@@ -65,6 +65,7 @@ class Helper
             ],
         ];
     }
+
 
 
     // function to convert time to 12 hour format
