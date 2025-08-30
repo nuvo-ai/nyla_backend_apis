@@ -52,7 +52,7 @@ class UserController extends Controller
             $perPage = $request->get('per_page', 20);
             $users = User::withTrashed()->latest()->paginate($perPage);
             $formatted = (new Helper)->formatPaginatedResponse($users, UserResource::class);
-            return ApiHelper::validResponse("Users retrieved successfully", UserResource::collection($formatted),);
+            return ApiHelper::validResponse("Users retrieved successfully", $formatted);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
