@@ -34,6 +34,7 @@ class PharmacyRegistrationResource extends JsonResource
             'city' => $this->city,
             'state' => $this->state,
             'google_maps_location' => $this->google_maps_location,
+            'status' => $this->status,
             "created_at" => formatDate($this->created_at),
             "updated_at" => formatDate($this->updated_at),
             'contacts'       => PharmacyContactResource::collection($this->contacts),

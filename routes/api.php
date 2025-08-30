@@ -204,7 +204,8 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::get('list', [PharmacyRegistrationController::class, 'list'])->name('list');
         Route::get('/{uuid}/details', [PharmacyRegistrationController::class, 'getPharmacy'])->name('details');
         Route::patch('/{id}/toggle-active', [PharmacyRegistrationController::class, 'toggleActive']);
-        Route::patch('/{uuid}/approve', [PharmacyRegistrationController::class, 'approve'])->name('approve');
+        Route::put('/{uuid}/approve', [PharmacyRegistrationController::class, 'approve'])->name('approve');
+         Route::put('{uuid}/reject', [PharmacyRegistrationController::class, 'reject'])->name('reject');
 
         // Orders
         Route::get('/orders', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'index']);
