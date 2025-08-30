@@ -27,7 +27,7 @@ class UserSeeder extends Seeder
             'address' => '123 Market Street',
             'state' => 'Lagos',
             'city' => 'Ikeja',
-            'status' => 1,
+            'status' => "Active",
             'password' => bcrypt('@tintin123'),
             'email_verified_at' => now(),
         ]);
@@ -42,7 +42,7 @@ class UserSeeder extends Seeder
             'address' => '456 Admin Avenue',
             'state' => 'Abuja',
             'city' => 'Maitama',
-            'status' => 1,
+            'status' => "Active",
             'password' => bcrypt('NylaAi@2025'),
             'email_verified_at' => now(),
         ]);

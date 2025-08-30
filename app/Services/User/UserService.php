@@ -209,6 +209,22 @@ class UserService
         }
     }
 
+    public function activate($id)
+    {
+        DB::beginTransaction();
+        try {
+            $user = User::findOrFail($id);
+            $user->update([
+                "status" => "Active",
+            ]);
+            $user->save();
+            DB::commit();
+            return $user;
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
+    }
 
     public function logout($id = null)
     {
