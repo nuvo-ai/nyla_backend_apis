@@ -116,10 +116,10 @@ class PlanController extends Controller
         }
     }
 
-    public function pharmacyPlans()
+    public function pharmacyPlan()
     {
         try {
-            $plans = $this->plan_service->phamacyPlans();
+            $plans = $this->plan_service->phamacyPlan();
             return ApiHelper::validResponse("Pharmacy plans retrieved successfully", PlanResource::make($plans));
         } catch (Exception $e) {
             return ApiHelper::problemResponse("Unable to retrieve pharmacy plans", 500, null, $e);
