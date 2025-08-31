@@ -42,6 +42,6 @@ class Subscription extends Model
     }
     public function isExpired()
     {
-        return $this->status === 'inactive' && $this->ends_at && $this->ends_at->isPast();
+        return $this->status === 'is_expired' && $this->ends_at && $this->ends_at->isPast();
     }
 }

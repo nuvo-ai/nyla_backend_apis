@@ -39,7 +39,7 @@ class PharmacyRegistrationResource extends JsonResource
             "updated_at" => formatDate($this->updated_at),
             'contacts'       => PharmacyContactResource::collection($this->contacts),
             'services'       => PharmacyServiceResource::collection($this->services),
-            'operating_ours' => OperatingHourResource::collection($this->operatingHours),
+            'operating_hours' => OperatingHourResource::collection($this->operatingHours),
         ];
     }
 }
