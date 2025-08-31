@@ -35,4 +35,8 @@ class Subscription extends Model
     {
         return $this->belongsTo(Plan::class);
     }
+    public function isExpired()
+    {
+        return $this->status === 'inactive' && $this->ends_at && $this->ends_at->isPast();
+    }
 }

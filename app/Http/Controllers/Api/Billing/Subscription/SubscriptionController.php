@@ -156,13 +156,15 @@ class SubscriptionController extends Controller
     public function current()
     {
         $user = User::getAuthenticatedUser();
-
-        $subscription = $user->latestSubscription()?->load('plan.features');
+        $subscription = $user->latestSubscription()->with('plan.features')->first();
 
         if (!$subscription) {
             return ApiHelper::validResponse("No subscription found", []);
         }
 
-        return ApiHelper::validResponse("Current subscription", SubscriptionResource::make($subscription));
+        return ApiHelper::validResponse(
+            "Current subscription",
+            SubscriptionResource::make($subscription)
+        );
     }
 }

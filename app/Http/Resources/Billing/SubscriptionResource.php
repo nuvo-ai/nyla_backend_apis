@@ -41,6 +41,7 @@ class SubscriptionResource extends JsonResource
             'customer_code' => $this->customer_code,
             'starts_at' => formatDate($this->starts_at),
             'ends_at' => formatDate($this->ends_at),
+            'is_expired' => $this->isExpired(),
             'next_billing' => $nextBilling,
             'payment_gateway_id' => $this->payment_gateway_id,
             'payment_method' => $this->payment_method,
