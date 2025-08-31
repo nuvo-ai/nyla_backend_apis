@@ -85,7 +85,7 @@ class SubscriptionController extends Controller
                 if ($portal === 'pharmacy') {
                     $redirectUrl = config('app.frontend_url') . "/pharmacy/settings?status=success&reference={$reference}";
                 } elseif ($portal === 'hospital') {
-                    $redirectUrl = config('app.frontend_url') . "/hospital/settings?status=success&reference={$reference}";
+                    $redirectUrl = config('app.frontend_url') . "/hospital/settings?role=admin?status=success&reference={$reference}";
                 } else {
                     $redirectUrl = config('app.frontend_url') . "/settings?status=success&reference={$reference}";
                 }
