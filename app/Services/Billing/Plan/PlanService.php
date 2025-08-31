@@ -181,11 +181,11 @@ class PlanService
 
     public function hospitalPlan(): ?Plan
     {
-        return Plan::with('features')->where('portal', 'Hospital')->first();
+        return Plan::with('features')->where('portal', 'Hospital')->first() ?: null;
     }
 
     public function phamacyPlan(): ?Plan
     {
-        return Plan::with('features')->where('portal', 'Pharmacy')->first();
+        return Plan::with('features')->where('portal', 'Pharmacy')->first() ?: null;
     }
 }

@@ -23,6 +23,8 @@ class PlanResource extends JsonResource
             'amount' => $this->formatAmountWithSymbol(),
             'currency' => $this->currency->short_name,
             'interval' => $this->interval,
+            'portal' => $this->portal,
+            'plan_type' => $this->plan_type,
             'is_active' => $this->is_active ? true : false,
             'created_at' => formatDate($this->created_at),
             'updated_at' => formatDate($this->updated_at),
