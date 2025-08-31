@@ -38,7 +38,6 @@ class PaystackService
                 'portal'   => 'hospital',
             ], $metadata),
         ];
-        dd($payload);
 
         if ($planCode) {
             $payload['plan'] = $planCode;
