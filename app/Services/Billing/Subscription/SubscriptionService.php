@@ -41,8 +41,9 @@ class SubscriptionService
             $plan->amount * 100,
             $plan->plan_code,
             [
-                'plan_id' => $plan->id,
-                'user_id' => $user->id,
+                'plan_id'  => $plan->id,
+                'portal'   => $data['portal']   ?? 'pharmacy',
+                'platform' => $data['platform'] ?? 'web',
             ]
         );
     }

@@ -32,12 +32,13 @@ class PaystackService
             'email' => $user->email,
             'amount' => $amount,
             'callback_url' => route('billings.callback'),
-            'metadata' => array_merge($metadata, [
+            'metadata' => array_merge([
                 'user_id' => $user->id,
-                'platform' => $metadata['platform'] ?? 'web',
-                'portal' => $metadata['portal'] ?? 'pharmacy', // 👈 include portal
-            ]),
+                'platform' => 'web',
+                'portal'   => 'hospital',
+            ], $metadata),
         ];
+        dd($payload);
 
         if ($planCode) {
             $payload['plan'] = $planCode;
