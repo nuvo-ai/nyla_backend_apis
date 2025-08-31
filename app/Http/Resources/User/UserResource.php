@@ -6,6 +6,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use ApiPlatform\Metadata\ApiResource;
 use App\Helpers\Helper;
 use App\Http\Resources\AI\V1\PharmacyAIAssistanceResource;
+use App\Http\Resources\Pharmacy\PharmacyRegistrationResource;
 
 #[ApiResource]
 class UserResource extends JsonResource
@@ -34,7 +35,7 @@ class UserResource extends JsonResource
         }
 
         if (strcasecmp($this?->role, 'Pharmacy') === 0) {
-            $pharmacyData = new PharmacyAIAssistanceResource($this->whenLoaded('pharmacy'));
+            $pharmacyData = new PharmacyRegistrationResource($this->whenLoaded('pharmacy'));
         } else {
             $pharmacyData = null;
         }
