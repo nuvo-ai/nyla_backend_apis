@@ -42,7 +42,9 @@ class SubscriptionResource extends JsonResource
             'starts_at' => formatDate($this->starts_at),
             'ends_at' => formatDate($this->ends_at),
             'is_expired' => $this->isExpired(),
-            'next_billing' => $nextBilling,
+            'next_billing' =>  $this->next_payment_date
+                ? Carbon::parse($this->next_payment_date)->format('M d, Y')
+                : null,
             'payment_gateway_id' => $this->payment_gateway_id,
             'payment_method' => $this->payment_method,
             'authorization_reusable' => $this->authorization_reusable ? true : false,
