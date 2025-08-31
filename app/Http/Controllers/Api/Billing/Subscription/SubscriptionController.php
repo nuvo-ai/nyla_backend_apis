@@ -39,7 +39,7 @@ class SubscriptionController extends Controller
         try {
             $user = $request->user();
             $this->subscription_service->validate($request->all());
-            
+
             $init = $this->subscription_service->initializePayment($user, $request->all());
 
             return ApiHelper::validResponse("Payment initialized", [
@@ -155,14 +155,14 @@ class SubscriptionController extends Controller
 
     public function current()
     {
-        $auth_user = User::getAuthenticatedUser();
-        $user = $auth_user;
+        $user = User::getAuthenticatedUser();
 
-        $subscription = $user->currentSubscription()?->with('plan.features')->first();
+        $subscription = $user->latestSubscription()?->load('plan.features');
 
         if (!$subscription) {
-            return ApiHelper::validResponse("No current subscription", []);
+            return ApiHelper::validResponse("No subscription found", []);
         }
+
         return ApiHelper::validResponse("Current subscription", SubscriptionResource::make($subscription));
     }
 }

@@ -154,9 +154,26 @@ class User extends Authenticatable
     {
         return $this->hasMany(Subscription::class);
     }
-    public function currentSubscription()
+    public function latestSubscription()
     {
-        return $this->hasOne(Subscription::class)
-            ->where('status', strtolower('active'));
+        return $this->hasOne(Subscription::class)->latestOfMany();
+    }
+
+    public function hasActiveSubscription()
+    {
+        $subscription = $this->latestSubscription()->first();
+
+        return $subscription && $subscription->status === 'active';
+    }
+
+    public function reactivateSubscription()
+    {
+        $subscription = $this->latestSubscription()->first();
+
+        if ($subscription && $subscription->status !== 'active') {
+            $subscription->update(['status' => 'active']);
+        }
+
+        return $subscription;
     }
 }
