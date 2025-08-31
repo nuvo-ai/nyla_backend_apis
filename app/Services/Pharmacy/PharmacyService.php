@@ -148,7 +148,7 @@ class PharmacyService
     public function updatePharmacy(array $data, $pharmacy_id): Pharmacy
     {
         return DB::transaction(function () use ($pharmacy_id, $data) {
-            $this->validate($data);
+            // $this->validate($data);
 
             // Update Pharmacy basic info
             $pharmacy = $this->getById($pharmacy_id);
