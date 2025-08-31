@@ -54,38 +54,55 @@ class SubscriptionController extends Controller
     }
 
 
-  public function handleCallback(Request $request)
-{
-    try {
-        $reference = $request->query('reference');
-        if (!$reference) {
-            throw new Exception('Reference missing from callback');
+    public function handleCallback(Request $request)
+    {
+        try {
+            $reference = $request->query('reference');
+            if (!$reference) {
+                throw new Exception('Reference missing from callback');
+            }
+
+            $paymentData = $this->subscription_service->verifyTransaction($reference);
+
+            $user    = User::find($paymentData['metadata']['user_id'] ?? null);
+            $plan_id = $paymentData['metadata']['plan_id'] ?? null;
+            $platform = $paymentData['metadata']['platform'] ?? 'web';
+            $portal   = $paymentData['metadata']['portal'] ?? 'pharmacy';
+
+            if (!$user || !$plan_id) {
+                throw new Exception('User or Plan ID missing from metadata');
+            }
+
+            $subscriptionCode = $paymentData['subscription'] ?? $paymentData['reference'];
+            $existing = Subscription::where('subscription_code', $subscriptionCode)->first();
+
+            if (!$existing) {
+                $this->subscription_service->createSubscription($user, $plan_id, $paymentData);
+            }
+
+            // Decide redirect URL
+            if ($platform === 'web') {
+                if ($portal === 'pharmacy') {
+                    $redirectUrl = config('app.frontend_url') . "/pharmacy/settings?status=success&reference={$reference}";
+                } elseif ($portal === 'hospital') {
+                    $redirectUrl = config('app.frontend_url') . "/hospital/settings?status=success&reference={$reference}";
+                } else {
+                    $redirectUrl = config('app.frontend_url') . "/settings?status=success&reference={$reference}";
+                }
+            } elseif ($platform === 'app') {
+                $redirectUrl = config('app.mobile_deeplink') . "?status=success&reference={$reference}";
+            } else {
+                $redirectUrl = config('app.frontend_url') . "/settings?status=success&reference={$reference}";
+            }
+
+            return redirect($redirectUrl);
+        } catch (Exception $e) {
+            // fallback failed redirect
+            $failRedirect = config('app.frontend_url') . "/settings?status=failed";
+            return redirect($failRedirect);
         }
-
-        $paymentData = $this->subscription_service->verifyTransaction($reference);
-
-        // ✅ get user_id + plan_id from metadata (not auth)
-        $user = User::find($paymentData['metadata']['user_id'] ?? null);
-        $plan_id = $paymentData['metadata']['plan_id'] ?? null;
-
-        if (!$user || !$plan_id) {
-            throw new Exception('User or Plan ID missing from metadata');
-        }
-
-        $subscriptionCode = $paymentData['subscription'] ?? $paymentData['reference'];
-
-        $existing = Subscription::where('subscription_code', $subscriptionCode)->first();
-        if ($existing) {
-            return ApiHelper::validResponse("Subscription already exists", SubscriptionResource::make($existing));
-        }
-
-        $subscription = $this->subscription_service->createSubscription($user, $plan_id, $paymentData);
-
-        return ApiHelper::validResponse("Subscription created", SubscriptionResource::make($subscription));
-    } catch (Exception $e) {
-        return ApiHelper::problemResponse("Failed to verify payment or create subscription", 500, null, $e);
     }
-}
+
 
 
 

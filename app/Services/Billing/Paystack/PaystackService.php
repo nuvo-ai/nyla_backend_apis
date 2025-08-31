@@ -33,7 +33,9 @@ class PaystackService
             'amount' => $amount,
             'callback_url' => route('billings.callback'),
             'metadata' => array_merge($metadata, [
-                'user_id' => $user->id,   // ✅ inject user_id
+                'user_id' => $user->id,
+                'platform' => $metadata['platform'] ?? 'web',
+                'portal' => $metadata['portal'] ?? 'pharmacy', // 👈 include portal
             ]),
         ];
 

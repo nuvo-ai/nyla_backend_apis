@@ -124,7 +124,7 @@ class PlanController extends Controller
         try {
             $plan = $this->plan_service->phamacyPlan();
             if (!$plan) {
-                return ApiHelper::validResponse("No hospital plan found", null);
+                return ApiHelper::validResponse("No pharmacy plan found", null);
             }
             return ApiHelper::validResponse("Pharmacy plans retrieved successfully", PlanResource::make($plan));
         } catch (Exception $e) {
