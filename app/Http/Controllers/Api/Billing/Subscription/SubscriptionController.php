@@ -26,7 +26,7 @@ class SubscriptionController extends Controller
     {
         try {
             $user = $request->user();
-            $subscriptions = Subscription::with('plan')->latest()->get();
+            $subscriptions = Subscription::with(['plan', 'user'])->latest()->get();
             return ApiHelper::validResponse("Subscriptions retrieved", SubscriptionResource::collection($subscriptions));
         } catch (Exception $e) {
             return ApiHelper::problemResponse("Unable to retrieve subscriptions", 500, null, $e);
@@ -156,7 +156,7 @@ class SubscriptionController extends Controller
     public function current()
     {
         $user = User::getAuthenticatedUser();
-        $subscription = $user->latestSubscription()->with('plan.features')->first();
+        $subscription = $user->latestSubscription()->with(['plan.features', 'user'])->first();
 
         if (!$subscription) {
             return ApiHelper::validResponse("No subscription found", []);
