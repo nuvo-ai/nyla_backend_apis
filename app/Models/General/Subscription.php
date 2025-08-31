@@ -9,6 +9,11 @@ class Subscription extends Model
 {
     protected $table = 'subscriptions';
 
+    protected $casts = [
+        'starts_at' => 'datetime',
+        'ends_at'   => 'datetime',
+    ];
+
     protected $fillable = [
         'uuid',
         'user_id',
