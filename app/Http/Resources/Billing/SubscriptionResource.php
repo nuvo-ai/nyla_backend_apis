@@ -45,6 +45,11 @@ class SubscriptionResource extends JsonResource
             'next_billing' =>  $this->next_payment_date
                 ? Carbon::parse($this->next_payment_date)->format('M d, Y')
                 : null,
+            'message' => $this->isExpired()
+                ? 'Your subscription has expired. Please renew to continue enjoying the service.'
+                : ($this->status === 'inactive'
+                    ? 'Your subscription is inactive. Renew or activate your plan.'
+                    : 'Your subscription is active and running smoothly.'),
             'payment_gateway_id' => $this->payment_gateway_id,
             'payment_method' => $this->payment_method,
             'authorization_reusable' => $this->authorization_reusable ? true : false,
