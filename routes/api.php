@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\Hospital\Patient\PatientController;
 use App\Http\Controllers\Api\Hospital\Prescription\PrescriptionController;
 use App\Http\Controllers\Api\Hospital\Tracker\PeriodCycleController;
 use App\Http\Controllers\Api\Hospital\VisitNote\VisitNoteController;
+use App\Http\Controllers\Api\Pharmacy\OrderController;
 use App\Http\Controllers\Api\Pharmacy\PharmacyRegistrationController;
 use App\Http\Controllers\Api\User\HealthRecord\HealthRecordController;
 use App\Http\Controllers\Api\User\HealthRecord\MedicationReminderController;
@@ -116,7 +117,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::get('list', [HospitalRegistrationController::class, 'list'])->name('list');
         Route::get('/details', [HospitalRegistrationController::class, 'getHospital'])->name('details');
         Route::put('{uuid}/approve', [HospitalRegistrationController::class, 'approve'])->name('approve');
-         Route::put('{uuid}/reject', [HospitalRegistrationController::class, 'reject'])->name('reject');
+        Route::put('{uuid}/reject', [HospitalRegistrationController::class, 'reject'])->name('reject');
         Route::get('emrs', [PatientController::class, 'hospitalEmrs'])->name('emrs');
 
 
@@ -205,7 +206,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::get('/{uuid}/details', [PharmacyRegistrationController::class, 'getPharmacy'])->name('details');
         Route::patch('/{id}/toggle-active', [PharmacyRegistrationController::class, 'toggleActive']);
         Route::put('/{uuid}/approve', [PharmacyRegistrationController::class, 'approve'])->name('approve');
-         Route::put('{uuid}/reject', [PharmacyRegistrationController::class, 'reject'])->name('reject');
+        Route::put('{uuid}/reject', [PharmacyRegistrationController::class, 'reject'])->name('reject');
 
         // Orders
         Route::get('/orders', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'index']);
@@ -215,7 +216,7 @@ Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])
         Route::delete('/orders/{id}', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'destroy']);
         Route::get('/orders/{id}/export', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'export']);
         Route::get('/emr', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'emr']);
-
+        Route::put('/orders/{id}/change-status', [OrderController::class, 'changeStatus'])->name('change-status');
         // Patient Order History
         Route::get('/patient/orders', [\App\Http\Controllers\Api\Pharmacy\OrderController::class, 'patientOrderHistory']);
 

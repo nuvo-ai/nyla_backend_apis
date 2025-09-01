@@ -38,6 +38,8 @@ class StatusConstants
 
     const SUSPENDED = 'Suspended';
 
+    const DELIVERED = 'Delivered';
+
     const FAILED = 'Failed';
 
     const SOLD = 'Sold';

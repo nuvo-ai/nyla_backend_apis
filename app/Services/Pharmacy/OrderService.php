@@ -2,6 +2,7 @@
 
 namespace App\Services\Pharmacy;
 
+use App\Constants\General\StatusConstants;
 use App\Models\Pharmacy\Order;
 use App\Models\Pharmacy\OrderItem;
 use App\Models\Pharmacy\Medication;
@@ -12,6 +13,7 @@ use App\Services\Notification\AppMailerService;
 use App\Models\Pharmacy\Pharmacy;
 use App\Models\User\User;
 use App\Services\Pharmacy\PharmacyActivityService;
+use Exception;
 
 class OrderService
 {
@@ -145,6 +147,29 @@ class OrderService
         $order->delete();
         return true;
     }
+
+    public function changeStatus(array $data, $id)
+    {
+        $allowedStatuses = [
+            StatusConstants::COMPLETED,
+            StatusConstants::CANCELLED,
+            StatusConstants::DELIVERED
+        ];
+
+        $status = strtolower($data['status']);
+
+        if (!in_array($status, array_map('strtolower', $allowedStatuses))) {
+            throw new Exception('Invalid input');
+        }
+
+        $order = Order::findOrFail($id);
+        $order->update([
+            'status' => $status,
+        ]);
+
+        return true;
+    }
+
 
     public function export($id)
     {

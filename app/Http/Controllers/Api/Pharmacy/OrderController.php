@@ -11,6 +11,7 @@ use App\Http\Resources\Pharmacy\PharmacyRegistrationResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Exception;
+use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
@@ -158,6 +159,34 @@ class OrderController extends Controller
             return ApiHelper::validResponse('Patient order history retrieved successfully', OrderResource::collection($orders));
         } catch (Exception $e) {
             return ApiHelper::problemResponse('Failed to retrieve order history. Please try again later.', 500, null, $e);
+        }
+    }
+
+    public function changeStatus(Request $request, $id)
+    {
+        $validator = Validator::make($request, [
+            'status' => 'required|string',
+        ]);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+        try {
+            $result = $this->orderService->changeStatus($request->all(), $id);
+            return ApiHelper::validResponse('Order status updated successfully', $result);
+        } catch (ModelNotFoundException $e) {
+            return ApiHelper::problemResponse(
+                'Order not found. Please check the order ID and try again.',
+                404,
+                null,
+                $e
+            );
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse(
+                'Failed to update order status. Please try again later.',
+                500,
+                null,
+                $e
+            );
         }
     }
 }
