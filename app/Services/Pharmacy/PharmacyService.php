@@ -236,16 +236,28 @@ class PharmacyService
 
             // Update operating hours
             if (isset($data['operating_hours']) && is_array($data['operating_hours'])) {
+                // Remove old operating hours
                 $pharmacy->operatingHours()->delete();
-                foreach ($data['operating_hours'] as $day => $hours) {
+                foreach ($data['operating_hours'] as $hours) {
+                    // Skip invalid entries
+                    if (empty($hours['day_of_week'])) {
+                        continue;
+                    }
+                    // Normalize day_of_week to match enum exactly
+                    $validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                    $day = ucfirst(strtolower($hours['day_of_week']));
+                    if (!in_array($day, $validDays)) {
+                        continue; // skip invalid day
+                    }
                     $pharmacy->operatingHours()->create([
                         'day_of_week' => $day,
-                        'start_time' => $hours['start'] ?? null,
-                        'end_time' => $hours['end'] ?? null,
-                        'is_closed' => empty($hours['start']) && empty($hours['end']),
+                        'start_time' => !empty($hours['start_time']) ? $hours['start_time'] : null,
+                        'end_time' => !empty($hours['end_time']) ? $hours['end_time'] : null,
+                        'is_closed' => empty($hours['start_time']) && empty($hours['end_time']),
                     ]);
                 }
             }
+
 
             // Attach user as Pharmacy owner if not already attached
             if (isset($data['user_id'])) {
@@ -269,7 +281,7 @@ class PharmacyService
             );
 
             $pharmacy->user->update([
-             'role' => UserConstants::PHARMACY_ADMIN,
+                'role' => UserConstants::PHARMACY_ADMIN,
             ]);
 
             return $pharmacy->load(['user', 'contacts', 'services', 'operatingHours']);
