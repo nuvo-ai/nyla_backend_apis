@@ -18,7 +18,8 @@ class Department extends Model
     ];
 
     protected $casts = [
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
+        'departments' => 'array',
     ];
 
     public function hospitals(): BelongsToMany
