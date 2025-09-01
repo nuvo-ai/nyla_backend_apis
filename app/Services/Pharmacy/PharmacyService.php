@@ -166,8 +166,8 @@ class PharmacyService
                 'request_onsite_setup' => $data['request_onsite_setup'] ?? $pharmacy->request_onsite_setup,
                 'terms_accepted' => $data['accept_terms'] ?? $pharmacy->terms_accepted,
                 'delivery_available' => $data['delivery_available'] ?? $pharmacy->delivery_available,
-                'logo_path' => $this->handleFileUpload($data['logo_path'] ?? null, 'Pharmacy-logos') ?? $pharmacy->logo_path,
-                'nafdac_certificate' => $this->handleFileUpload($data['nafdac_certificate'] ?? null, 'pharmacy-nafdac-certificates') ?? $pharmacy->nafdac_certificate,
+                // 'logo_path' => $this->handleFileUpload($data['logo_path'] ?? null, 'Pharmacy-logos') ?? $pharmacy->logo_path,
+                // 'nafdac_certificate' => $this->handleFileUpload($data['nafdac_certificate'] ?? null, 'pharmacy-nafdac-certificates') ?? $pharmacy->nafdac_certificate,
                 'status' => $data['status'] ?? $pharmacy->status,
             ]);
 

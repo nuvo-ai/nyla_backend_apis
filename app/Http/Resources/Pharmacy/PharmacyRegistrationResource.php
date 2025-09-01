@@ -28,6 +28,7 @@ class PharmacyRegistrationResource extends JsonResource
             'phone' => $this->phone,
             'logo_url' => $this->logo_url ?? null,
             'nafdac_certificate_url' => $this->nafdac_certificate_url,
+            'license_number'  => $this->license_number,
             'request_onsite_setup' => (bool) $this->request_onsite_setup,
             'accept_terms' => (bool) $this->accept_terms,
             'street_address' => $this->street_address,
