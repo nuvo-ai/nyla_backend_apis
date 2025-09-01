@@ -164,9 +164,10 @@ class OrderController extends Controller
 
     public function changeStatus(Request $request, $id)
     {
-        $validator = Validator::make($request, [
+        $validator = Validator::make($request->all(), [
             'status' => 'required|string',
         ]);
+
         if ($validator->fails()) {
             throw new ValidationException($validator);
         }
