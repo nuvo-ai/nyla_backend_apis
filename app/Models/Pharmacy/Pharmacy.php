@@ -59,4 +59,23 @@ class Pharmacy extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function getOrderedOperatingHours()
+    {
+        $daysOrder = [
+            'Monday' => 1,
+            'Tuesday' => 2,
+            'Wednesday' => 3,
+            'Thursday' => 4,
+            'Friday' => 5,
+            'Saturday' => 6,
+            'Sunday' => 7,
+        ];
+
+        return $this->operatingHours
+            ->sortBy(function ($hour) use ($daysOrder) {
+                return $daysOrder[$hour->day_of_week] ?? 0;
+            })
+            ->values();
+    }
 }
