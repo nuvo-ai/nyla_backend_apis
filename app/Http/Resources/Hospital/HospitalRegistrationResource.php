@@ -24,7 +24,7 @@ class HospitalRegistrationResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'address' => $this->address,
-            'hospital_type' => $this->hospital_type,
+            'type' => $this->type,
             'registration_number' => $this->registration_number,
             'logo_url' => $this->logo_url ?? null,
             'license_url' => $this->license_url ?? null,

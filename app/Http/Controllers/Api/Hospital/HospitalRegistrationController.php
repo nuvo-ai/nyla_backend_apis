@@ -87,14 +87,12 @@ class HospitalRegistrationController extends Controller
 
     public function updateHospital(Request $request, $id)
     {
-        // dd($request->all(), $id);
         try {
             $hospital = $this->hospital_service->updateHospital($request->all(), $id);
 
             return ApiHelper::validResponse("Hospital updated successfully", HospitalRegistrationResource::make($hospital));
         } catch (ValidationException $e) {
-            $message = $e->getMessage() ?: $this->serverErrorMessage;
-            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            return ApiHelper::inputErrorResponse($this->serverErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }

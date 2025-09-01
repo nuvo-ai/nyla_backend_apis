@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\Hospital\Patient\PatientController;
 use App\Http\Controllers\Api\Hospital\Prescription\PrescriptionController;
 use App\Http\Controllers\Api\Hospital\Tracker\PeriodCycleController;
 use App\Http\Controllers\Api\Hospital\VisitNote\VisitNoteController;
+use App\Http\Controllers\Api\Notification\NotificationController;
 use App\Http\Controllers\Api\Pharmacy\OrderController;
 use App\Http\Controllers\Api\Pharmacy\PharmacyRegistrationController;
 use App\Http\Controllers\Api\User\HealthRecord\HealthRecordController;
@@ -82,6 +83,10 @@ Route::prefix("auth")->as("auth.")->group(function () {
 Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])->group(function () {
 
     Route::post('auth/logout', [LoginController::class, 'logout'])->name('auth.logout');
+
+    Route::prefix('notifications')->as('notifications.')->group(function () {
+        Route::get('list', [NotificationController::class, 'list'])->name('list');
+    });
 
     Route::prefix('admin')->as('admin.')->group(function () {
         Route::get('/app-users', [UserController::class, 'users'])->name('app-users');
