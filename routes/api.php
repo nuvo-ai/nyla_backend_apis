@@ -297,3 +297,10 @@ Route::prefix('hospital')->as('hospital.')->group(function () {
 Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
     Route::post('/register', [PharmacyRegistrationController::class, 'registerPharmacy'])->name('register');
 });
+
+Route::get('/pusher/config', function () {
+    return response()->json([
+        'key' => config('broadcasting.connections.pusher.key'),
+        'cluster' => config('broadcasting.connections.pusher.options.cluster'),
+    ]);
+});
