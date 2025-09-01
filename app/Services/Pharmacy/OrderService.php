@@ -153,7 +153,8 @@ class OrderService
         $allowedStatuses = [
             StatusConstants::COMPLETED,
             StatusConstants::CANCELLED,
-            StatusConstants::DELIVERED
+            StatusConstants::DELIVERED,
+            StatusConstants::DECLINED
         ];
 
         $status = strtolower($data['status']);
