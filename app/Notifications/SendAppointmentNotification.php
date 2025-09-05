@@ -68,7 +68,7 @@ class SendAppointmentNotification extends Notification
         $isDoctor = $this->recipient->id === $doctorId;
         $isScheduler = $this->recipient->id === $schedulerId;
 
-        $doctorName = optional(optional($this->appointment->doctor)->user)->full_name ?? 'Doctor';
+        $doctorName = $this->appointment->doctor->user->full_name ?? 'Doctor';
         $patientName = $this->appointment->patient_name;
 
         if ($isDoctor) {
