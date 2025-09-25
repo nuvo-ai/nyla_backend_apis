@@ -2,6 +2,8 @@
 
 namespace App\Constants\General;
 
+use Illuminate\Support\Arr;
+
 class StatusConstants
 {
     const ACTIVE = 'Active';
@@ -56,6 +58,9 @@ class StatusConstants
 
     const CONFIRMED = 'Confirmed';
 
+    const RESCHEDULED = 'Rescheduled';
+
+    const ARRIVED = 'Arrived';
 
     const NO_SHOW = 'No Show';
 
@@ -105,6 +110,8 @@ class StatusConstants
         self::CANCELLED,
         self::COMPLETED,
         self::SCHEDULED,
+        self::RESCHEDULED,
+        self::ARRIVED,
         self::NO_SHOW,
     ];
 
