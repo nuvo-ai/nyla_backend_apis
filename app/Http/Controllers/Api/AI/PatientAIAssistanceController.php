@@ -38,6 +38,7 @@ class PatientAIAssistanceController extends Controller
         } catch (ValidationException $e) {
             return ApiHelper::inputErrorResponse($this->validationErrorMessage, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
+            dd($e);
             $message = $this->serverErrorMessage;
             return ApiHelper::problemResponse($message, ApiConstants::SERVER_ERR_CODE, null, $e);
         }

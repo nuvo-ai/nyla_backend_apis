@@ -5,6 +5,13 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/*
+!/storage/app/ai-context/
+!/storage/app/ai-context/doctor_instructions.json
+!/storage/app/ai-context/food_analysis_instructions.json
+!/storage/app/ai-context/mental_health_instructions.json
+!/storage/app/ai-context/patient_instructions.json
+!/storage/app/ai-context/pharmacy_instructions.json
 /vendor
 .env
 .env.backup

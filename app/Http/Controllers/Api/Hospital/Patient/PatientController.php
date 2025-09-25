@@ -116,6 +116,10 @@ class PatientController extends Controller
             return ApiHelper::validResponse("Patient discharged successfully", $data);
         } catch (ModelNotFoundException $e) {
             return ApiHelper::problemResponse("Patient not found", ApiConstants::NOT_FOUND_ERR_CODE, null, $e);
+        } catch (ValidationException $e) {
+            // This will catch validation errors like "Cannot discharge patient without vital medical information."
+            $message = $e->getMessage() ?: 'Validation error';
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
             report_error($e);
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
@@ -193,7 +197,7 @@ class PatientController extends Controller
         }
     }
 
-     public function hospitalEmrs(Request $request)
+    public function hospitalEmrs(Request $request)
     {
         try {
             $emrs = $this->patient_service->listEmrs();
