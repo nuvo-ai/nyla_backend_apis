@@ -63,7 +63,6 @@ Route::post('/webhook/deploy', function () {
 Route::prefix('billings')->group(function () {
     Route::get('/callback', [SubscriptionController::class, 'handleCallback'])->name('billings.callback');
 });
-
 Route::prefix("password")->as("password.")->group(function () {
     Route::post('/forgot', [PasswordController::class, 'forgotPassword'])->name("forgot");
     Route::post("/reset", [PasswordController::class, "resetPassword"])->name("reset");
@@ -81,6 +80,7 @@ Route::prefix("auth")->as("auth.")->group(function () {
 
 // Authenticated routes
 Route::middleware([ApiEnsureFrontendRequestsAreStateful::class, "auth:sanctum"])->group(function () {
+    Route::post('admin/transfer', [UserController::class, 'transferAdmin'])->name('admin.transfer');
 
     Route::post('auth/logout', [LoginController::class, 'logout'])->name('auth.logout');
 
