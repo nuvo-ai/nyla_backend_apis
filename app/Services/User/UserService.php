@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 use App\Exceptions\General\ModelNotFoundException;
 use App\Mail\AdminTransfer;
 use App\Mail\SendUserLoginDetailsMail;
+use App\Models\General\Subscription;
 use App\Models\Hospital\HospitalUser;
 use App\Models\Portal;
 use Exception;
@@ -286,11 +287,13 @@ class UserService
             Mail::to($recipientEmail)->send(new AdminTransfer($recipientUser));
         } elseif ($isPharmacyAdmin) {
             $recipientUser->update(['role' => UserConstants::PHARMACY_ADMIN]);
+            Subscription::where('user_id', $transferer->id)->update(['user_id' => $recipientUser->id]);
             $transferer->update(['role' => UserConstants::USER]);
             // Send email to new pharmacy admin
             Mail::to($recipientEmail)->send(new AdminTransfer($recipientUser));
         } elseif ($isGeneralAdmin) {
             $recipientUser->update(['role' => UserConstants::ADMIN]);
+            Subscription::update(['user_id' => $recipientUser->id]);
             $transferer->update(['role' => UserConstants::USER]);
             Mail::to($recipientEmail)->send(new AdminTransfer($recipientUser));
         } else {

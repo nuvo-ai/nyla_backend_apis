@@ -301,7 +301,7 @@ class HospitalService
 
     public function getHospital(): ?Hospital
     {
-        return Hospital::where('user_id', User::getAuthenticatedUser()->id)->firstOrFail();
+        return Hospital::with('user')->where('user_id', User::getAuthenticatedUser()->id)->firstOrFail();
     }
 
     public function getUserHospital(): ?Hospital
