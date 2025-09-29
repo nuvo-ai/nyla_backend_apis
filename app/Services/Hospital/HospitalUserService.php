@@ -2,6 +2,7 @@
 
 namespace App\Services\Hospital;
 
+use App\Constants\User\UserConstants;
 use App\Models\Hospital\HospitalUser;
 use App\Models\User\User;
 use Illuminate\Support\Collection;
@@ -64,28 +65,46 @@ class HospitalUserService
 
 
     public function deleteHospitalUser($id = null)
-    {
-        DB::beginTransaction();
-        try {
-            $hospitalUser = HospitalUser::with(['doctor', 'frontDesk', 'user'])->findOrFail($id);
-            if ($hospitalUser->doctor) {
-                $hospitalUser->doctor->delete();
-            }
-            if ($hospitalUser->frontDesk) {
-                $hospitalUser->frontDesk->delete();
-            }
-            if ($hospitalUser->user) {
-                $hospitalUser->user->delete();
-            }
-            $hospitalUser->delete();
+{
+    DB::beginTransaction();
+    try {
+        $hospitalUser = HospitalUser::with(['doctor', 'frontDesk', 'user'])->findOrFail($id);
 
-            DB::commit();
-            return true;
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            throw $th;
+        if ($hospitalUser->role === UserConstants::ADMIN) {
+            $otherAdminExists = HospitalUser::where('hospital_id', $hospitalUser->hospital_id)
+                ->where('id', '!=', $hospitalUser->id)
+                ->where('role', UserConstants::ADMIN)
+                ->exists();
+
+            if (!$otherAdminExists) {
+                throw ValidationException::withMessages([
+                    'admin' => ['You must assign a new admin before deleting this hospital admin.']
+                ]);
+            }
         }
+
+        if ($hospitalUser->doctor) {
+            $hospitalUser->doctor->delete();
+        }
+
+        if ($hospitalUser->frontDesk) {
+            $hospitalUser->frontDesk->delete();
+        }
+
+        if ($hospitalUser->user) {
+            $hospitalUser->user->delete();
+        }
+
+        $hospitalUser->delete();
+
+        DB::commit();
+        return true;
+    } catch (\Throwable $th) {
+        DB::rollBack();
+        throw $th;
     }
+}
+
 
 
     public function assignRoleToUser(array $data, $userId)

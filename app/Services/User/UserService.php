@@ -247,62 +247,63 @@ class UserService
     public function transferAccount(Request $request)
     {
         DB::transaction(function () use ($request) {
-        $transferer = User::getAuthenticatedUser();
-        $recipientEmail = $request->input('email');
-        $userEmails = User::pluck('email')->toArray();
+            $transferer = User::getAuthenticatedUser();
+            $recipientEmail = $request->input('email');
+            $userEmails = User::pluck('email')->toArray();
 
-        // Check if recipient exists
-        if (!in_array($recipientEmail, $userEmails)) {
-            throw ValidationException::withMessages([
-                'email' => ['Cannot find user in the server. Please, make sure this user has an account before you can transfer account to them']
-            ]);
-        }
-
-        // Check if transferer is admin
-        $isPharmacyAdmin = $transferer->role === UserConstants::PHARMACY_ADMIN;
-        $isHospitalAdmin = $transferer->hospitalUser && $transferer->hospitalUser->role === 'Admin';
-        $isGeneralAdmin = $transferer->role === UserConstants::ADMIN;
-        if (!$isPharmacyAdmin && !$isHospitalAdmin && !$isGeneralAdmin) {
-            throw ValidationException::withMessages([
-                'email' => ['You are not allowed to perform this action. Action reserved for only admins']
-            ]);
-        }
-
-        $recipientUser = User::where('email', $recipientEmail)->first();
-        if ($recipientUser->id === $transferer->id) {
-            throw ValidationException::withMessages([
-                'email' => ['You cannot transfer the account to yourself.']
-            ]);
-        }
-        if ($isHospitalAdmin) {
-            $newAdminHospitalUser = $recipientUser->hospitalUser;
-            if (!$newAdminHospitalUser) {
+            // Check if recipient exists
+            if (!in_array($recipientEmail, $userEmails)) {
                 throw ValidationException::withMessages([
-                    'email' => ['Recipient does not have a hospital user profile.']
+                    'email' => ['Cannot find user in the server. Please, make sure this user has an account before you can transfer account to them']
                 ]);
             }
-            $newAdminHospitalUser->update(['role' => UserConstants::ADMIN]);
-             Subscription::where('user_id', $transferer->id)->update(['user_id' => $recipientUser->id]);
-            $oldAdmin = $transferer->hospitalUser;
-            $oldAdmin->update(['role' => UserConstants::USER]);
-            // Send email to new admin
-            Mail::to($recipientEmail)->send(new AdminTransfer($recipientUser));
-        } elseif ($isPharmacyAdmin) {
-            $recipientUser->update(['role' => UserConstants::PHARMACY_ADMIN]);
-            Subscription::where('user_id', $transferer->id)->update(['user_id' => $recipientUser->id]);
-            $transferer->update(['role' => UserConstants::USER]);
-            // Send email to new pharmacy admin
-            Mail::to($recipientEmail)->send(new AdminTransfer($recipientUser));
-        } elseif ($isGeneralAdmin) {
-            $recipientUser->update(['role' => UserConstants::ADMIN]);
-            Subscription::where('user_id', $transferer->id)->update(['user_id' => $recipientUser->id]);
-            $transferer->update(['role' => UserConstants::USER]);
-            Mail::to($recipientEmail)->send(new AdminTransfer($recipientUser));
-        } else {
-            throw ValidationException::withMessages([
-                'email' => ['The system could not find a matching user to transfer this account to. Please, make sure this user has an account before you can transfer account to them']
-            ]);
-        }
-    });
+
+            // Check if transferer is admin
+            $isPharmacyAdmin = $transferer->role === UserConstants::PHARMACY_ADMIN;
+            $isHospitalAdmin = $transferer->hospitalUser && $transferer->hospitalUser->role === 'Admin';
+            $isGeneralAdmin = $transferer->role === UserConstants::ADMIN;
+            if (!$isPharmacyAdmin && !$isHospitalAdmin && !$isGeneralAdmin) {
+                throw ValidationException::withMessages([
+                    'email' => ['You are not allowed to perform this action. Action reserved for only admins']
+                ]);
+            }
+
+            $recipientUser = User::where('email', $recipientEmail)->first();
+            if ($recipientUser->id === $transferer->id) {
+                throw ValidationException::withMessages([
+                    'email' => ['You cannot transfer the account to yourself.']
+                ]);
+            }
+            if ($isHospitalAdmin) {
+                $newAdminHospitalUser = $recipientUser->hospitalUser;
+                if (!$newAdminHospitalUser) {
+                    throw ValidationException::withMessages([
+                        'email' => ['Recipient does not have a hospital user profile.']
+                    ]);
+                }
+                $hospital = $transferer->hospitalUser->hospital;
+                $hospital->update(['user_id' => $recipientUser->id]);
+                $newAdminHospitalUser->update(['role' => UserConstants::ADMIN]);
+                Subscription::where('user_id', $transferer->id)->update(['user_id' => $recipientUser->id]);
+                $oldAdmin = $transferer->hospitalUser;
+                $oldAdmin->update(['role' => UserConstants::USER]);
+                // Send email to new admin
+                Mail::to($recipientEmail)->send(new AdminTransfer($recipientUser));
+            } elseif ($isPharmacyAdmin) {
+                $recipientUser->update(['role' => UserConstants::PHARMACY_ADMIN]);
+                Subscription::where('user_id', $transferer->id)->update(['user_id' => $recipientUser->id]);
+                $transferer->update(['role' => UserConstants::USER]);
+                // Send email to new pharmacy admin
+                Mail::to($recipientEmail)->send(new AdminTransfer($recipientUser));
+            } elseif ($isGeneralAdmin) {
+                $recipientUser->update(['role' => UserConstants::ADMIN]);
+                Subscription::where('user_id', $transferer->id)->update(['user_id' => $recipientUser->id]);
+                Mail::to($recipientEmail)->send(new AdminTransfer($recipientUser));
+            } else {
+                throw ValidationException::withMessages([
+                    'email' => ['The system could not find a matching user to transfer this account to. Please, make sure this user has an account before you can transfer account to them']
+                ]);
+            }
+        });
     }
 }
