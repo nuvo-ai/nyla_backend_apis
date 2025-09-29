@@ -246,6 +246,7 @@ class UserService
 
     public function transferAccount(Request $request)
     {
+        DB::transaction(function () use ($request) {
         $transferer = User::getAuthenticatedUser();
         $recipientEmail = $request->input('email');
         $userEmails = User::pluck('email')->toArray();
@@ -281,6 +282,7 @@ class UserService
                 ]);
             }
             $newAdminHospitalUser->update(['role' => UserConstants::ADMIN]);
+             Subscription::where('user_id', $transferer->id)->update(['user_id' => $recipientUser->id]);
             $oldAdmin = $transferer->hospitalUser;
             $oldAdmin->update(['role' => UserConstants::USER]);
             // Send email to new admin
@@ -293,7 +295,7 @@ class UserService
             Mail::to($recipientEmail)->send(new AdminTransfer($recipientUser));
         } elseif ($isGeneralAdmin) {
             $recipientUser->update(['role' => UserConstants::ADMIN]);
-            Subscription::update(['user_id' => $recipientUser->id]);
+            Subscription::where('user_id', $transferer->id)->update(['user_id' => $recipientUser->id]);
             $transferer->update(['role' => UserConstants::USER]);
             Mail::to($recipientEmail)->send(new AdminTransfer($recipientUser));
         } else {
@@ -301,5 +303,6 @@ class UserService
                 'email' => ['The system could not find a matching user to transfer this account to. Please, make sure this user has an account before you can transfer account to them']
             ]);
         }
+    });
     }
 }
