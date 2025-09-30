@@ -11,7 +11,7 @@ You have been assigned as an Admin on our platform.
 
 Please log in to your account to access your new privileges.
 
-<x-mail::button :url="url('/login')">
+<x-mail::button :url="('https:://www.providers.nyla.africa')">
 Log in to Dashboard
 </x-mail::button>
 

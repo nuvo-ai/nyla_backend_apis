@@ -51,6 +51,9 @@ class HospitalUsersController extends Controller
         try {
             $data = $this->hospital_user_service->deleteHospitalUser($id);
             return ApiHelper::validResponse("Hospital user deleted successfully", $data);
+        } catch (ValidationException $e) {
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
         } catch (Exception $e) {
             return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
         }
