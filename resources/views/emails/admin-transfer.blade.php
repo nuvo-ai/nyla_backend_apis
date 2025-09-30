@@ -1,17 +1,4 @@
 <x-mail::message>
-# Introduction
-
-The body of your message.
-
-<x-mail::button :url="''">
-Button Text
-</x-mail::button>
-
-Thanks,<br>
-{{ config('app.name') }}
-</x-mail::message>
-
-@component('mail::message')
 # Admin Role Transferred
 
 Hello {{ $user->name }},
@@ -24,6 +11,10 @@ You have been assigned as an Admin on our platform.
 
 Please log in to your account to access your new privileges.
 
+<x-mail::button :url="url('/login')">
+Log in to Dashboard
+</x-mail::button>
+
 Thanks,<br>
 {{ config('app.name') }}
-@endcomponent
+</x-mail::message>
