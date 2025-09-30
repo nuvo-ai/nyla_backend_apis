@@ -16,6 +16,9 @@ class Medication extends Model
         'stock',
         'price',
         'is_active',
+        'manufacturer',
+        'expiry_date',
+        'batch_number',
     ];
 
     public function pharmacy(): BelongsTo
