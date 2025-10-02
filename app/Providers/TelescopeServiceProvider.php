@@ -14,9 +14,9 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      */
     public function register(): void
     {
-        // Enable Telescope only if TELESCOPE_ENABLED=true
-        if ($this->app->environment('local') || config('app.telescope_enabled')) {
-            Telescope::night();
+        // Only enable Telescope if TELESCOPE_ENABLED=true
+        if (config('app.telescope_enabled')) {
+            $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
         }
     }
 
@@ -26,10 +26,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
     protected function gate(): void
     {
         Gate::define('viewTelescope', function ($user) {
-            // Only allow this specific email
-            return $user && in_array($user->email, [
-                'iriogbepeter22@gmail.com',
-            ]);
+            return $user && $user->email === 'iriogbepeter22@gmail.com';
         });
     }
 
@@ -39,7 +36,6 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
     protected function authorization(): void
     {
         Telescope::filter(function (IncomingEntry $entry) {
-            // Always log reportable entries
             return $entry->isReportableException()
                 || $entry->isFailedRequest()
                 || $entry->isFailedJob()
