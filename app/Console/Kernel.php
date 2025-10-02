@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
     {
         // All scheduled tasks go here
         $schedule->command('reminders:send')->everyMinute();
+        $schedule->command('subscriptions:update-expired')->hourly();
     }
 
     /**

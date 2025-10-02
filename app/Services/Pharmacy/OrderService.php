@@ -65,70 +65,69 @@ class OrderService
             ]);
         }
         return DB::transaction(function () use ($data) {
-    // Ensure patient details have defaults
-    if (!isset($data['patient_name']) || empty($data['patient_name'])) {
-        $data['patient_name'] = 'patient_name';
-    }
-    if (!isset($data['patient_phone']) || empty($data['patient_phone'])) {
-        $data['patient_phone'] = 'patient_phone';
-    }
-    if (!isset($data['patient_email']) || empty($data['patient_email'])) {
-        $data['patient_email'] = 'patient_email';
-    }
-    if (!isset($data['patient_address']) || empty($data['patient_address'])) {
-        $data['patient_address'] = 'patient_address';
-    }
+            // Ensure patient details have defaults
+            if (!isset($data['patient_name']) || empty($data['patient_name'])) {
+                $data['patient_name'] = 'patient_name';
+            }
+            if (!isset($data['patient_phone']) || empty($data['patient_phone'])) {
+                $data['patient_phone'] = 'patient_phone';
+            }
+            if (!isset($data['patient_email']) || empty($data['patient_email'])) {
+                $data['patient_email'] = 'patient_email';
+            }
+            if (!isset($data['patient_address']) || empty($data['patient_address'])) {
+                $data['patient_address'] = 'patient_address';
+            }
 
-    // Check if patient details exist and create a user if patient_id is not set
-    if (empty($data['patient_id']) && !empty($data['patient_email'])) {
-        $userService = app()->make(UserService::class);
+            // Check if patient details exist and create a user if patient_id is not set
+            if (empty($data['patient_id']) && !empty($data['patient_email'])) {
+                $userService = app()->make(UserService::class);
 
-        $userData = [
-            'name'   => $data['patient_name'],
-            'email'  => $data['patient_email'],
-            'phone'  => $data['patient_phone'],
-            'status' => StatusConstants::ACTIVE,
-            'role'   => UserConstants::USER,
-            'portal' => 'Pharmacy',
-        ];
+                $userData = [
+                    'name'   => $data['patient_name'],
+                    'email'  => $data['patient_email'],
+                    'phone'  => $data['patient_phone'],
+                    'status' => StatusConstants::ACTIVE,
+                    'role'   => UserConstants::USER,
+                    'portal' => 'Pharmacy',
+                ];
 
-        $user = $userService->create($userData);
-        $data['patient_id'] = $user->id; // link order to newly created user
-    }
+                $user = $userService->create($userData);
+                $data['patient_id'] = $user->id; // link order to newly created user
+            }
 
-    // Create order
-    $order = Order::create([
-        'pharmacy_id'     => $data['pharmacy_id'],
-        'patient_id'      => $data['patient_id'] ?? null,
-        'status'          => $data['status'] ?? 'pending',
-        'total_price'     => $data['total_price'],
-        'prescription_url'=> $data['prescription_url'] ?? null,
-        'order_note'      => $data['order_note'] ?? null,
-        'created_by'      => $data['created_by'],
-    ]);
+            // Create order
+            $order = Order::create([
+                'pharmacy_id'     => $data['pharmacy_id'],
+                'patient_id'      => $data['patient_id'] ?? null,
+                'status'          => $data['status'] ?? 'pending',
+                'total_price'     => $data['total_price'],
+                'prescription_url' => $data['prescription_url'] ?? null,
+                'order_note'      => $data['order_note'] ?? null,
+                'created_by'      => $data['created_by'],
+            ]);
 
-    // Create order items
-    foreach ($data['items'] as $item) {
-        OrderItem::create([
-            'order_id'     => $order->id,
-            'medication_id'=> $item['medication_id'],
-            'quantity'     => $item['quantity'],
-            'price'        => $item['price'],
-            'status'       => $item['status'] ?? 'pending',
-        ]);
-    }
+            // Create order items
+            foreach ($data['items'] as $item) {
+                OrderItem::create([
+                    'order_id'     => $order->id,
+                    'medication_id' => $item['medication_id'],
+                    'quantity'     => $item['quantity'],
+                    'price'        => $item['price'],
+                    'status'       => $item['status'] ?? 'pending',
+                ]);
+            }
 
-    // Log activity: Order created
-    PharmacyActivityService::log(
-        $order->pharmacy_id,
-        $order->created_by,
-        'Order created',
-        ['order_id' => $order->id]
-    );
+            // Log activity: Order created
+            PharmacyActivityService::log(
+                $order->pharmacy_id,
+                $order->created_by,
+                'Order created',
+                ['order_id' => $order->id]
+            );
 
-    return $order->load(['items.medication', 'patient', 'creator']);
-});
-
+            return $order->load(['items.medication', 'patient', 'creator']);
+        });
     }
 
     public function update($id, array $data)
