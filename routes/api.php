@@ -38,6 +38,7 @@ use App\Http\Controllers\Api\User\HealthRecord\HealthRecordController;
 use App\Http\Controllers\Api\User\HealthRecord\MedicationReminderController;
 use App\Http\Controllers\Api\User\ModulePreferenceController;
 use App\Http\Middleware\ApiEnsureFrontendRequestsAreStateful;
+use App\Models\User\User;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
