@@ -57,6 +57,7 @@ class MedicationService
             'manufacturer' => 'nullable|string|max:255',
             'expiry_date' => 'nullable|date',
             'batch_number' => 'nullable|string|max:255',
+            'low_stock_threshold' => 'nullable|integer|min:0',
         ]);
         if ($validator->fails()) {
             throw new ValidationException($validator);

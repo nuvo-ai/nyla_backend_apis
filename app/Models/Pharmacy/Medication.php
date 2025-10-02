@@ -19,6 +19,7 @@ class Medication extends Model
         'manufacturer',
         'expiry_date',
         'batch_number',
+        'low_stock_threshold',
     ];
 
     public function pharmacy(): BelongsTo
