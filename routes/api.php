@@ -56,6 +56,11 @@ Route::get('/test-email', function () {
     ]);
 });
 
+Route::get('/telescope-login', function () {
+    auth()->guard('web')->loginUsingId(1); // user ID 1
+    return redirect('/telescope');
+});
+
 Route::post('/webhook/deploy', function () {
     include base_path('deploy.php');
 });
