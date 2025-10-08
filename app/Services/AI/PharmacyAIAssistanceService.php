@@ -50,12 +50,12 @@ class PharmacyAIAssistanceService
             $user = Auth::user();
 
             // ✅ Fix role check logic
-            if (
-                !$user ||
-                !in_array(strtolower($user->role), [UserConstants::PHARMACY_ADMIN])
-            ) {
-                throw new Exception('Please, these chats or conversations are only meant for doctors.');
-            }
+            // if (
+            //     !$user ||
+            //     !in_array(strtolower($user->role), [UserConstants::PHARMACY_ADMIN])
+            // ) {
+            //     throw new Exception('Please, these chats or conversations are only meant for doctors.');
+            // }
 
             $titleText = $request->prompt ?? $request->quick_action;
             $title = $this->generateTitleFromPrompt($titleText);
