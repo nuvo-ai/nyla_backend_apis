@@ -121,7 +121,7 @@ class PharmacyAIAssistanceService
                         "Total Price: ₦" . number_format($order->total_price, 2),
                     ];
 
-                    foreach ($order->orderItems as $item) {
+                    foreach ($order->items as $item) {
                         $orderDetails[] = "- Medication: " . optional($item->medication)->name .
                             ", Qty: {$item->quantity}, Price: ₦" . number_format($item->price, 2);
                     }
