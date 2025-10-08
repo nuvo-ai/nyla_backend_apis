@@ -80,7 +80,7 @@ class PharmacyAIAssistanceService
                     'user_id' => $user->id,
                     'ai_type' => $validated['ai_type'] ?? '',
                     'title' => $validated['title'],
-                    'hospital_user_id' => $user->hospitalUser->id,
+                    // 'hospital_user_id' => $user->hospitalUser->id,
                 ]);
             }
 
