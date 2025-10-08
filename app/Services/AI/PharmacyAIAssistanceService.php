@@ -169,17 +169,34 @@ You are Nyla AI, an intelligent pharmacy assistant designed for Africa (starting
 Always remind: 'All medication recommendations must be verified by a licensed pharmacist before dispensing. Nyla AI supports—but does not replace—pharmacist expertise.'
 ";
 
-            // ✅ Build messages for GPT
-            $messages = [
+            // Load previous chats for this conversation
+            $chatHistory = [];
+            if (!empty($conversation->id)) {
+                $previousChats = $conversation->chats()->orderBy('created_at')->get();
+                foreach ($previousChats as $chat) {
+                    $chatHistory[] = [
+                        'role' => $chat->sender === 'ai' ? 'assistant' : 'user',
+                        'content' => $chat->content
+                    ];
+                }
+            }
+
+            // Build messages for GPT: system + history + latest user message
+            $messages = array_merge(
                 [
-                    'role' => 'system',
-                    'content' => $pharmacyGuidelines
+                    [
+                        'role' => 'system',
+                        'content' => $pharmacyGuidelines
+                    ]
                 ],
+                $chatHistory,
                 [
-                    'role' => 'user',
-                    'content' => $promptText . $orderSummary . $uploadedFileSummary . $quickAction
+                    [
+                        'role' => 'user',
+                        'content' => $promptText . $orderSummary . $uploadedFileSummary . $quickAction
+                    ]
                 ]
-            ];
+            );
 
             // ✅ Send prompt to ChatGPT
             $responseText = $this->chatgpt_service->sendPrompt($messages);
