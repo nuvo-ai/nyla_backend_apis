@@ -167,4 +167,15 @@ class SubscriptionController extends Controller
             SubscriptionResource::make($subscription)
         );
     }
+
+    public function cancel(Request $request, $subscription_code)
+    {
+        try {
+            $subscription = $this->subscription_service->cancelSubscription($subscription_code);
+
+            return ApiHelper::validResponse("Subscription cancelled", SubscriptionResource::make($subscription));
+        } catch (Exception $e) {
+            return ApiHelper::problemResponse("Unable to cancel subscription", 500, null, $e);
+        }
+    }
 }

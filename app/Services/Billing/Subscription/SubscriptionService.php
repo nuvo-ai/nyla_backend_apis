@@ -106,4 +106,19 @@ class SubscriptionService
             return $this->createSubscription($user, $plan_id, $paymentData);
         });
     }
+
+    public function cancelSubscription(Subscription $subscription)
+    {
+        if ($subscription->status !== 'active') {
+            throw new Exception('Only active subscriptions can be cancelled.');
+        }
+
+        $this->paystack->cancelSubscription($subscription->subscription_code);
+
+        $subscription->status = 'cancelled';
+        $subscription->ends_at = Carbon::now();
+        $subscription->save();
+
+        return $subscription;
+    }
 }

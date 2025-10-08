@@ -106,4 +106,20 @@ class PaystackService
 
         return $json['data'];
     }
+
+    public function cancelSubscription($subscriptionCode)
+    {
+        $response = Http::withToken(config('services.paystack.secret_key'))
+            ->post("https://api.paystack.co/subscription/disable", [
+                'code' => $subscriptionCode
+            ]);
+
+        $json = $response->json();
+
+        if (!$json['status']) {
+            throw new Exception($json['message'] ?? 'Failed to cancel subscription');
+        }
+
+        return $json['data'];
+    }
 }
