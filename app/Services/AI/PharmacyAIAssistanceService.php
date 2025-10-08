@@ -2,6 +2,7 @@
 
 namespace App\Services\AI;
 
+use App\Constants\User\UserConstants;
 use App\Models\General\Chat;
 use App\Models\General\Conversation;
 use App\Models\Pharmacy\Order;
@@ -50,8 +51,8 @@ class PharmacyAIAssistanceService
 
             // ✅ Fix role check logic
             if (
-                !$user->hospitalUser ||
-                !in_array(strtolower($user->hospitalUser->role), ['doctor', 'frontdesk', 'admin'])
+                !$user ||
+                !in_array(strtolower($user->role), [UserConstants::PHARMACY_ADMIN])
             ) {
                 throw new Exception('Please, these chats or conversations are only meant for doctors.');
             }
