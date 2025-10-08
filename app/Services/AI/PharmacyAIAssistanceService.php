@@ -100,15 +100,15 @@ class PharmacyAIAssistanceService
             // Handle order info if provided
             $orderSummary = "";
             if ($request->filled('order_id')) {
-                $order = Order::with(['orderItems.medication', 'pharmacy', 'creator.hospitalUser'])
+                $order = Order::with(['items.medication', 'pharmacy', 'creator'])
                     ->find($request->order_id);
 
                 if ($order) {
-                    $createdByUser = optional($order->createdBy);
+                    $createdByUser = optional($order->creator->full_name);
                     $createdByInfo = $createdByUser->name ?? 'Unknown';
 
                     if ($createdByUser && $createdByUser->hospitalUser) {
-                        $createdByInfo .= " ({$createdByUser->hospitalUser->role})";
+                        $createdByInfo .= " ({$createdByUser->role})";
                     }
 
                     $orderDetails = [
