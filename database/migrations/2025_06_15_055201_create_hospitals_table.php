@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('state');
             $table->string('country');
             $table->text('google_maps_location')->nullable();
-            $table->integer('number_of_beds')->nullable();
+            $table->string('number_of_beds')->nullable();
             $table->string('license_path')->nullable();
             $table->boolean('request_onsite_setup')->default(false);
             $table->boolean('terms_accepted')->default(false);

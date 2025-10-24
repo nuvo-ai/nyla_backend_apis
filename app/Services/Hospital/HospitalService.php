@@ -48,7 +48,7 @@ class HospitalService
             'state' => 'required|string|max:255',
             'country' => 'required|string|max:255',
             'google_maps_location' => 'nullable|string',
-            'number_of_beds' => 'nullable|integer',
+            'number_of_beds' => 'nullable|string|max:255',
             'license_path' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:4096',
             'request_onsite_setup' => 'boolean',
             'delivery_available' => 'boolean',
