@@ -41,7 +41,7 @@ class SubscriptionController extends Controller
             $this->subscription_service->validate($request->all());
 
             $init = $this->subscription_service->initializePayment($user, $request->all());
-
+            $this->subscription_service->getTrialDays($user, $request->input('plan_id'));
             return ApiHelper::validResponse("Payment initialized", [
                 'authorization_url' => $init['authorization_url'],
                 'access_code' => $init['access_code'],

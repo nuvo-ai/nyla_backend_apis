@@ -2,6 +2,7 @@
 
 namespace App\Services\Billing\Subscription;
 
+use App\Constants\User\UserConstants;
 use App\Models\General\Plan;
 use App\Models\General\Subscription;
 use App\Services\Billing\Paystack\PaystackService;
@@ -53,37 +54,56 @@ class SubscriptionService
         return $this->paystack->verifyTransaction($reference);
     }
 
-    public function createSubscription($user, $plan_id, $paymentData)
+    public function createSubscription($user, $plan_id, $paymentData = null, $isTrial = false)
     {
         $plan = Plan::findOrFail($plan_id);
-        $subscriptionCode = $paymentData['subscription'] ?? $paymentData['reference'];
 
-        if (Subscription::where('subscription_code', $subscriptionCode)->exists()) {
-            return null;
+        // Skip duplicate subscriptions
+        if (!$isTrial) {
+            $subscriptionCode = $paymentData['subscription'] ?? $paymentData['reference'] ?? null;
+            if ($subscriptionCode && Subscription::where('subscription_code', $subscriptionCode)->exists()) {
+                return null;
+            }
         }
 
-        return $this->storeSubscription($user, $plan, $paymentData);
+        return $this->storeSubscription($user, $plan, $paymentData, $isTrial);
     }
 
-    public function storeSubscription($user, $plan, $paymentData)
+    public function storeSubscription($user, $plan, $paymentData = null, $isTrial = false)
     {
+        $now = Carbon::now();
+        $trialDays = 0;
+        $trialEndsAt = null;
+        $endsAt = $plan->getPlanEndsAt();
+
+        if ($isTrial) {
+            $trialDays = $this->getTrialDays($user);
+            $trialEndsAt = $now->copy()->addDays($trialDays);
+            $endsAt = $trialEndsAt;
+        }
+
         return Subscription::create([
             'uuid' => Str::uuid(),
             'user_id' => $user->id,
             'plan_id' => $plan->id,
-            'subscription_code' => $paymentData['subscription'] ?? $paymentData['reference'],
+            'subscription_code' => $paymentData['subscription'] ?? $paymentData['reference'] ?? Str::random(10),
             'email_token' => $paymentData['email_token'] ?? null,
             'customer_code' => $paymentData['customer']['customer_code'] ?? null,
-            'payment_gateway_id' => 1,
-            'payment_method' => $paymentData['authorization']['channel'] ?? null,
-            'status' => 'active',
-            'starts_at' => Carbon::now(),
-            'ends_at' => $plan->getPlanEndsAt(),
+            'payment_gateway_id' => $paymentData['payment_gateway_id'] ?? 1,
+            'payment_method' => $paymentData['authorization']['channel'] ?? ($isTrial ? 'free_trial' : null),
+            'status' => $isTrial ? 'trial' : 'active',
+            'is_trial' => $isTrial,
+            'trial_ends_at' => $trialEndsAt,
+            'converted_to_paid' => false,
+            'starts_at' => $now,
+            'ends_at' => $endsAt,
             'authorization_reusable' => $paymentData['authorization']['reusable'] ?? false,
-            'next_payment_date' => $paymentData['next_payment_date'] ?? $plan->getPlanEndsAt(),
-            'meta' => json_encode($paymentData),
+            'next_payment_date' => $isTrial ? $trialEndsAt : ($paymentData['next_payment_date'] ?? $plan->getPlanEndsAt()),
+            'meta' => $paymentData ? json_encode($paymentData) : null,
         ]);
     }
+
+
 
     public function subscribeCustomer($user, $plan_id, $paymentData)
     {
@@ -106,6 +126,54 @@ class SubscriptionService
             return $this->createSubscription($user, $plan_id, $paymentData);
         });
     }
+
+    public function applyFreeTrialToHospital(Subscription $subscription, $user)
+    {
+        $trialDays = $this->getTrialDays($user);
+        $subscription->is_trial = true;
+        $subscription->trial_ends_at = Carbon::now()->addDays($trialDays);
+        $subscription->ends_at = $subscription->trial_ends_at;
+        $subscription->save();
+
+        return $subscription;
+    }
+
+
+    public function getTrialDays($user)
+    {
+        if ($user->getTable() === 'hospital_users') {
+
+            // Count how many unique hospitals have active subscriptions
+            $hospitalCount = Subscription::whereHas('user', function ($query) {
+                $query->where('role', 'Admin')
+                    ->whereHas('hospital');
+            })->distinct('user_id')->count();
+
+            // First 5 hospitals get 3-month (90-day) trial
+            if ($hospitalCount < 5) {
+                return 90;
+            }
+            return 30;
+        }
+        if ($user->getTable() === 'users') {
+
+            // Check if this user is a pharmacy admin
+            if ($user->role === UserConstants::PHARMACY_ADMIN) {
+                // Count how many pharmacy admins already subscribed
+                $pharmacyCount = Subscription::whereHas('user', function ($query) {
+                    $query->where('role', 'Pharmacy Admin');
+                })->distinct('user_id')->count();
+
+                if ($pharmacyCount < 5) {
+                    return 90; // first 5 pharmacy admins also get 3 months
+                }
+                return 30;
+            }
+            return 30;
+        }
+        return 0;
+    }
+
 
     public function cancelSubscription(Subscription $subscription)
     {

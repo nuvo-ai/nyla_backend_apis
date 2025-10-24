@@ -7,6 +7,7 @@ use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Hospital\HospitalRegistrationResource;
 use App\Models\Hospital\Hospital;
+use App\Services\Billing\Subscription\SubscriptionService;
 use App\Services\Hospital\HospitalService;
 use App\Services\User\UserService;
 use Exception;
@@ -20,10 +21,12 @@ class HospitalRegistrationController extends Controller
 {
     public $hospital_service;
     public $user;
+    public $subscription_service;
     public function __construct()
     {
         $this->hospital_service = new HospitalService;
         $this->user = new UserService;
+        $this->subscription_service = new SubscriptionService;
     }
 
     public function list(Request $request)
@@ -49,39 +52,70 @@ class HospitalRegistrationController extends Controller
         }
     }
 
-   public function registerHospital(Request $request)
-{
-    DB::beginTransaction();
+    public function registerHospital(Request $request)
+    {
+        DB::beginTransaction();
 
-    try {
-        $userData = $this->requestedUserDataduringHospitalRegistration($request);
-        $user = $this->user->create($userData);
+        try {
+            $userData = $this->requestedUserDataduringHospitalRegistration($request);
+            $user = $this->user->create($userData);
 
-        $hospital_data = $request->except([
-            'user_name',
-            'user_email',
-            'user_phone',
-            'portal',
-            'password',
-            'generated_password'
-        ]);
+            $hospital_data = $request->except([
+                'user_name',
+                'user_email',
+                'user_phone',
+                'portal',
+                'password',
+                'generated_password',
+                'billing_email',
+                'payment_method',
+                'plan_id',
+                'platform',
+            ]);
 
-        $hospital_data['user_id'] = $user->id;
+            $hospital_data['user_id'] = $user->id;
 
-        $hospital = $this->hospital_service->createHospital($hospital_data);
+            $hospital = $this->hospital_service->createHospital($hospital_data);
 
-        DB::commit();
+            // Create subscription
+            if ($request->free_trial) {
+                $subscription = $this->subscription_service->createSubscription(
+                    $user,
+                    $request->input('plan_id'),
+                    [],
+                    true // trial mode
+                );
 
-        return ApiHelper::validResponse("Hospital created successfully", HospitalRegistrationResource::make($hospital));
-    } catch (ValidationException $e) {
-        DB::rollBack();
-        $message = $e->getMessage() ?: $this->serverErrorMessage;
-        return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
-    } catch (Exception $e) {
-        DB::rollBack();
-        return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+                $responseData = [
+                    'hospital' => new HospitalRegistrationResource($hospital),
+                    'free_trial' => true,
+                ];
+            } else {
+                $subscriptionData = $this->requestedSubscriptionDataDuringHospitalRegistration($request);
+                $init = $this->subscription_service->initializePayment($user, $subscriptionData);
+
+                $responseData = [
+                    'hospital' => new HospitalRegistrationResource($hospital),
+                    'free_trial' => false,
+                    'authorization_url' => $init['authorization_url'],
+                    'access_code' => $init['access_code'],
+                    'reference' => $init['reference'],
+                ];
+            }
+
+            return ApiHelper::validResponse("Hospital created successfully", $responseData);
+
+            DB::commit();
+            return ApiHelper::validResponse("Hospital created successfully", HospitalRegistrationResource::make($hospital));
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            $message = $e->getMessage() ?: $this->serverErrorMessage;
+            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+        }
     }
-}
 
 
 
@@ -113,16 +147,27 @@ class HospitalRegistrationController extends Controller
         ];
     }
 
+    private function requestedSubscriptionDataDuringHospitalRegistration(Request $request)
+    {
+        return [
+            'billing_email' => $request->input('billing_email'),
+            'payment_method' => $request->input('payment_method'),
+            'plan_id' => $request->input('plan_id'),
+            'portal' => $request->input('portal', 'pharmacy'),
+            'platform' => $request->input('platform', 'web'),
+        ];
+    }
+
     private function generateRandomPasswordDuringHospitalRegistration(int $length = 10): string
     {
         return Str::random($length);
     }
 
-      public function approve(string $uuid)
+    public function approve(string $uuid)
     {
         DB::beginTransaction();
         try {
-            $hospital= Hospital::where('uuid', $uuid)->firstOrFail();
+            $hospital = Hospital::where('uuid', $uuid)->firstOrFail();
 
             $approvedHospital = $this->hospital_service->approveHospital($hospital);
 
@@ -151,11 +196,11 @@ class HospitalRegistrationController extends Controller
         }
     }
 
-       public function reject(string $uuid)
+    public function reject(string $uuid)
     {
         DB::beginTransaction();
         try {
-            $hospital= Hospital::where('uuid', $uuid)->firstOrFail();
+            $hospital = Hospital::where('uuid', $uuid)->firstOrFail();
 
             $rejectedHospital = $this->hospital_service->approveHospital($hospital);
 

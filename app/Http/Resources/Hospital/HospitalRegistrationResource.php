@@ -16,7 +16,7 @@ class HospitalRegistrationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'uuid' => $this->uuid,
             'user' => new UserResource($this->whenLoaded('user')),
@@ -41,9 +41,15 @@ class HospitalRegistrationResource extends JsonResource
             "created_at" => formatDate($this->created_at),
             "updated_at" => formatDate($this->updated_at),
             'departments' => HospitalDepartmentResource::collection($this->departments),
-            'contacts'       => HospitalContactResource::collection($this->contacts),
-            'services'       => HospitalServiceResource::collection($this->services),
+            'contacts' => HospitalContactResource::collection($this->contacts),
+            'services' => HospitalServiceResource::collection($this->services),
             'operating_ours' => OperatingHourResource::collection($this->operatingHours),
         ];
+        if (isset($this->authorization_url)) {
+            $data['authorization_url'] = $this->authorization_url;
+            $data['access_code'] = $this->access_code;
+            $data['reference'] = $this->reference;
+        }
+        return $data;
     }
 }
