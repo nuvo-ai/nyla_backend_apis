@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('subscriptions', function (Blueprint $table) {
             $table->boolean('is_trial')->default(false)->after('status');
-            $table->timestamp('trial_ends_at')->nullable()->after('is_trail');
+            $table->timestamp('trial_ends_at')->nullable()->after('is_trial');
             $table->boolean('converted_to_paid')->default(false)->after('trial_ends_at');
         });
     }
