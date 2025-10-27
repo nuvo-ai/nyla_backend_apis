@@ -304,6 +304,9 @@ Route::prefix('hospital')->as('hospital.')->group(function () {
 Route::prefix('pharmacy')->as('pharmacy.')->group(function () {
     Route::post('/register', [PharmacyRegistrationController::class, 'registerPharmacy'])->name('register');
 });
+ // Getting Plans during portal registration
+Route::get('onboarding/billings/plans/hospital', [PlanController::class, 'hospitalPlan'])->name('onboarding.billings.plans.hospital');
+Route::get('onboarding/billings/plans/pharmacy', [PlanController::class, 'pharmacyPlan'])->name('onboarding.billings.plans.pharmacy');
 
 Route::get('/pusher/config', function () {
     return response()->json([
