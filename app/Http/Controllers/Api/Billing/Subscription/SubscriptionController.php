@@ -65,10 +65,17 @@ class SubscriptionController extends Controller
 
             $paymentData = $this->subscription_service->verifyTransaction($reference);
 
-            $user    = User::find($paymentData['metadata']['user_id'] ?? null);
-            $plan_id = $paymentData['metadata']['plan_id'] ?? null;
-            $platform = $paymentData['metadata']['platform'] ?? 'web';
-            $portal   = $paymentData['metadata']['portal'] ?? 'pharmacy';
+            $metadata = $paymentData['metadata'] ?? []; // Extract metadata safely
+            $user     = User::find($metadata['user_id'] ?? null);
+            $plan_id  = $metadata['plan_id'] ?? null;
+            $platform = $metadata['platform'] ?? 'web';
+            $portal   = $metadata['portal'] ?? 'pharmacy';
+
+            // **NEW: Check for the onboarding status from metadata**
+            $isOnboarding = $metadata['is_onboarding'] ?? false;
+
+            // NEW: The frontend can send the desired redirect URL in metadata
+            $customRedirectUrl = $metadata['redirect_url'] ?? null;
 
             if (!$user || !$plan_id) {
                 throw new Exception('User or Plan ID missing from metadata');
@@ -81,8 +88,14 @@ class SubscriptionController extends Controller
                 $this->subscription_service->createSubscription($user, $plan_id, $paymentData);
             }
 
-            // Decide redirect URL
-            if ($platform === 'web') {
+            // 1. Prioritize custom redirect if provided (ideal for onboarding/dynamic redirects)
+            if ($customRedirectUrl) {
+                // Append success status and reference to the custom URL
+                $separator = strpos($customRedirectUrl, '?') === false ? '?' : '&';
+                $redirectUrl = $customRedirectUrl . "{$separator}status=success&reference={$reference}";
+            }
+            // 2. Fall back to existing logic if no custom URL is provided
+            else if ($platform === 'web') {
                 if ($portal === 'pharmacy') {
                     $redirectUrl = config('app.frontend_url') . "/pharmacy/settings?status=success&reference={$reference}";
                 } elseif ($portal === 'hospital') {
@@ -103,10 +116,6 @@ class SubscriptionController extends Controller
             return redirect($failRedirect);
         }
     }
-
-
-
-
 
     // public function subscribe(Request $request)
     // {
