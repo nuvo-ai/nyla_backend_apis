@@ -35,12 +35,12 @@ class SubscriptionController extends Controller
 
     public function initialize(Request $request)
     {
-        // dd($request->all());
         try {
             $user = $request->user();
             $this->subscription_service->validate($request->all());
 
             $init = $this->subscription_service->initializePayment($user, $request->all());
+            dd($init);
             $this->subscription_service->getTrialDays($user, $request->input('plan_id'));
             return ApiHelper::validResponse("Payment initialized", [
                 'authorization_url' => $init['authorization_url'],

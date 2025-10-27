@@ -1,0 +1,1 @@
+[27-Oct-2025 08:52:48 UTC] PHP Fatal error:  Cannot use App\Models\General\Plan as Plan because the name is already in use in /home/nylaafri/public_html/api.nyla.africa/app/Http/Controllers/Api/Hospital/HospitalRegistrationController.php on line 20
