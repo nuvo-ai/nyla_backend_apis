@@ -58,6 +58,22 @@ class SubscriptionService
     {
         $plan = Plan::findOrFail($plan_id);
 
+        // Check existing active or pending subscription for user
+        $current = Subscription::where('user_id', $user->id)
+            ->whereIn('status', ['active', 'trial'])
+            ->latest('ends_at')
+            ->first();
+
+        if ($current) {
+            if (now()->greaterThanOrEqualTo($current->ends_at)) {
+                $current->update(['status' => 'expired']);
+            } else {
+                throw ValidationException::withMessages([
+                    'active_subscription' => ['We can not create a duplicate of this subscription because it is still active']
+                ]);
+            }
+        }
+
         // Skip duplicate subscriptions
         if (!$isTrial) {
             $subscriptionCode = $paymentData['subscription'] ?? $paymentData['reference'] ?? null;
