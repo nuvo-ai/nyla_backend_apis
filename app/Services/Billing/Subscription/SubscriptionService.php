@@ -98,7 +98,7 @@ class SubscriptionService
             $endsAt = $trialEndsAt;
         }
 
-        return Subscription::create([
+        $subscription = Subscription::create([
             'uuid' => Str::uuid(),
             'user_id' => $user->id,
             'plan_id' => $plan->id,
@@ -117,6 +117,12 @@ class SubscriptionService
             'next_payment_date' => $isTrial ? $trialEndsAt : ($paymentData['next_payment_date'] ?? $plan->getPlanEndsAt()),
             'meta' => $paymentData ? json_encode($paymentData) : null,
         ]);
+
+        if ($isTrial) {
+            $this->applyFreeTrial($subscription, $user);
+        }
+
+        return $subscription;
     }
 
 
@@ -143,13 +149,17 @@ class SubscriptionService
         });
     }
 
-    public function applyFreeTrialToHospital(Subscription $subscription, $user)
+    public function applyFreeTrial(Subscription $subscription, $user)
     {
         $trialDays = $this->getTrialDays($user);
-        $subscription->is_trial = true;
-        $subscription->trial_ends_at = Carbon::now()->addDays($trialDays);
-        $subscription->ends_at = $subscription->trial_ends_at;
-        $subscription->save();
+
+        $subscription->update([
+            'is_trial' => true,
+            'trial_ends_at' => Carbon::now()->addDays($trialDays),
+            'ends_at' => Carbon::now()->addDays($trialDays),
+            'payment_method' => 'free_trial',
+            'status' => 'trial',
+        ]);
 
         return $subscription;
     }
