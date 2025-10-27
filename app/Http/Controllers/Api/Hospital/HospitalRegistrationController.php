@@ -7,6 +7,7 @@ use App\Helpers\ApiHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Hospital\HospitalRegistrationResource;
 use App\Models\Hospital\Hospital;
+use App\Services\Auth\SanctumService;
 use App\Services\Billing\Subscription\SubscriptionService;
 use App\Services\Hospital\HospitalService;
 use App\Services\User\UserService;
@@ -57,9 +58,11 @@ class HospitalRegistrationController extends Controller
         DB::beginTransaction();
 
         try {
+            // Create User
             $userData = $this->requestedUserDataduringHospitalRegistration($request);
             $user = $this->user->create($userData);
 
+            // Create Hospital
             $hospitalData = $request->except([
                 'user_name',
                 'user_email',
@@ -76,36 +79,53 @@ class HospitalRegistrationController extends Controller
             $hospitalData['user_id'] = $user->id;
             $hospital = $this->hospital_service->createHospital($hospitalData);
 
+            // Generate Auth Token
+            $authToken = $user->createToken('hospital_onboarding_token')->plainTextToken;
+
             $responseData = [
                 'hospital' => new HospitalRegistrationResource($hospital),
+                'auth_token' => $authToken,
             ];
 
+            // Handle Free Trial
             if ($request->payment_method === 'free_trial') {
-                $this->subscription_service->createSubscription(
+                $subscription = $this->subscription_service->createSubscription(
                     $user,
                     $request->input('plan_id'),
                     [],
                     true // trial mode
                 );
 
-                $responseData['free_trial'] = true;
+                if (!$subscription) {
+                    throw new Exception("Free trial subscription creation failed.");
+                }
 
-                DB::commit();
-                return ApiHelper::validResponse("Hospital created successfully (Free Trial)", $responseData);
-            } else {
+                $responseData['free_trial'] = true;
+                $message = "Hospital created successfully (Free Trial)";
+            }
+            // Handle Paid Subscription
+            else {
                 $subscriptionData = $this->requestedSubscriptionDataDuringHospitalRegistration($request);
                 $init = $this->subscription_service->initializePayment($user, $subscriptionData);
+
+                // Validate response before commit
+                if (empty($init['authorization_url']) || empty($init['reference'])) {
+                    throw new Exception("Payment initialization failed.");
+                }
 
                 $responseData = array_merge($responseData, [
                     'free_trial' => false,
                     'authorization_url' => $init['authorization_url'],
-                    'access_code' => $init['access_code'],
+                    'access_code' => $init['access_code'] ?? null,
                     'reference' => $init['reference'],
                 ]);
 
-                DB::commit();
-                return ApiHelper::validResponse("Hospital created successfully", $responseData);
+                $message = "Hospital created successfully";
             }
+
+            // Commit only when ALL succeeds
+            DB::commit();
+            return ApiHelper::validResponse($message, $responseData);
         } catch (ValidationException $e) {
             DB::rollBack();
             return ApiHelper::inputErrorResponse($e->getMessage(), ApiConstants::VALIDATION_ERR_CODE);
@@ -114,6 +134,7 @@ class HospitalRegistrationController extends Controller
             return ApiHelper::problemResponse("An error occurred during hospital registration.", 500, null, $e);
         }
     }
+
 
 
 
