@@ -78,7 +78,7 @@ class HospitalRegistrationController extends Controller
             $hospital = $this->hospital_service->createHospital($hospital_data);
 
             // Create subscription
-            if ($request->free_trial) {
+            if ($request->payment_method === 'free_trial') {
                 $subscription = $this->subscription_service->createSubscription(
                     $user,
                     $request->input('plan_id'),
