@@ -60,7 +60,7 @@ class HospitalRegistrationController extends Controller
             $userData = $this->requestedUserDataduringHospitalRegistration($request);
             $user = $this->user->create($userData);
 
-            $hospital_data = $request->except([
+            $hospitalData = $request->except([
                 'user_name',
                 'user_email',
                 'user_phone',
@@ -70,52 +70,51 @@ class HospitalRegistrationController extends Controller
                 'billing_email',
                 'payment_method',
                 'plan_id',
-                'platform',
+                'platform'
             ]);
 
-            $hospital_data['user_id'] = $user->id;
+            $hospitalData['user_id'] = $user->id;
+            $hospital = $this->hospital_service->createHospital($hospitalData);
 
-            $hospital = $this->hospital_service->createHospital($hospital_data);
+            $responseData = [
+                'hospital' => new HospitalRegistrationResource($hospital),
+            ];
 
-            // Create subscription
             if ($request->payment_method === 'free_trial') {
-                $subscription = $this->subscription_service->createSubscription(
+                $this->subscription_service->createSubscription(
                     $user,
                     $request->input('plan_id'),
                     [],
                     true // trial mode
                 );
 
-                $responseData = [
-                    'hospital' => new HospitalRegistrationResource($hospital),
-                    'free_trial' => true,
-                ];
+                $responseData['free_trial'] = true;
+
+                DB::commit();
+                return ApiHelper::validResponse("Hospital created successfully (Free Trial)", $responseData);
             } else {
                 $subscriptionData = $this->requestedSubscriptionDataDuringHospitalRegistration($request);
                 $init = $this->subscription_service->initializePayment($user, $subscriptionData);
 
-                $responseData = [
-                    'hospital' => new HospitalRegistrationResource($hospital),
+                $responseData = array_merge($responseData, [
                     'free_trial' => false,
                     'authorization_url' => $init['authorization_url'],
                     'access_code' => $init['access_code'],
                     'reference' => $init['reference'],
-                ];
+                ]);
+
+                DB::commit();
+                return ApiHelper::validResponse("Hospital created successfully", $responseData);
             }
-
-            return ApiHelper::validResponse("Hospital created successfully", $responseData);
-
-            DB::commit();
-            return ApiHelper::validResponse("Hospital created successfully", HospitalRegistrationResource::make($hospital));
         } catch (ValidationException $e) {
             DB::rollBack();
-            $message = $e->getMessage() ?: $this->serverErrorMessage;
-            return ApiHelper::inputErrorResponse($message, ApiConstants::VALIDATION_ERR_CODE, null, $e);
+            return ApiHelper::inputErrorResponse($e->getMessage(), ApiConstants::VALIDATION_ERR_CODE);
         } catch (Exception $e) {
             DB::rollBack();
-            return ApiHelper::problemResponse($this->serverErrorMessage, ApiConstants::SERVER_ERR_CODE, null, $e);
+            return ApiHelper::problemResponse("An error occurred during hospital registration.", 500, null, $e);
         }
     }
+
 
 
 
