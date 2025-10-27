@@ -35,12 +35,12 @@ class SubscriptionController extends Controller
 
     public function initialize(Request $request)
     {
+        // dd($request->all());
         try {
             $user = $request->user();
             $this->subscription_service->validate($request->all());
 
             $init = $this->subscription_service->initializePayment($user, $request->all());
-            dd($init);
             $this->subscription_service->getTrialDays($user, $request->input('plan_id'));
             return ApiHelper::validResponse("Payment initialized", [
                 'authorization_url' => $init['authorization_url'],
@@ -56,66 +56,66 @@ class SubscriptionController extends Controller
 
 
     public function handleCallback(Request $request)
-    {
-        try {
-            $reference = $request->query('reference');
-            if (!$reference) {
-                throw new Exception('Reference missing from callback');
-            }
+{
+    try {
+        $reference = $request->query('reference');
+        if (!$reference) {
+            throw new Exception('Reference missing from callback');
+        }
 
-            $paymentData = $this->subscription_service->verifyTransaction($reference);
+        $paymentData = $this->subscription_service->verifyTransaction($reference);
 
-            $metadata = $paymentData['metadata'] ?? []; // Extract metadata safely
-            $user     = User::find($metadata['user_id'] ?? null);
-            $plan_id  = $metadata['plan_id'] ?? null;
-            $platform = $metadata['platform'] ?? 'web';
-            $portal   = $metadata['portal'] ?? 'pharmacy';
+        $metadata = $paymentData['metadata'] ?? []; // Extract metadata safely
+        $user     = User::find($metadata['user_id'] ?? null);
+        $plan_id  = $metadata['plan_id'] ?? null;
+        $platform = $metadata['platform'] ?? 'web';
+        $portal   = $metadata['portal'] ?? 'pharmacy';
+        
+        $isOnboarding = $metadata['is_onboarding'] ?? false; 
+        
+        // NEW: The frontend can send the desired redirect URL in metadata
+        $customRedirectUrl = $metadata['redirect_url'] ?? null; 
 
-            // **NEW: Check for the onboarding status from metadata**
-            $isOnboarding = $metadata['is_onboarding'] ?? false;
+        if (!$user || !$plan_id) {
+            throw new Exception('User or Plan ID missing from metadata');
+        }
 
-            // NEW: The frontend can send the desired redirect URL in metadata
-            $customRedirectUrl = $metadata['redirect_url'] ?? null;
+        $subscriptionCode = $paymentData['subscription'] ?? $paymentData['reference'];
+        $existing = Subscription::where('subscription_code', $subscriptionCode)->first();
 
-            if (!$user || !$plan_id) {
-                throw new Exception('User or Plan ID missing from metadata');
-            }
+        if (!$existing) {
+            $this->subscription_service->createSubscription($user, $plan_id, $paymentData);
+        }
 
-            $subscriptionCode = $paymentData['subscription'] ?? $paymentData['reference'];
-            $existing = Subscription::where('subscription_code', $subscriptionCode)->first();
+        // 1. Prioritize custom redirect if provided (ideal for onboarding/dynamic redirects)
+        if ($customRedirectUrl) {
+            // Append success status and reference to the custom URL
+            $separator = strpos($customRedirectUrl, '?') === false ? '?' : '&';
+            $redirectUrl = $customRedirectUrl . "{$separator}status=success&reference={$reference}";
 
-            if (!$existing) {
-                $this->subscription_service->createSubscription($user, $plan_id, $paymentData);
-            }
-
-            // 1. Prioritize custom redirect if provided (ideal for onboarding/dynamic redirects)
-            if ($customRedirectUrl) {
-                // Append success status and reference to the custom URL
-                $separator = strpos($customRedirectUrl, '?') === false ? '?' : '&';
-                $redirectUrl = $customRedirectUrl . "{$separator}status=success&reference={$reference}";
-            }
-            // 2. Fall back to existing logic if no custom URL is provided
-            else if ($platform === 'web') {
-                if ($portal === 'pharmacy') {
-                    $redirectUrl = config('app.frontend_url') . "/pharmacy/settings?status=success&reference={$reference}";
-                } elseif ($portal === 'hospital') {
-                    $redirectUrl = config('app.frontend_url') . "/hospital/settings?role=admin&status=success&reference={$reference}";
-                } else {
-                    $redirectUrl = config('app.frontend_url') . "/settings?status=success&reference={$reference}";
-                }
-            } elseif ($platform === 'app') {
-                $redirectUrl = config('app.mobile_deeplink') . "?status=success&reference={$reference}";
+        } 
+        // 2. Fall back to existing logic if no custom URL is provided
+        else if ($platform === 'web') {
+            if ($portal === 'pharmacy') {
+                $redirectUrl = config('app.frontend_url') . "/pharmacy/settings?status=success&reference={$reference}";
+            } elseif ($portal === 'hospital') {
+                $redirectUrl = config('app.frontend_url') . "/hospital/settings?role=admin&status=success&reference={$reference}";
             } else {
                 $redirectUrl = config('app.frontend_url') . "/settings?status=success&reference={$reference}";
             }
-
-            return redirect($redirectUrl);
-        } catch (Exception $e) {
-            // fallback failed redirect
-            $failRedirect = config('app.frontend_url') . "/settings?status=failed";
-            return redirect($failRedirect);
+        } elseif ($platform === 'app') {
+            $redirectUrl = config('app.mobile_deeplink') . "?status=success&reference={$reference}";
+        } else {
+            $redirectUrl = config('app.frontend_url') . "/settings?status=success&reference={$reference}";
         }
+
+        return redirect($redirectUrl);
+    } catch (Exception $e) {
+        // fallback failed redirect
+        $failRedirect = config('app.frontend_url') . "/settings?status=failed";
+        return redirect($failRedirect);
     }
+}
 
     // public function subscribe(Request $request)
     // {
