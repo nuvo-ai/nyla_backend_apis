@@ -107,6 +107,10 @@ class HospitalRegistrationController extends Controller
             else {
                 $subscriptionData = $this->requestedSubscriptionDataDuringHospitalRegistration($request);
                 $subscriptionData['redirect_url'] = $request->input('redirect_url');
+                $subscriptionData['metadata'] = [
+                    'platform' => $request->input('platform'),
+                    'portal' => $request->input('portal'),
+                ];
                 $init = $this->subscription_service->initializePayment($user, $subscriptionData);
 
                 // Validate response before commit

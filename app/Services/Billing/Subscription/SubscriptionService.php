@@ -37,17 +37,23 @@ class SubscriptionService
     {
         $plan = Plan::findOrFail($data['plan_id']);
 
+        // Merge all metadata safely, preserving frontend values
+        $metadata = array_merge([
+            'plan_id'  => $plan->id,
+            'portal'   => $data['portal'] ?? 'hospital',
+            'platform' => $data['platform'] ?? 'hospital_onboarding',
+            'redirect_url' => $data['redirect_url'] ?? '',
+        ], $data['metadata'] ?? []);
+
+        // Initialize payment with full metadata
         return $this->paystack->initializePayment(
             $user,
             $plan->amount * 100,
             $plan->plan_code,
-            [
-                'plan_id'  => $plan->id,
-                'portal'   => $data['portal']   ?? 'pharmacy',
-                'platform' => $data['platform'] ?? 'web',
-            ]
+            $metadata
         );
     }
+
 
     public function verifyTransaction(string $reference)
     {
