@@ -119,7 +119,6 @@ class HospitalRegistrationController extends Controller
                     'authorization_url' => $init['authorization_url'],
                     'access_code' => $init['access_code'] ?? null,
                     'reference' => $init['reference'],
-                    'subscription_data' => $init,
                 ]);
 
                 $message = "Hospital created successfully";

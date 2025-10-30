@@ -49,7 +49,6 @@ class HospitalRegistrationResource extends JsonResource
             $data['authorization_url'] = $this->authorization_url;
             $data['access_code'] = $this->access_code;
             $data['reference'] = $this->reference;
-            $data['subscription_data'] = $this->subscription_data;
         }
         return $data;
     }

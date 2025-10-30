@@ -45,7 +45,6 @@ class SubscriptionService
                 'plan_id'  => $plan->id,
                 'portal'   => $data['portal']   ?? 'pharmacy',
                 'platform' => $data['platform'] ?? 'web',
-                'redirect_url' => $data['redirect_url'] ?? null,
             ]
         );
     }

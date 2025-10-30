@@ -65,16 +65,12 @@ class SubscriptionController extends Controller
 
             $paymentData = $this->subscription_service->verifyTransaction($reference);
 
-            $metadata = $paymentData['metadata'] ?? []; // Extract metadata safely
+            $metadata = $paymentData['metadata'] ?? [];
             $user     = User::find($metadata['user_id'] ?? null);
             $plan_id  = $metadata['plan_id'] ?? null;
             $platform = $metadata['platform'] ?? 'web';
             $portal   = $metadata['portal'] ?? 'pharmacy';
-
             $isOnboarding = $metadata['is_onboarding'] ?? false;
-
-            // NEW: The frontend can send the desired redirect URL in metadata
-            $customRedirectUrl = $metadata['redirect_url'] ?? null;
 
             if (!$user || !$plan_id) {
                 throw new Exception('User or Plan ID missing from metadata');
@@ -87,34 +83,44 @@ class SubscriptionController extends Controller
                 $this->subscription_service->createSubscription($user, $plan_id, $paymentData);
             }
 
-            // Prioritize custom redirect if provided (ideal for onboarding/dynamic redirects)
-            if ($customRedirectUrl) {
+            /**
+             * Handle redirect statically — no need to receive from frontend.
+             */
+            switch ($platform) {
+                case 'hospital_onboarding':
+                    $redirectUrl = config('app.frontend_url') . "/registration-confirmation?type=hospital&status=success&reference={$reference}";
+                    break;
 
-                $separator = strpos($customRedirectUrl, '?') === false ? '?' : '&';
-                $redirectUrl = $customRedirectUrl . "{$separator}status=success&reference={$reference}";
-            }
-            // Fall back to existing logic if no custom URL is provided
-            else if ($platform === 'web') {
-                if ($portal === 'pharmacy') {
-                    $redirectUrl = config('app.frontend_url') . "/pharmacy/settings?status=success&reference={$reference}";
-                } elseif ($portal === 'hospital') {
-                    $redirectUrl = config('app.frontend_url') . "/hospital/settings?role=admin&status=success&reference={$reference}";
-                } else {
+                case 'pharmacy_onboarding':
+                    $redirectUrl = config('app.frontend_url') . "/registration-confirmation?type=pharmacy&status=success&reference={$reference}";
+                    break;
+
+                case 'web':
+                    if ($portal === 'pharmacy') {
+                        $redirectUrl = config('app.frontend_url') . "/pharmacy/settings?status=success&reference={$reference}";
+                    } elseif ($portal === 'hospital') {
+                        $redirectUrl = config('app.frontend_url') . "/hospital/settings?role=admin&status=success&reference={$reference}";
+                    } else {
+                        $redirectUrl = config('app.frontend_url') . "/settings?status=success&reference={$reference}";
+                    }
+                    break;
+
+                case 'app':
+                    $redirectUrl = config('app.mobile_deeplink') . "?status=success&reference={$reference}";
+                    break;
+
+                default:
                     $redirectUrl = config('app.frontend_url') . "/settings?status=success&reference={$reference}";
-                }
-            } elseif ($platform === 'app') {
-                $redirectUrl = config('app.mobile_deeplink') . "?status=success&reference={$reference}";
-            } else {
-                $redirectUrl = config('app.frontend_url') . "/settings?status=success&reference={$reference}";
+                    break;
             }
 
             return redirect($redirectUrl);
         } catch (Exception $e) {
-            // fallback failed redirect
             $failRedirect = config('app.frontend_url') . "/settings?status=failed";
             return redirect($failRedirect);
         }
     }
+
 
     // public function subscribe(Request $request)
     // {
