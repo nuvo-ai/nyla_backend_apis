@@ -49,8 +49,8 @@ class PaystackService
             'callback_url' => route('billings.callback'),
             'metadata' => array_merge([
                 'user_id'  => $user->id,
-                'platform' => 'web',
-                'portal'   => 'hospital',
+                'platform' => $metadata['platform'] ?? 'web',
+                'portal'   => $metadata['portal'] ?? 'hospital',
             ], $metadata, [
                 'redirect_url' => $redirectUrl,
             ]),
