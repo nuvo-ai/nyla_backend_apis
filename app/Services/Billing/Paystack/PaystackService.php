@@ -28,15 +28,32 @@ class PaystackService
 
     public function initializePayment($user, $amount, $planCode = null, array $metadata = [])
     {
+        $redirectUrl = null;
+        if (isset($metadata['metadata'])) {
+            $metaInput = is_string($metadata['metadata'])
+                ? json_decode($metadata['metadata'], true)
+                : $metadata['metadata'];
+
+            if (!empty($metaInput['redirect_url'])) {
+                $redirectUrl = $metaInput['redirect_url'];
+            }
+            unset($metadata['metadata']);
+        } elseif (!empty($metadata['redirect_url'])) {
+            $redirectUrl = $metadata['redirect_url'];
+        }
+
+        // ✅ Merge default metadata with the provided values
         $payload = [
             'email' => $user->email,
             'amount' => $amount,
             'callback_url' => route('billings.callback'),
             'metadata' => array_merge([
-                'user_id' => $user->id,
+                'user_id'  => $user->id,
                 'platform' => 'web',
                 'portal'   => 'hospital',
-            ], $metadata),
+            ], $metadata, [
+                'redirect_url' => $redirectUrl,
+            ]),
         ];
 
         if ($planCode) {
@@ -54,6 +71,7 @@ class PaystackService
 
         return $json['data'];
     }
+
 
 
     public function verifyTransaction(string $reference)

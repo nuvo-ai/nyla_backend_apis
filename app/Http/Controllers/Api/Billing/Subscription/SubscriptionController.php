@@ -56,66 +56,65 @@ class SubscriptionController extends Controller
 
 
     public function handleCallback(Request $request)
-{
-    try {
-        $reference = $request->query('reference');
-        if (!$reference) {
-            throw new Exception('Reference missing from callback');
-        }
+    {
+        try {
+            $reference = $request->query('reference');
+            if (!$reference) {
+                throw new Exception('Reference missing from callback');
+            }
 
-        $paymentData = $this->subscription_service->verifyTransaction($reference);
+            $paymentData = $this->subscription_service->verifyTransaction($reference);
 
-        $metadata = $paymentData['metadata'] ?? []; // Extract metadata safely
-        $user     = User::find($metadata['user_id'] ?? null);
-        $plan_id  = $metadata['plan_id'] ?? null;
-        $platform = $metadata['platform'] ?? 'web';
-        $portal   = $metadata['portal'] ?? 'pharmacy';
-        
-        $isOnboarding = $metadata['is_onboarding'] ?? false; 
-        
-        // NEW: The frontend can send the desired redirect URL in metadata
-        $customRedirectUrl = $metadata['redirect_url'] ?? null; 
+            $metadata = $paymentData['metadata'] ?? []; // Extract metadata safely
+            $user     = User::find($metadata['user_id'] ?? null);
+            $plan_id  = $metadata['plan_id'] ?? null;
+            $platform = $metadata['platform'] ?? 'web';
+            $portal   = $metadata['portal'] ?? 'pharmacy';
 
-        if (!$user || !$plan_id) {
-            throw new Exception('User or Plan ID missing from metadata');
-        }
+            $isOnboarding = $metadata['is_onboarding'] ?? false;
 
-        $subscriptionCode = $paymentData['subscription'] ?? $paymentData['reference'];
-        $existing = Subscription::where('subscription_code', $subscriptionCode)->first();
+            // NEW: The frontend can send the desired redirect URL in metadata
+            $customRedirectUrl = $metadata['redirect_url'] ?? null;
 
-        if (!$existing) {
-            $this->subscription_service->createSubscription($user, $plan_id, $paymentData);
-        }
+            if (!$user || !$plan_id) {
+                throw new Exception('User or Plan ID missing from metadata');
+            }
 
-        // 1. Prioritize custom redirect if provided (ideal for onboarding/dynamic redirects)
-        if ($customRedirectUrl) {
-            // Append success status and reference to the custom URL
-            $separator = strpos($customRedirectUrl, '?') === false ? '?' : '&';
-            $redirectUrl = $customRedirectUrl . "{$separator}status=success&reference={$reference}";
+            $subscriptionCode = $paymentData['subscription'] ?? $paymentData['reference'];
+            $existing = Subscription::where('subscription_code', $subscriptionCode)->first();
 
-        } 
-        // 2. Fall back to existing logic if no custom URL is provided
-        else if ($platform === 'web') {
-            if ($portal === 'pharmacy') {
-                $redirectUrl = config('app.frontend_url') . "/pharmacy/settings?status=success&reference={$reference}";
-            } elseif ($portal === 'hospital') {
-                $redirectUrl = config('app.frontend_url') . "/hospital/settings?role=admin&status=success&reference={$reference}";
+            if (!$existing) {
+                $this->subscription_service->createSubscription($user, $plan_id, $paymentData);
+            }
+
+            // Prioritize custom redirect if provided (ideal for onboarding/dynamic redirects)
+            if ($customRedirectUrl) {
+
+                $separator = strpos($customRedirectUrl, '?') === false ? '?' : '&';
+                $redirectUrl = $customRedirectUrl . "{$separator}status=success&reference={$reference}";
+            }
+            // Fall back to existing logic if no custom URL is provided
+            else if ($platform === 'web') {
+                if ($portal === 'pharmacy') {
+                    $redirectUrl = config('app.frontend_url') . "/pharmacy/settings?status=success&reference={$reference}";
+                } elseif ($portal === 'hospital') {
+                    $redirectUrl = config('app.frontend_url') . "/hospital/settings?role=admin&status=success&reference={$reference}";
+                } else {
+                    $redirectUrl = config('app.frontend_url') . "/settings?status=success&reference={$reference}";
+                }
+            } elseif ($platform === 'app') {
+                $redirectUrl = config('app.mobile_deeplink') . "?status=success&reference={$reference}";
             } else {
                 $redirectUrl = config('app.frontend_url') . "/settings?status=success&reference={$reference}";
             }
-        } elseif ($platform === 'app') {
-            $redirectUrl = config('app.mobile_deeplink') . "?status=success&reference={$reference}";
-        } else {
-            $redirectUrl = config('app.frontend_url') . "/settings?status=success&reference={$reference}";
-        }
 
-        return redirect($redirectUrl);
-    } catch (Exception $e) {
-        // fallback failed redirect
-        $failRedirect = config('app.frontend_url') . "/settings?status=failed";
-        return redirect($failRedirect);
+            return redirect($redirectUrl);
+        } catch (Exception $e) {
+            // fallback failed redirect
+            $failRedirect = config('app.frontend_url') . "/settings?status=failed";
+            return redirect($failRedirect);
+        }
     }
-}
 
     // public function subscribe(Request $request)
     // {
